@@ -28,15 +28,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Team member can register via one-time invite token link, token is consumed after use, and invalid/used tokens show appropriate error
   3. All 8 database tables exist with RLS enabled, role-based access policies enforced (admin=all, team=assigned, client=slug-gated), and storage bucket is private
   4. Every page uses Poppins font, black/white color scheme, animated status dots, no shadows/gradients, and is functional at 375px width
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 01-01: Database schema, RLS policies, indexes, and Supabase Storage bucket
-- [ ] 01-02: Supabase SSR infrastructure — three-client pattern, middleware, cookie-based auth
-- [ ] 01-03: Admin login flow, session management, and route protection
-- [ ] 01-04: Team member invite registration flow with token consumption
-- [ ] 01-05: Global design system — Poppins, color tokens, status dots, responsive base
+- [ ] 01-01: Database schema, RLS policies, indexes, and Supabase Storage bucket (wave 1)
+- [ ] 01-02: Supabase SSR infrastructure — three-client pattern, middleware, cookie-based auth (wave 2)
+- [ ] 01-03: Admin login flow, session management, and route protection (wave 3)
+- [ ] 01-04: Team member invite registration flow with token consumption (wave 3)
+- [ ] 01-05: Global design system — Poppins, color tokens, status dots, responsive base (wave 1)
 
 ### Phase 2: Admin Core — Client, Project, and Task Management
 **Goal**: Admin can create and manage clients, projects, and tasks with full CRUD, file uploads, team assignment, and dashboard metrics
@@ -105,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation — Database, Auth, and Security | 0/5 | Not started | - |
+| 1. Foundation — Database, Auth, and Security | 0/5 | Planned | - |
 | 2. Admin Core — Client, Project, and Task Management | 0/7 | Not started | - |
 | 3. Team Workflow — Task Dashboard and Editing | 0/5 | Not started | - |
 | 4. Client Portal — Public Read-Only Views | 0/5 | Not started | - |

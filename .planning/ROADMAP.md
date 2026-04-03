@@ -31,11 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 01-01: Database schema, RLS policies, indexes, and Supabase Storage bucket (wave 1)
-- [ ] 01-02: Supabase SSR infrastructure — three-client pattern, middleware, cookie-based auth (wave 2)
-- [ ] 01-03: Admin login flow, session management, and route protection (wave 3)
-- [ ] 01-04: Team member invite registration flow with token consumption (wave 3)
-- [ ] 01-05: Global design system — Poppins, color tokens, status dots, responsive base (wave 1)
+- [x] 01-01: Database schema, RLS policies, indexes, and Supabase Storage bucket (wave 1)
+- [x] 01-02: Supabase SSR infrastructure — three-client pattern, middleware, cookie-based auth (wave 2)
+- [x] 01-03: Admin login flow, session management, and route protection (wave 3)
+- [x] 01-04: Team member invite registration flow with token consumption (wave 3)
+- [x] 01-05: Global design system — Poppins, color tokens, status dots, responsive base (wave 1)
 
 ### Phase 2: Admin Core — Client, Project, and Task Management
 **Goal**: Admin can create and manage clients, projects, and tasks with full CRUD, file uploads, team assignment, and dashboard metrics

@@ -7,23 +7,23 @@
 
 ### Database & Security
 
-- [ ] **DB-01**: Database schema includes all 8 tables: clients, projects, tasks, task_assignments, comments, team_members, invite_tokens, notifications
-- [ ] **DB-02**: RLS enabled on all tables with role-aware policies (admin=all, team=assigned-only, client=slug-gated)
-- [ ] **DB-03**: Supabase Storage bucket created for design files (private, not public)
-- [ ] **DB-04**: Storage RLS policies restrict file access to authenticated users and slug-validated portal access
-- [ ] **DB-05**: Indexes on all columns used in RLS policies (client_id, project_id, assigned_to, team_member_id)
-- [ ] **DB-06**: Client slug is cryptographically random (12+ chars) and unique
+- [x] **DB-01**: Database schema includes all 8 tables: clients, projects, tasks, task_assignments, comments, team_members, invite_tokens, notifications
+- [x] **DB-02**: RLS enabled on all tables with role-aware policies (admin=all, team=assigned-only, client=slug-gated)
+- [x] **DB-03**: Supabase Storage bucket created for design files (private, not public)
+- [x] **DB-04**: Storage RLS policies restrict file access to authenticated users and slug-validated portal access
+- [x] **DB-05**: Indexes on all columns used in RLS policies (client_id, project_id, assigned_to, team_member_id)
+- [x] **DB-06**: Client slug is cryptographically random (12+ chars) and unique
 
 ### Authentication & Authorization
 
-- [ ] **AUTH-01**: Admin can log in with email + password
-- [ ] **AUTH-02**: Admin session persists across browser refresh (cookie-based)
-- [ ] **AUTH-03**: Middleware protects admin and team routes from unauthenticated access
-- [ ] **AUTH-04**: JWT verification uses `getUser()` (not `getSession()`) to prevent session spoofing
-- [ ] **AUTH-05**: Team member registers via one-time invite token from `/invite/[token]` URL
-- [ ] **AUTH-06**: Invite token is consumed (used=true) after successful registration
-- [ ] **AUTH-07**: Invite token page validates token existence and shows appropriate error if used/invalid
-- [ ] **AUTH-08**: Supabase SSR uses three-client pattern (server, browser, middleware) via `@supabase/ssr`
+- [x] **AUTH-01**: Admin can log in with email + password
+- [x] **AUTH-02**: Admin session persists across browser refresh (cookie-based)
+- [x] **AUTH-03**: Middleware protects admin and team routes from unauthenticated access
+- [x] **AUTH-04**: JWT verification uses `getUser()` (not `getSession()`) to prevent session spoofing
+- [x] **AUTH-05**: Team member registers via one-time invite token from `/invite/[token]` URL
+- [x] **AUTH-06**: Invite token is consumed (used=true) after successful registration
+- [x] **AUTH-07**: Invite token page validates token existence and shows appropriate error if used/invalid
+- [x] **AUTH-08**: Supabase SSR uses three-client pattern (server, browser, middleware) via `@supabase/ssr`
 
 ### Admin: Client & Project Management
 
@@ -79,11 +79,11 @@
 
 ### UI/UX
 
-- [ ] **UI-01**: Poppins font used throughout (Google Fonts import)
-- [ ] **UI-02**: Colors follow spec: white bg (#FFFFFF), black text (#111111), button fill (#222222), borders (#E5E5E5), muted text (#888888)
-- [ ] **UI-03**: Status dots: done=#22C55E, in_progress=#FACC15, overdue=#EF4444, todo=#D1D5DB with animated pulse effect
-- [ ] **UI-04**: No box shadows, no gradients, no rounded corners larger than 8px
-- [ ] **UI-05**: Mobile responsive — all pages functional at 375px width
+- [x] **UI-01**: Poppins font used throughout (Google Fonts import)
+- [x] **UI-02**: Colors follow spec: white bg (#FFFFFF), black text (#111111), button fill (#222222), borders (#E5E5E5), muted text (#888888)
+- [x] **UI-03**: Status dots: done=#22C55E, in_progress=#FACC15, overdue=#EF4444, todo=#D1D5DB with animated pulse effect
+- [x] **UI-04**: No box shadows, no gradients, no rounded corners larger than 8px
+- [x] **UI-05**: Mobile responsive — all pages functional at 375px width
 - [ ] **UI-06**: Overdue detection: `posting_date < today AND status != 'done'`
 
 ## v2 Requirements
@@ -122,20 +122,20 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 | Phase 1 | Pending |
-| DB-02 | Phase 1 | Pending |
-| DB-03 | Phase 1 | Pending |
-| DB-04 | Phase 1 | Pending |
-| DB-05 | Phase 1 | Pending |
-| DB-06 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
-| AUTH-06 | Phase 1 | Pending |
-| AUTH-07 | Phase 1 | Pending |
-| AUTH-08 | Phase 1 | Pending |
+| DB-01 | Phase 1 | Complete |
+| DB-02 | Phase 1 | Complete |
+| DB-03 | Phase 1 | Complete |
+| DB-04 | Phase 1 | Complete |
+| DB-05 | Phase 1 | Complete |
+| DB-06 | Phase 1 | Complete |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| AUTH-05 | Phase 1 | Complete |
+| AUTH-06 | Phase 1 | Complete |
+| AUTH-07 | Phase 1 | Complete |
+| AUTH-08 | Phase 1 | Complete |
 | ADMIN-01 | Phase 2 | Pending |
 | ADMIN-02 | Phase 2 | Pending |
 | ADMIN-03 | Phase 2 | Pending |
@@ -173,11 +173,11 @@
 | CLIENT-08 | Phase 4 | Pending |
 | CLIENT-09 | Phase 4 | Pending |
 | CLIENT-10 | Phase 4 | Pending |
-| UI-01 | Phase 1 | Pending |
-| UI-02 | Phase 1 | Pending |
-| UI-03 | Phase 1 | Pending |
-| UI-04 | Phase 1 | Pending |
-| UI-05 | Phase 1 | Pending |
+| UI-01 | Phase 1 | Complete |
+| UI-02 | Phase 1 | Complete |
+| UI-03 | Phase 1 | Complete |
+| UI-04 | Phase 1 | Complete |
+| UI-05 | Phase 1 | Complete |
 | UI-06 | Phase 2 | Pending |
 
 **Coverage:**

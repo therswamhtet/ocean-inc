@@ -60,9 +60,9 @@
 
 - [ ] **NOTIF-01**: Notification records created when team member clicks "Notify Assigner"
 - [ ] **NOTIF-02**: Notification message format: "[Team member name] marked [task title] as done."
-- [ ] **NOTIF-03**: Admin notifications page lists all notifications, marks as read on click
-- [ ] **NOTIF-04**: Unread count badge displayed on bell icon in header
-- [ ] **NOTIF-05**: Notifications shown on admin dashboard (recent list)
+- [x] **NOTIF-03**: Admin notifications page lists all notifications, marks as read on click
+- [x] **NOTIF-04**: Unread count badge displayed on bell icon in header
+- [x] **NOTIF-05**: Notifications shown on admin dashboard (recent list)
 
 ### Client Portal
 
@@ -160,9 +160,9 @@
 | TEAM-08 | Phase 3 | Pending |
 | NOTIF-01 | Phase 3 | Pending |
 | NOTIF-02 | Phase 3 | Pending |
-| NOTIF-03 | Phase 3 | Pending |
-| NOTIF-04 | Phase 3 | Pending |
-| NOTIF-05 | Phase 3 | Pending |
+| NOTIF-03 | Phase 3 | Complete |
+| NOTIF-04 | Phase 3 | Complete |
+| NOTIF-05 | Phase 3 | Complete |
 | CLIENT-01 | Phase 4 | Pending |
 | CLIENT-02 | Phase 4 | Pending |
 | CLIENT-03 | Phase 4 | Pending |

@@ -52,7 +52,7 @@ Each task was committed atomically:
 1. **Task 1: Create team members page with list and inline invite** - `2731f77` (feat)
 2. **Task 2: Create invite token generation server action** - `8afbc4c` (feat)
 
-**Plan metadata:** Pending
+**Plan metadata:** `acb869f` (docs)
 
 ## Files Created/Modified
 - `app/admin/team/page.tsx` - Server component team page querying `team_members` with related `task_assignments(count)` data.

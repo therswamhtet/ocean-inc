@@ -36,14 +36,16 @@ export function PortalShell({ tasks }: PortalShellProps) {
 
   return (
     <section className="space-y-4">
-      <div className="inline-flex w-full rounded-lg border border-border p-1 sm:w-auto">
+      <div className="flex w-full gap-2 sm:inline-flex sm:w-auto" role="tablist">
         {tabLabels.map((tab) => (
           <button
             key={tab}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'flex-1 rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
+              'flex-1 min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
               activeTab === tab
                 ? 'bg-[#222222] text-white'
                 : 'border border-transparent text-foreground hover:bg-muted/40'

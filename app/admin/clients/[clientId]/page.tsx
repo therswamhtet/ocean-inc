@@ -198,45 +198,80 @@ export default async function ClientProjectsPage({
           <p className="text-lg font-medium">No projects yet. Create the first one.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="min-w-full divide-y divide-border text-left text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Month</th>
-                <th className="px-4 py-3 font-medium">Year</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {projects.map((project) => (
-                <tr key={project.id}>
-                  <td className="px-4 py-3 font-medium">
-                    <Link
-                      href={`/admin/clients/${clientId}/projects/${project.id}`}
-                      className="text-foreground underline-offset-4 hover:underline"
-                    >
-                      {project.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
-                  <td className="px-4 py-3">
-                    <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <form action={deleteProjectAction.bind(null, project.id, clientId)}>
-                      <button className="text-sm underline underline-offset-4" type="submit">
-                        Delete
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Desktop table / mobile cards */}
+          <div className="hidden md:block">
+            <div className="overflow-hidden rounded-lg border border-border">
+              <table className="min-w-full divide-y divide-border text-left text-sm">
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Name</th>
+                    <th className="px-4 py-3 font-medium">Month</th>
+                    <th className="px-4 py-3 font-medium">Year</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {projects.map((project) => (
+                    <tr key={project.id}>
+                      <td className="px-4 py-3 font-medium">
+                        <Link
+                          href={`/admin/clients/${clientId}/projects/${project.id}`}
+                          className="text-foreground underline-offset-4 hover:underline"
+                        >
+                          {project.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
+                      <td className="px-4 py-3">
+                        <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <form action={deleteProjectAction.bind(null, project.id, clientId)}>
+                          <button className="text-sm underline underline-offset-4" type="submit">
+                            Delete
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                className="rounded-lg border border-border bg-white p-4 space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <Link
+                    href={`/admin/clients/${clientId}/projects/${project.id}`}
+                    className="text-base font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    {project.name}
+                  </Link>
+                  <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                </div>
+                <div className="flex gap-3 text-sm text-muted-foreground">
+                  <span>{monthName(project.month)} {project.year}</span>
+                </div>
+                <form action={deleteProjectAction.bind(null, project.id, clientId)}>
+                  <button
+                    className="min-h-[44px] w-full rounded-md border border-destructive px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/5"
+                    type="submit"
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

@@ -103,21 +103,23 @@ export default async function AdminLayout({
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-foreground"
+                  className="inline-flex h-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border bg-white text-foreground"
                   aria-label="Open navigation menu"
                 >
                   <Menu className="h-4 w-4" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-white">
-                <SheetHeader>
-                  <SheetTitle>Navigation</SheetTitle>
-                  <SheetDescription>Move between dashboard, clients, and team member management.</SheetDescription>
-                </SheetHeader>
+              <SheetContent side="left" className="w-60 bg-white p-0">
+                <div className="border-b border-border px-6 py-5">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
+                  <h1 className="mt-2 text-lg font-semibold">Admin Console</h1>
+                </div>
 
-                <AdminSidebar mobile />
+                <div className="flex-1 px-4 py-5">
+                  <AdminSidebar mobile />
+                </div>
 
-                <div className="mt-auto border-t border-border pt-4 text-sm">
+                <div className="border-t border-border px-6 py-4 text-sm">
                   <p className="truncate text-foreground">{user.email}</p>
                   <form action={logout} className="mt-3">
                     <button type="submit" className="text-muted-foreground underline underline-offset-4">

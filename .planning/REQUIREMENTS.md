@@ -52,14 +52,14 @@
 - [x] **TEAM-03**: Team member task detail shows read-only: title, briefing (with clickable links), posting date, due date
 - [x] **TEAM-04**: Team member can edit: caption (text area), design file upload
 - [x] **TEAM-05**: Team member can change task status
-- [ ] **TEAM-06**: "Notify Assigner" button creates notification for admin and marks task status as done
+- [x] **TEAM-06**: "Notify Assigner" button creates notification for admin and marks task status as done
 - [ ] **TEAM-07**: Team member RLS ensures they can only see/edit their own assigned tasks
 - [x] **TEAM-08**: Caption field shows "Copy" button; design file shows "Download" button
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Notification records created when team member clicks "Notify Assigner"
-- [ ] **NOTIF-02**: Notification message format: "[Team member name] marked [task title] as done."
+- [x] **NOTIF-01**: Notification records created when team member clicks "Notify Assigner"
+- [x] **NOTIF-02**: Notification message format: "[Team member name] marked [task title] as done."
 - [x] **NOTIF-03**: Admin notifications page lists all notifications, marks as read on click
 - [x] **NOTIF-04**: Unread count badge displayed on bell icon in header
 - [x] **NOTIF-05**: Notifications shown on admin dashboard (recent list)
@@ -155,11 +155,11 @@
 | TEAM-03 | Phase 3 | Complete |
 | TEAM-04 | Phase 3 | Complete |
 | TEAM-05 | Phase 3 | Complete |
-| TEAM-06 | Phase 3 | Pending |
+| TEAM-06 | Phase 3 | Complete |
 | TEAM-07 | Phase 3 | Pending |
 | TEAM-08 | Phase 3 | Complete |
-| NOTIF-01 | Phase 3 | Pending |
-| NOTIF-02 | Phase 3 | Pending |
+| NOTIF-01 | Phase 3 | Complete |
+| NOTIF-02 | Phase 3 | Complete |
 | NOTIF-03 | Phase 3 | Complete |
 | NOTIF-04 | Phase 3 | Complete |
 | NOTIF-05 | Phase 3 | Complete |

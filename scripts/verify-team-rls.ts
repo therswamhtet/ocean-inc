@@ -9,9 +9,69 @@
  * - Test 2: Assigned team user CANNOT read another member's task
  * - Test 3: Assigned team user CAN update their own task caption/status
  * - Test 4: Assigned team user CANNOT update another member's task
+ * 
+ * Environment Setup:
+ * Required env vars (from .env.local or environment):
+ *   - NEXT_PUBLIC_SUPABASE_URL
+ *   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+ *   
+ * Optional env vars:
+ *   - VERIFY_TEST_EMAIL (default: test-team-member@example.com)
+ *   - VERIFY_TEST_PASSWORD (default: test-password-123)
+ *   - VERIFY_OWN_TASK_ID (auto-discovered if not set)
+ *   - VERIFY_OTHER_TASK_ID (auto-discovered if not set)
+ * 
+ * Prerequisites:
+ *   1. Supabase project running with RLS policies applied
+ *   2. At least one team member account with assigned tasks
+ *   3. At least one task assigned to a different team member
+ * 
+ * Usage:
+ *   npm run verify:team-rls
+ *   
+ * Exit codes:
+ *   0 = All tests passed (isolation working correctly)
+ *   1 = One or more tests failed
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+
+// Load environment variables from .env.local
+function loadEnvLocal(): void {
+  try {
+    const envPath = resolve(process.cwd(), '.env.local')
+    const envContent = readFileSync(envPath, 'utf-8')
+    const lines = envContent.split('\n')
+    
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      
+      const eqIndex = trimmed.indexOf('=')
+      if (eqIndex === -1) continue
+      
+      const key = trimmed.slice(0, eqIndex).trim()
+      let value = trimmed.slice(eqIndex + 1).trim()
+      
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1)
+      }
+      
+      if (key && !process.env[key]) {
+        process.env[key] = value
+      }
+    }
+  } catch {
+    // .env.local doesn't exist or can't be read - rely on process.env
+  }
+}
+
+// Load environment variables
+loadEnvLocal()
 
 // Configuration from environment variables with fallbacks
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''

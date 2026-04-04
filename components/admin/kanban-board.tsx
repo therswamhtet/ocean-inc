@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { closestCorners, DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, useDroppable, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
+import { updateTaskStatusAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { KanbanCard } from '@/components/admin/kanban-card'
 import { cn } from '@/lib/utils'
@@ -21,13 +22,6 @@ const columnLabels: Record<TaskStatus, string> = {
   todo: 'To Do',
   in_progress: 'In Progress',
   done: 'Done',
-}
-
-async function updateTaskStatusAction(taskId: string, newStatus: TaskStatus) {
-  void taskId
-  void newStatus
-
-  return { success: true }
 }
 
 function KanbanColumn({

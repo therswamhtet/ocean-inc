@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 
+import { KanbanBoard } from '@/components/admin/kanban-board'
+import { TaskCreateForm } from '@/components/admin/task-create-form'
+import { TaskList } from '@/components/admin/task-list'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -33,32 +36,9 @@ type TaskViewToggleProps = {
   clientId: string
 }
 
-function TaskList({ tasks }: { tasks: TaskRow[]; projectId: string; clientId: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
-      List view loading for {tasks.length} task{tasks.length === 1 ? '' : 's'}.
-    </div>
-  )
-}
-
-function KanbanBoard({ tasks }: { tasks: TaskRow[]; projectId: string; clientId: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
-      Kanban board loading for {tasks.length} task{tasks.length === 1 ? '' : 's'}.
-    </div>
-  )
-}
-
-function TaskCreateForm({ projectId }: { projectId: string; clientId: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-      Task creation form for project {projectId} will load here.
-    </div>
-  )
-}
-
 export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewToggleProps) {
   const [view, setView] = useState<'list' | 'kanban'>('list')
+  const [open, setOpen] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -81,7 +61,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
           ))}
         </div>
 
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>Create Task</Button>
           </DialogTrigger>
@@ -90,15 +70,20 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
               <DialogTitle>Create task</DialogTitle>
               <DialogDescription>Add a new content task to this project.</DialogDescription>
             </DialogHeader>
-            <TaskCreateForm projectId={projectId} clientId={clientId} />
+            <TaskCreateForm
+              projectId={projectId}
+              onSuccess={() => {
+                setOpen(false)
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
       {view === 'list' ? (
-        <TaskList tasks={initialTasks} projectId={projectId} clientId={clientId} />
+        <TaskList tasks={initialTasks} projectId={projectId} />
       ) : (
-        <KanbanBoard tasks={initialTasks} projectId={projectId} clientId={clientId} />
+        <KanbanBoard tasks={initialTasks} projectId={projectId} />
       )}
     </div>
   )

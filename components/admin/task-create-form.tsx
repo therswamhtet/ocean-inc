@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { createTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
@@ -34,16 +35,10 @@ type TaskFormValues = z.infer<typeof taskSchema>
 
 type TaskCreateFormProps = {
   projectId: string
+  onSuccess?: () => void
 }
 
-async function createTaskAction(projectId: string, data: TaskFormValues) {
-  void projectId
-  void data
-
-  return { success: true }
-}
-
-export function TaskCreateForm({ projectId }: TaskCreateFormProps) {
+export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
   const router = useRouter()
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -88,8 +83,9 @@ export function TaskCreateForm({ projectId }: TaskCreateFormProps) {
           designFilePath: '',
         })
         router.refresh()
+        onSuccess?.()
       } else {
-        setMessage('Unable to create task. Please try again.')
+        setMessage(result.error)
       }
     })
   })

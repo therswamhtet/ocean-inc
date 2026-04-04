@@ -13,7 +13,7 @@ Orca Digital is an internal project management tool for a digital marketing agen
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation — Database, Auth, and Security** - Database schema with RLS, Supabase SSR auth infrastructure, and global design system tokens
-- [ ] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
+- [x] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
 - [ ] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
 - [ ] **Phase 4: Client Portal — Public Read-Only Views** - Slug-based portal with Kanban, Calendar, and Timeline views, task detail modal, and secure file downloads
 
@@ -47,7 +47,7 @@ Plans:
   3. Admin can create a task with all fields (title, briefing, caption, design file, posting date, due date, deadline, status), view tasks in list and kanban views, edit all fields, and assign to team members
   4. Admin dashboard displays correct metrics: total active projects, tasks in progress, overdue tasks (posting_date < today AND status != 'done'), and tasks completed this month
   5. Admin can manage team members (view list with task counts, invite by email), copy caption text with one click, download design files, and see URLs in briefing text rendered as clickable links
-**Plans**: TBD
+**Plans**: 8 plans in 4 waves
 
 Plans:
 - [x] 02-01: Client CRUD with auto-generated slug and client list view
@@ -59,7 +59,7 @@ Plans:
 - [x] 02-07: Supabase Storage integration for design file upload/download, caption copy button
 - [x] 02-08: Inbound navigation from client project list rows to the project task management page
 
-**Verification**: Gap-closure plan `02-08` added the missing navigation from the client project list into `/admin/clients/[clientId]/projects/[projectId]`. Re-run `.planning/phases/02-admin-core-client-project-and-task-management/02-VERIFICATION.md` to confirm 7/7 must-haves.
+**Verification**: Passed — 7/7 must-haves verified and the human approval gate is closed. See `.planning/phases/02-admin-core-client-project-and-task-management/02-VERIFICATION.md` and `02-HUMAN-UAT.md`.
 
 ### Phase 3: Team Workflow — Task Dashboard and Editing
 **Goal**: Team members can view their assigned tasks, edit captions, upload design files, change status, and notify admins of completion

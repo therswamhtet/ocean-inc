@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-04-04T06:46:09.954Z"
+stopped_at: Phase 2 approved complete; ready to execute Phase 3
+last_updated: "2026-04-04T07:29:17Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
@@ -92,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Kept clipboard and signed-download behavior in isolated client components so the task detail route can stay server-rendered around them.
 - [Phase 02]: Private design file downloads now standardize on Supabase createSignedUrl(filePath, 60) before opening the file in a new tab.
 - [Phase 02]: Used the existing project name cell as the task-page entry point instead of adding a new action column. — This keeps the table structure unchanged while restoring the intended client → project → task drill-in path.
+- [Phase 02]: Browser smoke testing confirmed the Kanban UI lives on the project task page, not the client project list page; the user approved Phase 2 after that validation.
 
 ### Pending Todos
 
@@ -104,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T06:46:09.949Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-04-04T07:29:17Z
+Stopped at: Phase 2 approved complete; ready to execute Phase 3
 Resume file: None

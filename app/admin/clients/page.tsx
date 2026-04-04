@@ -96,22 +96,30 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       ) : (
         <div className="grid gap-4">
           {clients.map((client) => (
-            <Card key={client.id}>
+            <Card key={client.id} className="transition hover:bg-muted/10">
               <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-2">
+                <Link
+                  href={`/admin/clients/${client.id}`}
+                  className="group flex-1 space-y-2 hover:no-underline"
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('button, a[target]')) return
+                  }}
+                >
                   <div className="flex flex-wrap items-center gap-3">
-                    <Link href={`/admin/clients/${client.id}`} className="text-lg font-semibold underline-offset-4 hover:underline">
+                    <span className="text-lg font-semibold underline-offset-4 group-hover:underline">
                       {client.name}
-                    </Link>
+                    </span>
                     <Badge>{client.activeProjectsCount} active projects</Badge>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     <span>Slug: {client.slug}</span>
-                    <ShareLinkButton slug={client.slug} />
+                    <span onClick={(e) => e.stopPropagation()}>
+                      <ShareLinkButton slug={client.slug} />
+                    </span>
                     <span>Created {format(new Date(client.created_at), 'MMM d, yyyy')}</span>
                   </div>
-                </div>
+                </Link>
 
                 <form action={deleteClientAction.bind(null, client.id)}>
                   <Button type="submit" variant="outline">

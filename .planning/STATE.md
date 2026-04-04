@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-04-04T05:40:49.816Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-04T05:45:50.890Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 12
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 02 (admin-core-client-project-and-task-management) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-04
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01-03 | 3min | 3 tasks | 4 files |
 | Phase 01 P01-04 | 3min | 3 tasks | 3 files |
 | Phase 02 P02 | 1 min | 2 tasks | 2 files |
+| Phase 02 P01 | 4 min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Tailwind CSS 4 with CSS-based config — no tailwind.config.ts file
 - [Phase 02]: Kept /admin/clients/[clientId] as the project list route to match nested client navigation.
 - [Phase 02]: Used local Badge/Dialog wrappers in the page so project CRUD shipped without unrelated UI library churn.
+- [Phase 02]: Client create/delete server actions verify getUser() inside each mutation to enforce auth on every submission.
+- [Phase 02]: Admin sidebar navigation is a client component so active route state can use usePathname while the layout stays server-rendered.
+- [Phase 02]: Client list derives active project counts from a left-joined projects relation without adding new database functions.
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T05:40:33.939Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-04-04T05:45:50.887Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None

@@ -270,3 +270,60 @@ export async function updateTaskStatusAction(taskId: string, newStatus: 'todo' |
     return { success: false, error: error instanceof Error ? error.message : 'Unable to update task status' }
   }
 }
+
+export async function assignTaskToMemberAction(
+  taskId: string,
+  teamMemberId: string | null
+): Promise<StatusResult> {
+  try {
+    const { supabase, projectPath, taskPath } = await getTaskRoute(taskId)
+
+    const { error: deleteError } = await supabase.from('task_assignments').delete().eq('task_id', taskId)
+
+    if (deleteError) {
+      return { success: false, error: deleteError.message }
+    }
+
+    if (teamMemberId) {
+      const { error: insertError } = await supabase.from('task_assignments').insert({
+        task_id: taskId,
+        team_member_id: teamMemberId,
+      })
+
+      if (insertError) {
+        return { success: false, error: insertError.message }
+      }
+    }
+
+    revalidatePath(taskPath)
+    revalidatePath(projectPath)
+    revalidatePath('/admin')
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to update assignment' }
+  }
+}
+
+export async function updateTaskFilePathAction(taskId: string, filePath: string): Promise<StatusResult> {
+  try {
+    const { supabase, projectPath, taskPath } = await getTaskRoute(taskId)
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ design_file_path: filePath })
+      .eq('id', taskId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(taskPath)
+    revalidatePath(projectPath)
+    revalidatePath('/admin')
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to update file path' }
+  }
+}

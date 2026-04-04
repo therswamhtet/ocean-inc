@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-04-04T06:13:37.777Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-04-04T06:21:02.330Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Admins can create and manage social media content tasks, assign them to team members, and give clients a clean read-only view of their project progress — all in one place.
-**Current focus:** Phase 02 — admin-core-client-project-and-task-management
+**Current focus:** Phase 03 — team-workflow-task-dashboard-and-editing
 
 ## Current Position
 
-Phase: 02 (admin-core-client-project-and-task-management) — EXECUTING
-Plan: 6 of 7
-Status: Ready to execute
+Phase: 02 (admin-core-client-project-and-task-management) — COMPLETE
+Plan: 7 of 7
+Status: Ready for Phase 03
 Last activity: 2026-04-04
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████████░] 92%
 | Phase 02 P05 | 1 min | 2 tasks | 3 files |
 | Phase 02 P03 | 13 min | 7 tasks | 16 files |
 | Phase 02 P04 | 5 min | 3 tasks | 4 files |
+| Phase 02 P07 | 1 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Kept the task detail route server-rendered and moved interactive editing into a colocated client component to follow Next.js App Router boundaries.
 - [Phase 02]: Used a local signed-url download helper inside the task form instead of creating a reusable downloader ahead of plan 02-07.
 - [Phase 02]: Escaped briefing HTML before applying linkify because the preview uses dangerouslySetInnerHTML.
+- [Phase 02]: Kept clipboard and signed-download behavior in isolated client components so the task detail route can stay server-rendered around them.
+- [Phase 02]: Private design file downloads now standardize on Supabase createSignedUrl(filePath, 60) before opening the file in a new tab.
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T06:13:21.420Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-04-04T06:21:02.330Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None

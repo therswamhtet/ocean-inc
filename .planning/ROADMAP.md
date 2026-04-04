@@ -13,7 +13,7 @@ Orca Digital is an internal project management tool for a digital marketing agen
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation — Database, Auth, and Security** - Database schema with RLS, Supabase SSR auth infrastructure, and global design system tokens
-- [ ] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
+- [x] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
 - [ ] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
 - [ ] **Phase 4: Client Portal — Public Read-Only Views** - Slug-based portal with Kanban, Calendar, and Timeline views, task detail modal, and secure file downloads
 
@@ -56,7 +56,7 @@ Plans:
 - [x] 02-04: Task detail page with full edit, team member assignment, and briefing link rendering
 - [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
 - [x] 02-06: Team member management — list, task counts, invite generation
-- [ ] 02-07: Supabase Storage integration for design file upload/download, caption copy button
+- [x] 02-07: Supabase Storage integration for design file upload/download, caption copy button
 
 ### Phase 3: Team Workflow — Task Dashboard and Editing
 **Goal**: Team members can view their assigned tasks, edit captions, upload design files, change status, and notify admins of completion
@@ -105,6 +105,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Database, Auth, and Security | 0/5 | Planned | - |
-| 2. Admin Core — Client, Project, and Task Management | 6/7 | In Progress |  |
+| 2. Admin Core — Client, Project, and Task Management | 7/7 | Complete | 2026-04-04 |
 | 3. Team Workflow — Task Dashboard and Editing | 0/5 | Not started | - |
 | 4. Client Portal — Public Read-Only Views | 0/5 | Not started | - |

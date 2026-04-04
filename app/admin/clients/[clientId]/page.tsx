@@ -212,7 +212,14 @@ export default async function ClientProjectsPage({
             <tbody className="divide-y divide-border">
               {projects.map((project) => (
                 <tr key={project.id}>
-                  <td className="px-4 py-3 font-medium text-foreground">{project.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link
+                      href={`/admin/clients/${clientId}/projects/${project.id}`}
+                      className="text-foreground underline-offset-4 hover:underline"
+                    >
+                      {project.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
                   <td className="px-4 py-3">

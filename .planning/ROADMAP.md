@@ -12,8 +12,8 @@ Orca Digital is an internal project management tool for a digital marketing agen
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation — Database, Auth, and Security** - Database schema with RLS, Supabase SSR auth infrastructure, and global design system tokens
-- [x] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
+- [x] **Phase 1: Foundation — Database, Auth, and Security** - Database schema with RLS, Supabase SSR auth infrastructure, and global design system tokens
+- [ ] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
 - [ ] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
 - [ ] **Phase 4: Client Portal — Public Read-Only Views** - Slug-based portal with Kanban, Calendar, and Timeline views, task detail modal, and secure file downloads
 
@@ -57,6 +57,8 @@ Plans:
 - [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
 - [x] 02-06: Team member management — list, task counts, invite generation
 - [x] 02-07: Supabase Storage integration for design file upload/download, caption copy button
+
+**Verification**: `gaps_found` — missing navigation from the client project list into `/admin/clients/[clientId]/projects/[projectId]`. See `.planning/phases/02-admin-core-client-project-and-task-management/02-VERIFICATION.md`.
 
 ### Phase 3: Team Workflow — Task Dashboard and Editing
 **Goal**: Team members can view their assigned tasks, edit captions, upload design files, change status, and notify admins of completion

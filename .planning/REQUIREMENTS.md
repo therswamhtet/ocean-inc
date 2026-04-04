@@ -35,14 +35,14 @@
 
 ### Admin: Task Management
 
-- [x] **ADMIN-06**: Admin can create a task (title, briefing, caption, design file, posting date, due date, deadline, status)
-- [x] **ADMIN-07**: Admin can view project tasks in list view and kanban view
-- [x] **ADMIN-08**: Admin can edit all task fields including title, briefing, caption, dates, status
-- [x] **ADMIN-09**: Admin can assign a task to a team member via dropdown
-- [x] **ADMIN-10**: Admin task detail page shows all fields with full edit capability
-- [x] **ADMIN-11**: Briefing text renders URLs as clickable anchor tags
-- [x] **ADMIN-12**: Design file upload uses Supabase Storage with download capability
-- [x] **ADMIN-13**: Caption field shows a "Copy" button (clipboard copy)
+- [ ] **ADMIN-06**: Admin can create a task (title, briefing, caption, design file, posting date, due date, deadline, status)
+- [ ] **ADMIN-07**: Admin can view project tasks in list view and kanban view
+- [ ] **ADMIN-08**: Admin can edit all task fields including title, briefing, caption, dates, status
+- [ ] **ADMIN-09**: Admin can assign a task to a team member via dropdown
+- [ ] **ADMIN-10**: Admin task detail page shows all fields with full edit capability
+- [ ] **ADMIN-11**: Briefing text renders URLs as clickable anchor tags
+- [ ] **ADMIN-12**: Design file upload uses Supabase Storage with download capability
+- [ ] **ADMIN-13**: Caption field shows a "Copy" button (clipboard copy)
 - [x] **ADMIN-14**: Admin can manage team members: view list, see task counts per member, invite new members by email
 
 ### Team Member: Task Workflow
@@ -141,14 +141,14 @@
 | ADMIN-03 | Phase 2 | Complete |
 | ADMIN-04 | Phase 2 | Complete |
 | ADMIN-05 | Phase 2 | Complete |
-| ADMIN-06 | Phase 2 | Complete |
-| ADMIN-07 | Phase 2 | Complete |
-| ADMIN-08 | Phase 2 | Complete |
-| ADMIN-09 | Phase 2 | Complete |
-| ADMIN-10 | Phase 2 | Complete |
-| ADMIN-11 | Phase 2 | Complete |
-| ADMIN-12 | Phase 2 | Complete |
-| ADMIN-13 | Phase 2 | Complete |
+| ADMIN-06 | Phase 2 | Pending |
+| ADMIN-07 | Phase 2 | Pending |
+| ADMIN-08 | Phase 2 | Pending |
+| ADMIN-09 | Phase 2 | Pending |
+| ADMIN-10 | Phase 2 | Pending |
+| ADMIN-11 | Phase 2 | Pending |
+| ADMIN-12 | Phase 2 | Pending |
+| ADMIN-13 | Phase 2 | Pending |
 | ADMIN-14 | Phase 2 | Complete |
 | TEAM-01 | Phase 3 | Pending |
 | TEAM-02 | Phase 3 | Pending |

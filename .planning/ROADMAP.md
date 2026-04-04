@@ -139,10 +139,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 ### Phase 05.1: UI/UX Polish phase for urgent refinement work discovered mid-milestone (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Fix 12 specific UI/UX issues across admin, team, and portal surfaces — client card improvements, modal/form polish, share/invite fixes, mobile nav repositioning, dashboard enhancements, terminology consistency
+**Requirements**: User-provided (12 requirements from /gsd-plan-phase 05.1)
 **Depends on:** Phase 5
-**Plans:** 0 plans
+**Plans:** 5 plans in 2 waves
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 05.1 to break down)
+- [ ] 05.1-01: Mobile navigation repositioning (hamburger to right) + terminology cleanup (wave 1)
+- [ ] 05.1-02: Client card improvements (click target, links, visual polish) (wave 1)
+- [ ] 05.1-03: Task modal/form polish (sizing, assignee field, button sizing) (wave 2)
+- [ ] 05.1-04: Share/invite functionality fixes (wave 2)
+- [ ] 05.1-05: Dashboard enhancements (calendar widget, task sections, notification cleanup) (wave 2)

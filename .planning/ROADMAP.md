@@ -90,15 +90,15 @@ Plans:
   3. Calendar view with week/month toggle plots tasks by posting date; Timeline view shows month-grouped swimlanes with task bars by date
   4. Clicking a task opens a modal/drawer showing caption with copy button, design file with download (via signed URL with 60s expiry), posting date, and status
   5. Portal is fully read-only — no mutations possible — and uses force-dynamic rendering to prevent stale cache
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01: Portal entry point — slug validation, project lookup, force-dynamic rendering, read-only guard
-- [ ] 04-02: Kanban view with four columns, task cards, and status dots
-- [ ] 04-03: Calendar view with week/month toggle, date grid, and task plotting
-- [ ] 04-04: Timeline view with month-grouped swimlanes and horizontal scrolling task bars
-- [ ] 04-05: Task detail modal with caption copy, signed URL file download, and posting date/status
+- [ ] 04-01: Portal foundation — typed data contracts, slug validation, force-dynamic route shell, read-only policy migration
+- [ ] 04-02: Read-only Kanban view with locked 3 columns and overdue visual flag task cards
+- [ ] 04-03: Calendar view with month default, week toggle, and posting-date plotting helpers
+- [ ] 04-04: Timeline view with month swimlanes, date-positioned bars, and horizontal scroll lanes
+- [ ] 04-05: Shared task detail modal wiring (caption copy + signed download) across all three views
 
 ## Progress
 

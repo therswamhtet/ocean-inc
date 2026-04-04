@@ -2,11 +2,20 @@
 
 import { useMemo, useState, useTransition } from 'react'
 
-import { updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
+import { notifyAssignerAction, updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import {
   Select,
@@ -59,6 +68,8 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
   const [isSavingCaption, startSavingCaption] = useTransition()
   const [isSavingStatus, startSavingStatus] = useTransition()
   const [isReplacingFile, startReplacingFile] = useTransition()
+  const [isNotifying, startNotifying] = useTransition()
+  const [isNotifyDialogOpen, setIsNotifyDialogOpen] = useState(false)
 
   const currentFileName = useMemo(() => designFilePath?.split('/').pop() ?? null, [designFilePath])
 
@@ -72,6 +83,23 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
       }
 
       setFeedback(result.error)
+    })
+  }
+
+  function handleNotifyAssigner() {
+    setFeedback(null)
+    setIsNotifyDialogOpen(false)
+
+    startNotifying(() => {
+      void notifyAssignerAction(task.id).then((result) => {
+        if (result.success) {
+          setStatus('done')
+          setFeedback('Assigner notified and task marked as done.')
+          return
+        }
+
+        setFeedback(result.error)
+      })
     })
   }
 
@@ -224,6 +252,50 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
               <p className="mt-2 text-sm text-muted-foreground">Saving file reference...</p>
             ) : null}
           </div>
+        </section>
+
+        <section className="space-y-4 rounded-lg border border-border p-5">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Notify Assigner</h3>
+            <p className="text-sm text-muted-foreground">Notify the admin when your work is complete.</p>
+          </div>
+
+          <Dialog open={isNotifyDialogOpen} onOpenChange={setIsNotifyDialogOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="default" className="w-full">
+                Notify Assigner
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Notify Assigner</DialogTitle>
+                <DialogDescription>
+                  This will notify the admin that your work is complete and mark the task as done.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 text-sm text-muted-foreground">
+                <p>Are you sure you want to proceed?</p>
+                <ul className="mt-2 list-disc pl-4">
+                  <li>An in-app notification will be sent to the admin</li>
+                  <li>The task status will change to Done</li>
+                </ul>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsNotifyDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isNotifying}
+                  onClick={() => {
+                    handleNotifyAssigner()
+                  }}
+                >
+                  {isNotifying ? 'Notifying...' : 'Confirm and mark done'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </section>
 
         {feedback ? <div className="rounded-lg border border-border px-3 py-2 text-sm">{feedback}</div> : null}

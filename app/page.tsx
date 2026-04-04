@@ -8,8 +8,12 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/admin");
+    if (user.app_metadata.role === 'team_member') {
+      redirect('/team')
+    }
+
+    redirect('/admin')
   }
 
-  redirect("/login");
+  redirect('/login')
 }

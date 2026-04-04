@@ -47,8 +47,8 @@
 
 ### Team Member: Task Workflow
 
-- [ ] **TEAM-01**: Team member sees dashboard with cards: total assigned, due today, overdue, completed
-- [ ] **TEAM-02**: Team member sees assigned tasks sorted by due date with project name, client name, title, status dot
+- [x] **TEAM-01**: Team member sees dashboard with cards: total assigned, due today, overdue, completed
+- [x] **TEAM-02**: Team member sees assigned tasks sorted by due date with project name, client name, title, status dot
 - [ ] **TEAM-03**: Team member task detail shows read-only: title, briefing (with clickable links), posting date, due date
 - [ ] **TEAM-04**: Team member can edit: caption (text area), design file upload
 - [ ] **TEAM-05**: Team member can change task status
@@ -150,8 +150,8 @@
 | ADMIN-12 | Phase 2 | Complete |
 | ADMIN-13 | Phase 2 | Complete |
 | ADMIN-14 | Phase 2 | Complete |
-| TEAM-01 | Phase 3 | Pending |
-| TEAM-02 | Phase 3 | Pending |
+| TEAM-01 | Phase 3 | Complete |
+| TEAM-02 | Phase 3 | Complete |
 | TEAM-03 | Phase 3 | Pending |
 | TEAM-04 | Phase 3 | Pending |
 | TEAM-05 | Phase 3 | Pending |

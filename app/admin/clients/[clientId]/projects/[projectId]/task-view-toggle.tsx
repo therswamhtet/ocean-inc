@@ -65,7 +65,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
           <DialogTrigger asChild>
             <Button>Create Task</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create task</DialogTitle>
               <DialogDescription>Add a new content task to this project.</DialogDescription>

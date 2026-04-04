@@ -71,14 +71,14 @@ Plans:
   3. Team member can change task status and use "Notify Assigner" button to create a notification and mark task as done
   4. Team member can only see and edit their own assigned tasks (RLS-enforced)
   5. Admin sees notifications page listing all notifications with read-on-click, unread badge on header bell icon, and recent notifications on dashboard
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 03-01: Team member task dashboard with summary cards and sorted task list
-- [ ] 03-02: Team task detail page — read-only fields, caption edit, file upload, status change
-- [ ] 03-03: Notify Assigner button — notification creation and task completion
-- [ ] 03-04: Admin notifications page, unread badge, and dashboard notification list
-- [ ] 03-05: Team member RLS enforcement — data isolation verification
+- [ ] 03-01: Team route shell, role-aware redirects, and dashboard with summary cards/sorted task list (wave 1)
+- [ ] 03-02: Dedicated team task detail page with read-only context and independent caption/file/status editing (wave 2)
+- [ ] 03-03: Notify Assigner confirmation flow, admin-notification creation, and team notification INSERT policy (wave 3)
+- [ ] 03-04: Admin unread bell badge and notification-state revalidation wiring (wave 1)
+- [ ] 03-05: Automated team-member RLS isolation verification script (wave 4)
 
 ### Phase 4: Client Portal — Public Read-Only Views
 **Goal**: Clients can view their active project through a public, read-only portal with Kanban, Calendar, and Timeline views

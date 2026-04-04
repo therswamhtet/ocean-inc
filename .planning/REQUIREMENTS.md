@@ -49,12 +49,12 @@
 
 - [x] **TEAM-01**: Team member sees dashboard with cards: total assigned, due today, overdue, completed
 - [x] **TEAM-02**: Team member sees assigned tasks sorted by due date with project name, client name, title, status dot
-- [ ] **TEAM-03**: Team member task detail shows read-only: title, briefing (with clickable links), posting date, due date
-- [ ] **TEAM-04**: Team member can edit: caption (text area), design file upload
-- [ ] **TEAM-05**: Team member can change task status
+- [x] **TEAM-03**: Team member task detail shows read-only: title, briefing (with clickable links), posting date, due date
+- [x] **TEAM-04**: Team member can edit: caption (text area), design file upload
+- [x] **TEAM-05**: Team member can change task status
 - [ ] **TEAM-06**: "Notify Assigner" button creates notification for admin and marks task status as done
 - [ ] **TEAM-07**: Team member RLS ensures they can only see/edit their own assigned tasks
-- [ ] **TEAM-08**: Caption field shows "Copy" button; design file shows "Download" button
+- [x] **TEAM-08**: Caption field shows "Copy" button; design file shows "Download" button
 
 ### Notifications
 
@@ -152,12 +152,12 @@
 | ADMIN-14 | Phase 2 | Complete |
 | TEAM-01 | Phase 3 | Complete |
 | TEAM-02 | Phase 3 | Complete |
-| TEAM-03 | Phase 3 | Pending |
-| TEAM-04 | Phase 3 | Pending |
-| TEAM-05 | Phase 3 | Pending |
+| TEAM-03 | Phase 3 | Complete |
+| TEAM-04 | Phase 3 | Complete |
+| TEAM-05 | Phase 3 | Complete |
 | TEAM-06 | Phase 3 | Pending |
 | TEAM-07 | Phase 3 | Pending |
-| TEAM-08 | Phase 3 | Pending |
+| TEAM-08 | Phase 3 | Complete |
 | NOTIF-01 | Phase 3 | Pending |
 | NOTIF-02 | Phase 3 | Pending |
 | NOTIF-03 | Phase 3 | Complete |

@@ -1,13 +1,6 @@
-import Link from 'next/link'
-
-import { format } from 'date-fns'
-
-import { ShareLinkButton } from '@/components/admin/share-link-button'
 import { CreateClientDialog } from './create-dialog'
-import { deleteClientAction } from './actions'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ClientCard } from './client-card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/labels'
 
@@ -96,38 +89,14 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       ) : (
         <div className="grid gap-4">
           {clients.map((client) => (
-            <Card key={client.id} className="transition hover:bg-muted/10">
-              <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <Link
-                  href={`/admin/clients/${client.id}`}
-                  className="group flex-1 space-y-2 hover:no-underline"
-                  onClick={(e) => {
-                    if ((e.target as HTMLElement).closest('button, a[target]')) return
-                  }}
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-lg font-semibold underline-offset-4 group-hover:underline">
-                      {client.name}
-                    </span>
-                    <Badge>{client.activeProjectsCount} active projects</Badge>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                    <span>Slug: {client.slug}</span>
-                    <span onClick={(e) => e.stopPropagation()}>
-                      <ShareLinkButton slug={client.slug} />
-                    </span>
-                    <span>Created {format(new Date(client.created_at), 'MMM d, yyyy')}</span>
-                  </div>
-                </Link>
-
-                <form action={deleteClientAction.bind(null, client.id)}>
-                  <Button type="submit" variant="outline">
-                    Delete
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <ClientCard
+              key={client.id}
+              id={client.id}
+              name={client.name}
+              slug={client.slug}
+              activeProjectsCount={client.activeProjectsCount}
+              createdAt={client.created_at}
+            />
           ))}
         </div>
       )}

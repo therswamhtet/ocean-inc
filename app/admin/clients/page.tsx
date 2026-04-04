@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { format } from 'date-fns'
 
+import { ShareLinkButton } from '@/components/admin/share-link-button'
 import { CreateClientDialog } from './create-dialog'
 import { deleteClientAction } from './actions'
 import { Badge } from '@/components/ui/badge'
@@ -105,8 +106,9 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                     <Badge>{client.activeProjectsCount} active projects</Badge>
                   </div>
 
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     <span>Slug: {client.slug}</span>
+                    <ShareLinkButton slug={client.slug} />
                     <span>Created {format(new Date(client.created_at), 'MMM d, yyyy')}</span>
                   </div>
                 </div>

@@ -85,6 +85,7 @@ export const LABELS = {
     tooltip: 'Copy portal share link',
   },
   common: {
+    adminPanel: 'Management Panel',
     edit: 'Edit',
     delete: 'Delete',
     deleteTask: 'Delete task',

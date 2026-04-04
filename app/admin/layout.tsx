@@ -11,6 +11,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { createClient } from '@/lib/supabase/server'
+import { LABELS } from '@/lib/labels'
 
 export default async function AdminLayout({
   children,
@@ -37,7 +38,7 @@ export default async function AdminLayout({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-              <h1 className="mt-2 text-lg font-semibold">Admin Console</h1>
+              <h1 className="mt-2 text-lg font-semibold">{LABELS.common.adminPanel}</h1>
             </div>
             <Link
               href="/admin/notifications"
@@ -109,7 +110,7 @@ export default async function AdminLayout({
               <SheetContent side="left" className="w-60 bg-white p-0">
                 <div className="border-b border-border px-6 py-5">
                   <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-                  <h1 className="mt-2 text-lg font-semibold">Admin Console</h1>
+                  <h1 className="mt-2 text-lg font-semibold">{LABELS.common.adminPanel}</h1>
                 </div>
 
                 <div className="flex-1 px-4 py-5">

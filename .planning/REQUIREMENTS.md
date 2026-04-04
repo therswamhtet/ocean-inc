@@ -36,7 +36,7 @@
 ### Admin: Task Management
 
 - [ ] **ADMIN-06**: Admin can create a task (title, briefing, caption, design file, posting date, due date, deadline, status)
-- [ ] **ADMIN-07**: Admin can view project tasks in list view and kanban view
+- [x] **ADMIN-07**: Admin can view project tasks in list view and kanban view
 - [ ] **ADMIN-08**: Admin can edit all task fields including title, briefing, caption, dates, status
 - [ ] **ADMIN-09**: Admin can assign a task to a team member via dropdown
 - [ ] **ADMIN-10**: Admin task detail page shows all fields with full edit capability
@@ -142,7 +142,7 @@
 | ADMIN-04 | Phase 2 | Complete |
 | ADMIN-05 | Phase 2 | Complete |
 | ADMIN-06 | Phase 2 | Pending |
-| ADMIN-07 | Phase 2 | Pending |
+| ADMIN-07 | Phase 2 | Complete |
 | ADMIN-08 | Phase 2 | Pending |
 | ADMIN-09 | Phase 2 | Pending |
 | ADMIN-10 | Phase 2 | Pending |

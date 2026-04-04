@@ -57,8 +57,9 @@ Plans:
 - [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
 - [x] 02-06: Team member management — list, task counts, invite generation
 - [x] 02-07: Supabase Storage integration for design file upload/download, caption copy button
+- [x] 02-08: Inbound navigation from client project list rows to the project task management page
 
-**Verification**: `gaps_found` — missing navigation from the client project list into `/admin/clients/[clientId]/projects/[projectId]`. See `.planning/phases/02-admin-core-client-project-and-task-management/02-VERIFICATION.md`.
+**Verification**: Gap-closure plan `02-08` added the missing navigation from the client project list into `/admin/clients/[clientId]/projects/[projectId]`. Re-run `.planning/phases/02-admin-core-client-project-and-task-management/02-VERIFICATION.md` to confirm 7/7 must-haves.
 
 ### Phase 3: Team Workflow — Task Dashboard and Editing
 **Goal**: Team members can view their assigned tasks, edit captions, upload design files, change status, and notify admins of completion
@@ -107,6 +108,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Database, Auth, and Security | 0/5 | Planned | - |
-| 2. Admin Core — Client, Project, and Task Management | 7/7 | Complete | 2026-04-04 |
+| 2. Admin Core — Client, Project, and Task Management | 8/8 | Complete | 2026-04-04 |
 | 3. Team Workflow — Task Dashboard and Editing | 0/5 | Not started | - |
 | 4. Client Portal — Public Read-Only Views | 0/5 | Not started | - |

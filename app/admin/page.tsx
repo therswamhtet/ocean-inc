@@ -1,6 +1,6 @@
-import { format, startOfMonth } from 'date-fns'
+import { format, startOfMonth, addDays, startOfDay, endOfDay } from 'date-fns'
 
-import { DashboardMetrics, DashboardNotifications } from '@/components/admin/dashboard-inner'
+import { DashboardMetrics, DashboardNotifications, DashboardCalendar, DashboardTaskSections } from '@/components/admin/dashboard-inner'
 import { LABELS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
 
@@ -8,12 +8,20 @@ export default async function AdminDashboard() {
   const supabase = await createClient()
   const today = format(new Date(), 'yyyy-MM-dd')
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+  const monthEnd = format(startOfMonth(addDays(new Date(), 31)), 'yyyy-MM-dd')
+  const todayStart = format(startOfDay(new Date()), 'yyyy-MM-dd')
+  const todayEnd = format(endOfDay(new Date()), 'yyyy-MM-dd')
+  const nextWeek = format(addDays(new Date(), 7), 'yyyy-MM-dd')
 
   const [
     { count: activeProjects },
     { count: inProgress },
     { count: overdue },
     { count: completedThisMonth },
+    { data: calendarTasks },
+    { data: overdueTasks },
+    { data: todayTasks },
+    { data: upcomingTasks },
   ] = await Promise.all([
     supabase.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
@@ -27,6 +35,30 @@ export default async function AdminDashboard() {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'done')
       .gte('updated_at', monthStart),
+    supabase
+      .from('tasks')
+      .select('id, title, posting_date, status, projects(name)')
+      .not('posting_date', 'is', null)
+      .gte('posting_date', monthStart)
+      .lt('posting_date', monthEnd),
+    supabase
+      .from('tasks')
+      .select('id, title, posting_date, status, projects(name)')
+      .lt('posting_date', today)
+      .neq('status', 'done')
+      .limit(5),
+    supabase
+      .from('tasks')
+      .select('id, title, posting_date, status, projects(name)')
+      .gte('posting_date', todayStart)
+      .lte('posting_date', todayEnd)
+      .limit(5),
+    supabase
+      .from('tasks')
+      .select('id, title, posting_date, status, projects(name)')
+      .gt('posting_date', today)
+      .lte('posting_date', nextWeek)
+      .limit(5),
   ])
 
   const { data: notifications } = await supabase
@@ -57,6 +89,15 @@ export default async function AdminDashboard() {
         </div>
 
         <DashboardMetrics metrics={metrics} />
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
+        <DashboardTaskSections 
+          overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']} 
+          todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']} 
+          upcomingTasks={upcomingTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['upcomingTasks']} 
+        />
       </section>
 
       <DashboardNotifications notifications={notifications} unreadCount={unreadCount} />

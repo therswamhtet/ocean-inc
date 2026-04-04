@@ -3,18 +3,11 @@
 import { Copy, Link2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 
+import { generateInviteTokenAction } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-type GenerateInviteTokenResult =
-  | { error: string }
-  | { success: true; inviteUrl: string; token: string }
-
-type InviteSectionProps = {
-  generateInviteTokenAction: (email: string) => Promise<GenerateInviteTokenResult>
-}
-
-export function InviteSection({ generateInviteTokenAction }: InviteSectionProps) {
+export function InviteSection() {
   const [email, setEmail] = useState('')
   const [inviteUrl, setInviteUrl] = useState('')
   const [error, setError] = useState('')

@@ -1,6 +1,3 @@
-import crypto from 'node:crypto'
-
-import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 
 import { InviteSection } from './invite-section'
@@ -13,9 +10,6 @@ type TeamMemberRow = {
   created_at: string
   task_assignments: Array<{ count: number | null }> | null
 }
-
-const INVITE_TOKEN_BYTES = 16
-const INVITE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
 
 export default async function TeamPage() {
   const supabase = await createClient()
@@ -41,61 +35,6 @@ export default async function TeamPage() {
     ...member,
     assignedTaskCount: member.task_assignments?.[0]?.count ?? 0,
   }))
-
-  async function generateInviteTokenAction(email: string) {
-    'use server'
-
-    const normalizedEmail = String(email ?? '').trim().toLowerCase()
-
-    if (!normalizedEmail || !normalizedEmail.includes('@')) {
-      return { error: 'A valid email address is required' }
-    }
-
-    const actionSupabase = await createClient()
-    const {
-      data: { user: actionUser },
-    } = await actionSupabase.auth.getUser()
-
-    if (!actionUser) {
-      return { error: 'Unauthorized' }
-    }
-
-    const { data: existingMembers, error: existingMemberError } = await actionSupabase
-      .from('team_members')
-      .select('id')
-      .ilike('email', normalizedEmail)
-      .limit(1)
-
-    if (existingMemberError) {
-      return { error: existingMemberError.message }
-    }
-
-    if ((existingMembers ?? []).length > 0) {
-      return { error: 'This email already belongs to a team member' }
-    }
-
-    const token = crypto.randomBytes(INVITE_TOKEN_BYTES).toString('hex')
-    const expiresAt = new Date(Date.now() + INVITE_EXPIRY_MS).toISOString()
-
-    const { error: inviteError } = await actionSupabase.from('invite_tokens').insert({
-      token,
-      email: normalizedEmail,
-      expires_at: expiresAt,
-    })
-
-    if (inviteError) {
-      return { error: inviteError.message }
-    }
-
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
-    revalidatePath('/admin/team')
-
-    return {
-      success: true as const,
-      inviteUrl: `${siteUrl}/invite/${token}`,
-      token,
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -143,7 +82,7 @@ export default async function TeamPage() {
         )}
       </section>
 
-      <InviteSection generateInviteTokenAction={generateInviteTokenAction} />
+      <InviteSection />
     </div>
   )
 }

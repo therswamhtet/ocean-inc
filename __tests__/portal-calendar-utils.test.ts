@@ -17,7 +17,7 @@ describe('portal calendar utils', () => {
 
     expect(grid.length).toBeGreaterThan(3)
     expect(grid.length).toBeLessThan(7)
-    expect(grid.every((week) => week).toBeTruthy())
+    expect(grid.every(Boolean)).toBe(true)
     expect(grid.every((week) => week.length === 7)).toBe(true)
   })
 

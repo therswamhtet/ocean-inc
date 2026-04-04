@@ -6,6 +6,7 @@ import type { PortalTask } from '@/lib/portal/types'
 
 type PortalTimelineViewProps = {
   tasks: PortalTask[]
+  onTaskSelect: (task: PortalTask) => void
 }
 
 function getMonthAnchor(monthKey: string) {
@@ -31,7 +32,7 @@ function getPostingDate(postingDate: string | null) {
   return parsed
 }
 
-export function PortalTimelineView({ tasks }: PortalTimelineViewProps) {
+export function PortalTimelineView({ tasks, onTaskSelect }: PortalTimelineViewProps) {
   const grouped = groupTasksByMonth(tasks)
   const monthEntries = Object.entries(grouped)
 
@@ -67,13 +68,15 @@ export function PortalTimelineView({ tasks }: PortalTimelineViewProps) {
                     <div key={task.id} className="relative h-12 rounded-sm border border-border bg-background">
                       <p className="absolute left-2 top-1 text-[11px] text-muted-foreground">{format(postingDate, 'MMM d')}</p>
 
-                      <div
-                        className="absolute top-1/2 flex max-w-[78%] items-center gap-2 rounded-sm border border-border bg-background px-2 py-1"
+                      <button
+                        type="button"
+                        onClick={() => onTaskSelect(task)}
+                        className="absolute top-1/2 flex max-w-[78%] items-center gap-2 rounded-sm border border-border bg-background px-2 py-1 text-left hover:bg-muted/20"
                         style={{ left: `${leftOffset}%`, transform }}
                       >
                         <StatusDot status={task.status} />
                         <p className="truncate text-xs font-medium text-foreground">{task.title}</p>
-                      </div>
+                      </button>
                     </div>
                   )
                 })}

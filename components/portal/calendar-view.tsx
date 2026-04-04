@@ -12,11 +12,12 @@ type CalendarMode = 'month' | 'week'
 
 type PortalCalendarViewProps = {
   tasks: PortalTask[]
+  onTaskSelect: (task: PortalTask) => void
 }
 
 const weekDayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export function PortalCalendarView({ tasks }: PortalCalendarViewProps) {
+export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewProps) {
   const [mode, setMode] = useState<CalendarMode>('month')
   const [anchorDate, setAnchorDate] = useState(new Date())
 
@@ -76,10 +77,15 @@ export function PortalCalendarView({ tasks }: PortalCalendarViewProps) {
 
                     <div className="space-y-1">
                       {dayTasks.map((task) => (
-                        <div key={task.id} className="flex items-center gap-1.5 rounded-sm border border-border px-1.5 py-1">
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => onTaskSelect(task)}
+                          className="flex w-full items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
+                        >
                           <StatusDot status={task.status} />
                           <p className="truncate text-xs text-foreground">{task.title}</p>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </article>
@@ -102,10 +108,15 @@ export function PortalCalendarView({ tasks }: PortalCalendarViewProps) {
 
                 <div className="space-y-1">
                   {dayTasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-1.5 rounded-sm border border-border px-1.5 py-1">
+                    <button
+                      key={task.id}
+                      type="button"
+                      onClick={() => onTaskSelect(task)}
+                      className="flex w-full items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
+                    >
                       <StatusDot status={task.status} />
                       <p className="truncate text-xs text-foreground">{task.title}</p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </article>

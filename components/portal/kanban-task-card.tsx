@@ -6,6 +6,7 @@ import type { PortalTask } from '@/lib/portal/types'
 type PortalKanbanTaskCardProps = {
   task: PortalTask
   isOverdue: boolean
+  onSelect: (task: PortalTask) => void
 }
 
 function formatPostingDate(postingDate: string | null) {
@@ -21,15 +22,19 @@ function formatPostingDate(postingDate: string | null) {
   return format(parsed, 'MMM d')
 }
 
-export function PortalKanbanTaskCard({ task, isOverdue }: PortalKanbanTaskCardProps) {
+export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanbanTaskCardProps) {
   return (
-    <article className="rounded-sm border border-border bg-background p-3">
+    <button
+      type="button"
+      onClick={() => onSelect(task)}
+      className="w-full rounded-sm border border-border bg-background p-3 text-left hover:bg-muted/20"
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <StatusDot status={isOverdue ? 'overdue' : task.status} />
         <span className="text-xs text-muted-foreground">{formatPostingDate(task.postingDate)}</span>
       </div>
 
       <p className="truncate text-sm font-medium text-foreground">{task.title}</p>
-    </article>
+    </button>
   )
 }

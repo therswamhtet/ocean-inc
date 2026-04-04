@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 
+import { PortalCalendarView } from '@/components/portal/calendar-view'
 import { PortalKanbanView } from '@/components/portal/kanban-view'
+import { PortalTaskDetailDialog } from '@/components/portal/task-detail-dialog'
+import { PortalTimelineView } from '@/components/portal/timeline-view'
 import type { PortalTask } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +18,21 @@ type PortalTab = (typeof tabLabels)[number]
 
 export function PortalShell({ tasks }: PortalShellProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>('Kanban')
+  const [selectedTask, setSelectedTask] = useState<PortalTask | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  function handleTaskSelect(task: PortalTask) {
+    setSelectedTask(task)
+    setIsDialogOpen(true)
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    setIsDialogOpen(open)
+
+    if (!open) {
+      setSelectedTask(null)
+    }
+  }
 
   return (
     <section className="space-y-4">
@@ -37,12 +55,14 @@ export function PortalShell({ tasks }: PortalShellProps) {
       </div>
 
       {activeTab === 'Kanban' ? (
-        <PortalKanbanView tasks={tasks} />
+        <PortalKanbanView tasks={tasks} onTaskSelect={handleTaskSelect} />
+      ) : activeTab === 'Calendar' ? (
+        <PortalCalendarView tasks={tasks} onTaskSelect={handleTaskSelect} />
       ) : (
-        <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-          {activeTab} view is part of the client portal read-only surface.
-        </div>
+        <PortalTimelineView tasks={tasks} onTaskSelect={handleTaskSelect} />
       )}
+
+      <PortalTaskDetailDialog open={isDialogOpen} onOpenChange={handleDialogOpenChange} task={selectedTask} />
     </section>
   )
 }

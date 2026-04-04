@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PortalKanbanView } from '@/components/portal/kanban-view'
 import type { PortalTask } from '@/lib/portal/types'
@@ -36,7 +36,7 @@ const tasks: PortalTask[] = [
 
 describe('PortalKanbanView', () => {
   it('renders the three locked columns', () => {
-    render(<PortalKanbanView tasks={tasks} />)
+    render(<PortalKanbanView tasks={tasks} onTaskSelect={vi.fn()} />)
 
     expect(screen.getByRole('heading', { name: 'To Do' })).toBeDefined()
     expect(screen.getByRole('heading', { name: 'In Progress' })).toBeDefined()
@@ -45,7 +45,7 @@ describe('PortalKanbanView', () => {
   })
 
   it('keeps overdue tasks in their status column while showing overdue visual dot', () => {
-    render(<PortalKanbanView tasks={tasks} />)
+    render(<PortalKanbanView tasks={tasks} onTaskSelect={vi.fn()} />)
 
     const inProgressColumn = screen.getByRole('region', { name: 'In Progress' })
     expect(within(inProgressColumn).getByText('Polish visual')).toBeDefined()

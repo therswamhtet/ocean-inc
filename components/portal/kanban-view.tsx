@@ -5,6 +5,7 @@ import type { PortalTask, PortalTaskStatus } from '@/lib/portal/types'
 
 type PortalKanbanViewProps = {
   tasks: PortalTask[]
+  onTaskSelect: (task: PortalTask) => void
 }
 
 const columnOrder: PortalTaskStatus[] = ['todo', 'in_progress', 'done']
@@ -28,7 +29,7 @@ function isTaskOverdue(task: PortalTask) {
   return isBefore(startOfDay(postingDate), startOfDay(new Date()))
 }
 
-export function PortalKanbanView({ tasks }: PortalKanbanViewProps) {
+export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps) {
   const hasTasks = tasks.length > 0
 
   return (
@@ -48,10 +49,15 @@ export function PortalKanbanView({ tasks }: PortalKanbanViewProps) {
               <span className="text-xs text-muted-foreground">{tasksInColumn.length}</span>
             </div>
 
-            <div className="space-y-3">
-              {tasksInColumn.map((task) => (
-                <PortalKanbanTaskCard key={task.id} task={task} isOverdue={isTaskOverdue(task)} />
-              ))}
+              <div className="space-y-3">
+                {tasksInColumn.map((task) => (
+                  <PortalKanbanTaskCard
+                    key={task.id}
+                    task={task}
+                    isOverdue={isTaskOverdue(task)}
+                    onSelect={onTaskSelect}
+                  />
+                ))}
 
               {tasksInColumn.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">

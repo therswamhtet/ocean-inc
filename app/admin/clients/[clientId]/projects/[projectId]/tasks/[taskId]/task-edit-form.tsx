@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Download, LoaderCircle, Trash2 } from 'lucide-react'
+import { LoaderCircle, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -15,6 +15,7 @@ import {
   updateTaskFilePathAction,
 } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import CopyButton from '@/components/admin/copy-button'
+import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
@@ -27,7 +28,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { createClient } from '@/lib/supabase/client'
 import { linkify } from '@/lib/utils'
 
 const taskSchema = z.object({
@@ -75,43 +75,6 @@ function BriefingPreview({ text }: { text: string }) {
       className="rounded-lg border border-border px-3 py-3 text-sm text-foreground"
       dangerouslySetInnerHTML={{ __html: linkify(text) }}
     />
-  )
-}
-
-function DesignFileDownloader({ path, fileName }: { path: string; fileName: string }) {
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
-
-  return (
-    <div className="space-y-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
-          setError(null)
-
-          startTransition(async () => {
-            const supabase = createClient()
-            const { data, error: signedUrlError } = await supabase.storage
-              .from('design-files')
-              .createSignedUrl(path, 60, {
-                download: fileName,
-              })
-
-            if (signedUrlError || !data?.signedUrl) {
-              setError(signedUrlError?.message ?? 'Unable to create a download link.')
-              return
-            }
-
-            window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
-          })
-        }}
-      >
-        {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-        Download file
-      </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
   )
 }
 
@@ -259,7 +222,7 @@ export function TaskEditForm({
                 <p className="text-sm font-medium text-foreground">Current file: {currentFileName}</p>
                 <p className="break-all text-xs text-muted-foreground">{designFilePath}</p>
               </div>
-              <DesignFileDownloader fileName={currentFileName} path={designFilePath} />
+              <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
               <div className="border-t border-border pt-4">
                 <p className="mb-3 text-sm font-medium text-foreground">Replace file</p>
                 <DesignFileUploader

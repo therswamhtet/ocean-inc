@@ -6,9 +6,6 @@ import { TeamSidebar } from '@/app/team/sidebar'
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { createClient } from '@/lib/supabase/server'

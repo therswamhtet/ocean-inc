@@ -8,9 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { createClient } from '@/lib/supabase/server'

@@ -61,9 +61,11 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = form
+
+  // Local state for Select (avoids watch() compiler warning with memoized components)
+  const [statusValue, setStatusValue] = useState<'todo' | 'in_progress' | 'done'>('todo')
 
   const onSubmit = handleSubmit((values) => {
     setMessage(null)
@@ -83,6 +85,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           status: 'todo',
           designFilePath: '',
         })
+        setStatusValue('todo')
         router.refresh()
         onSuccess?.()
       } else {
@@ -137,8 +140,11 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           <FieldLabel>{LABELS.task.status}</FieldLabel>
           <Select
             defaultValue="todo"
-            value={watch('status')}
-            onValueChange={(value: 'todo' | 'in_progress' | 'done') => setValue('status', value, { shouldValidate: true })}
+            value={statusValue}
+            onValueChange={(value: 'todo' | 'in_progress' | 'done') => {
+              setStatusValue(value)
+              setValue('status', value, { shouldValidate: true })
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select status" />

@@ -29,6 +29,7 @@ const taskSchema = z.object({
   dueDate: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
+  assignedTo: z.string().optional(),
   designFilePath: z.string().optional(),
 })
 
@@ -53,6 +54,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
       dueDate: '',
       deadline: '',
       status: 'todo',
+      assignedTo: '',
       designFilePath: '',
     },
   })
@@ -66,6 +68,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
 
   // Local state for Select (avoids watch() compiler warning with memoized components)
   const [statusValue, setStatusValue] = useState<'todo' | 'in_progress' | 'done'>('todo')
+  const [assignedToValue, setAssignedToValue] = useState('')
 
   const onSubmit = handleSubmit((values) => {
     setMessage(null)
@@ -83,9 +86,11 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           dueDate: '',
           deadline: '',
           status: 'todo',
+          assignedTo: '',
           designFilePath: '',
         })
         setStatusValue('todo')
+        setAssignedToValue('')
         router.refresh()
         onSuccess?.()
       } else {
@@ -156,6 +161,25 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
             </SelectContent>
           </Select>
           {errors.status ? <FieldError>{errors.status.message}</FieldError> : null}
+        </Field>
+
+        <Field>
+          <FieldLabel>{LABELS.task.assignee}</FieldLabel>
+          <Select
+            value={assignedToValue}
+            onValueChange={(value) => {
+              setAssignedToValue(value)
+              setValue('assignedTo', value, { shouldValidate: true })
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Unassigned" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="self">Assign to myself</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.assignedTo ? <FieldError>{errors.assignedTo.message}</FieldError> : null}
         </Field>
       </div>
 

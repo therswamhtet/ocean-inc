@@ -175,12 +175,14 @@ export default async function ClientProjectsPage({
                     </select>
                   </div>
 
-                  <button
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                    type="submit"
-                  >
-                    Create Project
-                  </button>
+                  <div className="flex justify-end">
+                    <button
+                      className="min-w-[120px] rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                      type="submit"
+                    >
+                      Create Project
+                    </button>
+                  </div>
                 </form>
               </DialogContent>
             </Dialog>

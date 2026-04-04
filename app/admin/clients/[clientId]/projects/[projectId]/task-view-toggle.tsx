@@ -66,7 +66,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
           <DialogTrigger asChild>
             <Button>{LABELS.task.create}</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create task</DialogTitle>
               <DialogDescription>Add a new content task to this project.</DialogDescription>

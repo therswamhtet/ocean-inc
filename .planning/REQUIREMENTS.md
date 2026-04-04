@@ -29,8 +29,8 @@
 
 - [ ] **ADMIN-01**: Admin can create a client (name only → auto-generates unique slug)
 - [ ] **ADMIN-02**: Admin can view list of all clients with active project count
-- [ ] **ADMIN-03**: Admin can view a client's project list
-- [ ] **ADMIN-04**: Admin can create a project (name, month, year, status)
+- [x] **ADMIN-03**: Admin can view a client's project list
+- [x] **ADMIN-04**: Admin can create a project (name, month, year, status)
 - [ ] **ADMIN-05**: Admin dashboard shows: total active projects, tasks in progress, overdue tasks, tasks completed this month
 
 ### Admin: Task Management
@@ -138,8 +138,8 @@
 | AUTH-08 | Phase 1 | Complete |
 | ADMIN-01 | Phase 2 | Pending |
 | ADMIN-02 | Phase 2 | Pending |
-| ADMIN-03 | Phase 2 | Pending |
-| ADMIN-04 | Phase 2 | Pending |
+| ADMIN-03 | Phase 2 | Complete |
+| ADMIN-04 | Phase 2 | Complete |
 | ADMIN-05 | Phase 2 | Pending |
 | ADMIN-06 | Phase 2 | Pending |
 | ADMIN-07 | Phase 2 | Pending |

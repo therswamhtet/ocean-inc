@@ -1,10 +1,12 @@
 'use client'
 
+import { useTransition } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { MoreHorizontal } from 'lucide-react'
 
+import { deleteTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Button } from '@/components/ui/button'
@@ -37,9 +39,11 @@ function formatOptionalDate(value: string | null) {
 }
 
 export function TaskList({ tasks, projectId }: TaskListProps) {
+  const router = useRouter()
   const params = useParams<{ clientId: string }>()
   const clientId = params.clientId
   const today = startOfDay(new Date())
+  const [isPending, startTransition] = useTransition()
 
   if (tasks.length === 0) {
     return (
@@ -95,7 +99,26 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                       <DropdownMenuItem asChild>
                         <Link href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}>Edit</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem disabled>Delete</DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={isPending}
+                        onSelect={(event) => {
+                          event.preventDefault()
+
+                          if (!window.confirm(`Delete ${task.title}?`)) {
+                            return
+                          }
+
+                          startTransition(async () => {
+                            const result = await deleteTaskAction(task.id, projectId, task.design_file_path ?? undefined)
+
+                            if (result.success) {
+                              router.refresh()
+                            }
+                          })
+                        }}
+                      >
+                        Delete
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

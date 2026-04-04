@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-04-04T05:58:12.688Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-04-04T06:04:26.481Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
   percent: 67
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 02 (admin-core-client-project-and-task-management) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-04-04
 
@@ -55,6 +55,7 @@ Progress: [███████░░░] 67%
 | Phase 02 P02 | 1 min | 2 tasks | 2 files |
 | Phase 02 P01 | 4 min | 3 tasks | 13 files |
 | Phase 02 P05 | 1 min | 2 tasks | 3 files |
+| Phase 02 P03 | 13 min | 7 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Shared notification mutations in a dedicated 'use server' file so both dashboard and full notifications page reuse the same revalidation flow.
 - [Phase 02]: Normalized invite emails to lowercase and blocked invites for existing team members before inserting invite_tokens.
 - [Phase 02]: Used a dedicated client invite section so clipboard feedback stays browser-only while the team list remains server-rendered.
+- [Phase 02]: Split TaskViewToggle into its own client entry file so the project page can remain server-rendered under Next.js 16 boundaries.
+- [Phase 02]: Resolved concrete project and task paths before calling revalidatePath instead of using wildcard routes, matching current Next.js behavior.
+- [Phase 02]: Task uploads now use a temp storage path that server actions copy into the final task directory after the task row is created.
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T05:57:17.578Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-04-04T06:04:26.477Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

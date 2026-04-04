@@ -52,7 +52,7 @@ Plans:
 Plans:
 - [x] 02-01: Client CRUD with auto-generated slug and client list view
 - [x] 02-02: Project CRUD with monthly cycles and client project list
-- [ ] 02-03: Task creation form with file upload, list view, and kanban view
+- [x] 02-03: Task creation form with file upload, list view, and kanban view
 - [ ] 02-04: Task detail page with full edit, team member assignment, and briefing link rendering
 - [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
 - [x] 02-06: Team member management — list, task counts, invite generation

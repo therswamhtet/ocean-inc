@@ -55,6 +55,12 @@ function revalidateTeamTaskViews(taskId: string) {
   revalidatePath(`/team/tasks/${taskId}`)
 }
 
+function revalidateAdminNotificationViews() {
+  revalidatePath('/admin')
+  revalidatePath('/admin/notifications')
+  revalidatePath('/admin', 'layout')
+}
+
 export async function updateTeamTaskContentAction(
   taskId: string,
   values: { caption: string; status: 'todo' | 'in_progress' | 'done' }
@@ -113,5 +119,59 @@ export async function updateTeamTaskFilePathAction(taskId: string, filePath: str
     return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unable to update file path' }
+  }
+}
+
+/**
+ * Notify assigner action (D-05, D-06)
+ * Creates an admin notification and marks the task as done.
+ * Must be a separate explicit action, not bundled with status changes.
+ */
+export async function notifyAssignerAction(taskId: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await getOwnedTask(taskId)
+
+    // Fetch task title and team member name
+    const [{ data: taskData }, { data: teamMemberData }] = await Promise.all([
+      supabase.from('tasks').select('title').eq('id', taskId).single<{ title: string }>(),
+      supabase.from('team_members').select('name').eq('id', (await supabase.auth.getUser()).data.user!.id).single<{ name: string }>(),
+    ])
+
+    if (!taskData || !teamMemberData) {
+      return { success: false, error: 'Unable to fetch task or team member details' }
+    }
+
+    const message = `${teamMemberData.name} marked ${taskData.title} as done.`
+
+    // Insert admin notification (team_member_id = NULL per D-06)
+    const { error: notifyError } = await supabase
+      .from('notifications')
+      .insert({
+        team_member_id: null,
+        message,
+        read: false,
+      })
+
+    if (notifyError) {
+      return { success: false, error: notifyError.message }
+    }
+
+    // Mark task as done
+    const { error: updateError } = await supabase
+      .from('tasks')
+      .update({ status: 'done' })
+      .eq('id', taskId)
+
+    if (updateError) {
+      return { success: false, error: updateError.message }
+    }
+
+    // Revalidate all affected paths
+    revalidateTeamTaskViews(taskId)
+    revalidateAdminNotificationViews()
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to notify assigner' }
   }
 }

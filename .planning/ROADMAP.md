@@ -54,7 +54,7 @@ Plans:
 - [x] 02-02: Project CRUD with monthly cycles and client project list
 - [ ] 02-03: Task creation form with file upload, list view, and kanban view
 - [ ] 02-04: Task detail page with full edit, team member assignment, and briefing link rendering
-- [ ] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
+- [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
 - [ ] 02-06: Team member management — list, task counts, invite generation
 - [ ] 02-07: Supabase Storage integration for design file upload/download, caption copy button
 
@@ -105,6 +105,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation — Database, Auth, and Security | 0/5 | Planned | - |
-| 2. Admin Core — Client, Project, and Task Management | 1/7 | In Progress|  |
+| 2. Admin Core — Client, Project, and Task Management | 3/7 | In Progress|  |
 | 3. Team Workflow — Task Dashboard and Editing | 0/5 | Not started | - |
 | 4. Client Portal — Public Read-Only Views | 0/5 | Not started | - |

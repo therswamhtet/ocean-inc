@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-04T05:45:50.890Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-04-04T05:54:07.916Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 12
-  completed_plans: 7
-  percent: 0
+  completed_plans: 8
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 02 (admin-core-client-project-and-task-management) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-04
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01-04 | 3min | 3 tasks | 3 files |
 | Phase 02 P02 | 1 min | 2 tasks | 2 files |
 | Phase 02 P01 | 4 min | 3 tasks | 13 files |
+| Phase 02 P05 | 1 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Client create/delete server actions verify getUser() inside each mutation to enforce auth on every submission.
 - [Phase 02]: Admin sidebar navigation is a client component so active route state can use usePathname while the layout stays server-rendered.
 - [Phase 02]: Client list derives active project counts from a left-joined projects relation without adding new database functions.
+- [Phase 02]: Kept the dashboard as a Server Component and ran the four metric counts in one Promise.all batch.
+- [Phase 02]: Shared notification mutations in a dedicated 'use server' file so both dashboard and full notifications page reuse the same revalidation flow.
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T05:45:50.887Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-04T05:54:07.908Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None

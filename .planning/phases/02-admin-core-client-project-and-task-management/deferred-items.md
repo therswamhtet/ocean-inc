@@ -1,0 +1,2 @@
+- 2026-04-04 — `npm run build` warns that Next.js inferred `/Users/MSIModern14` as the Turbopack root because multiple lockfiles exist. Review `turbopack.root` or duplicate lockfiles outside this plan.
+- 2026-04-04 — `middleware.ts` uses a deprecated Next.js file convention and should eventually migrate to `proxy.ts`. Warning is pre-existing and out of scope for plan 02-05.

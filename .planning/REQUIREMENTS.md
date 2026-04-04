@@ -31,7 +31,7 @@
 - [x] **ADMIN-02**: Admin can view list of all clients with active project count
 - [x] **ADMIN-03**: Admin can view a client's project list
 - [x] **ADMIN-04**: Admin can create a project (name, month, year, status)
-- [ ] **ADMIN-05**: Admin dashboard shows: total active projects, tasks in progress, overdue tasks, tasks completed this month
+- [x] **ADMIN-05**: Admin dashboard shows: total active projects, tasks in progress, overdue tasks, tasks completed this month
 
 ### Admin: Task Management
 
@@ -84,7 +84,7 @@
 - [x] **UI-03**: Status dots: done=#22C55E, in_progress=#FACC15, overdue=#EF4444, todo=#D1D5DB with animated pulse effect
 - [x] **UI-04**: No box shadows, no gradients, no rounded corners larger than 8px
 - [x] **UI-05**: Mobile responsive — all pages functional at 375px width
-- [ ] **UI-06**: Overdue detection: `posting_date < today AND status != 'done'`
+- [x] **UI-06**: Overdue detection: `posting_date < today AND status != 'done'`
 
 ## v2 Requirements
 
@@ -140,7 +140,7 @@
 | ADMIN-02 | Phase 2 | Complete |
 | ADMIN-03 | Phase 2 | Complete |
 | ADMIN-04 | Phase 2 | Complete |
-| ADMIN-05 | Phase 2 | Pending |
+| ADMIN-05 | Phase 2 | Complete |
 | ADMIN-06 | Phase 2 | Pending |
 | ADMIN-07 | Phase 2 | Pending |
 | ADMIN-08 | Phase 2 | Pending |
@@ -178,7 +178,7 @@
 | UI-03 | Phase 1 | Complete |
 | UI-04 | Phase 1 | Complete |
 | UI-05 | Phase 1 | Complete |
-| UI-06 | Phase 2 | Pending |
+| UI-06 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 58 total

@@ -12,27 +12,26 @@ Admins can create and manage social media content tasks, assign them to team mem
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Admin can manage clients (create, view projects) — Phase 02
+- [x] Admin can create projects per client (monthly social media content cycles) — Phase 02
+- [x] Admin can create and manage tasks (posts with caption, design file, dates, briefing) — Phase 02
+- [x] Admin can assign tasks to team members — Phase 02
+- [x] Admin can view dashboard with project/task metrics — Phase 02
+- [x] Admin can manage team members (invite, view assignments) — Phase 02
+- [x] Admin can view and manage notifications — Phase 02/03
+- [x] Team members register via one-time invite token — Phase 02
+- [x] Team members see only their assigned tasks — Phase 03
+- [x] Team members can upload design files and edit captions — Phase 03
+- [x] Team members can mark tasks as done and notify admin — Phase 03
+- [x] Supabase RLS enforces role-based data access — Phase 03
+- [x] Admin authentication via email + password — Phase 01
 
 ### Active
 
-- [ ] Admin can manage clients (create, view projects)
-- [ ] Admin can create projects per client (monthly social media content cycles)
-- [ ] Admin can create and manage tasks (posts with caption, design file, dates, briefing)
-- [ ] Admin can assign tasks to team members
-- [ ] Admin can view dashboard with project/task metrics
-- [ ] Admin can manage team members (invite, view assignments)
-- [ ] Admin can view and manage notifications
-- [ ] Team members register via one-time invite token
-- [ ] Team members see only their assigned tasks
-- [ ] Team members can upload design files and edit captions
-- [ ] Team members can mark tasks as done and notify admin
 - [ ] Team members can comment on tasks
 - [ ] Client portal is accessible via unique slug URL (no login)
 - [ ] Client portal shows active project with Kanban, Calendar, and Timeline views
 - [ ] Client can view task details (caption, design file, posting date, status)
-- [ ] Supabase RLS enforces role-based data access
-- [ ] Admin authentication via email + password
 
 ### Out of Scope
 
@@ -67,10 +66,10 @@ Admins can create and manage social media content tasks, assign them to team mem
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | — Pending |
-| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | — Pending |
-| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | — Pending |
-| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | — Pending |
+| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | Validated in Phase 02/03 — fully operational |
+| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | Pending Phase 04 |
+| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | Validated in Phase 02 — implemented |
+| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | Validated in Phase 03 — in-app notifications only |
 
 ## Evolution
 
@@ -90,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after initialization*
+*Last updated: 2026-04-04 after Phase 03 completion — Team workspace with task dashboard, detail view, and notification workflows validated*

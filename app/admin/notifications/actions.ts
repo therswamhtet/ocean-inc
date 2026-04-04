@@ -30,3 +30,12 @@ export async function markNotificationAsRead(notificationId: string) {
   revalidatePath('/admin')
   revalidatePath('/admin/notifications')
 }
+
+export async function markAllNotificationsAsRead() {
+  const supabase = await requireAdmin()
+
+  await supabase.from('notifications').update({ read: true }).eq('read', false)
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/notifications')
+}

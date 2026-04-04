@@ -41,7 +41,7 @@ export function MobileNav({ email, unreadCount }: { email: string; unreadCount: 
             <Menu className="h-4 w-4" />
           </button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-60 bg-white p-0">
+        <SheetContent side="right" className="w-60 bg-white p-0">
           <div className="border-b border-border px-6 py-5">
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
             <h1 className="mt-2 text-lg font-semibold">{LABELS.common.adminPanel}</h1>

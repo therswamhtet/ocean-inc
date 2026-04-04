@@ -15,7 +15,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation — Database, Auth, and Security** - Database schema with RLS, Supabase SSR auth infrastructure, and global design system tokens
 - [x] **Phase 2: Admin Core — Client, Project, and Task Management** - Full admin CRUD for clients, projects, tasks, and team members with dashboard metrics
 - [x] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
+- [x] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
 - [x] **Phase 4: Client Portal — Public Read-Only Views** - Slug-based portal with Kanban, Calendar, and Timeline views, task detail modal, and secure file downloads
+- [x] **Phase 5: UI/UX Polish and Refinement** - Modal sizing, share link fixes, terminology changes, mobile nav, calendar view polish, task dashboard redesign, card redesign, and bug fixes (completed 2026-04-04)
 
 ## Phase Details
 
@@ -100,14 +102,37 @@ Plans:
 - [x] 04-04: Timeline view with month swimlanes, date-positioned bars, and horizontal scroll lanes
 - [x] 04-05: Shared task detail modal wiring (caption copy + signed download) across all three views
 
+### Phase 5: UI/UX Polish and Refinement
+**Goal**: Polish UI/UX across admin, team, portal, and shared surfaces — responsive modals, consistent terminology, mobile navigation, calendar polish, redesigned dashboard and cards, accumulated bug fixes
+**Depends on**: Phase 4
+**Requirements:** UI/UX refin across all surfaces — no new database requirements
+**Success Criteria** (what must be TRUE):
+  1. All modals (task detail, confirmations, invites) render at appropriate responsive sizes across 375px to desktop
+  2. Client portal share links display as copyable absolute URLs with proper feedback
+  3. Terminology is consistent across admin, team, and portal surfaces (no duplicate labels for same concept)
+  4. Admin and team sidebars collapse to hamburger menu on <768px; all tables convert to card layouts on mobile
+  5. Calendar view has minimum 44px touch targets and horizontal scroll on narrow screens
+  6. Dashboard metric cards display in responsive grid with clear visual hierarchy
+  7. Card components share consistent tokens (border, padding, spacing) across all surfaces
+  8. No new build errors, lint warnings, or regressions introduced
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 05-01: Shared component audit — modal sizing, terminology constants, share link fixes (wave 1)
+- [x] 05-02: Mobile navigation + responsive tables — hamburger menus, card-layout conversion (wave 2)
+- [x] 05-03: Calendar polish + dashboard redesign — touch targets, scroll, responsive metric grid (wave 2)
+- [ ] 05-04: Card redesign unification — shared tokens, kanban/list/metric variants across surfaces (wave 2)
+- [ ] 05-05: Bug fixes + regression sweep — address accumulated issues, full build verification (wave 3)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation — Database, Auth, and Security | 5/5 | Complete | 2026-04-04 |
-| 2. Admin Core — Client, Project, and Task Management | 8/8 | Complete | 2026-04-04 |
-| 3. Team Workflow — Task Dashboard and Editing | 5/5 | Complete | 2026-04-04 |
-| 4. Client Portal — Public Read-Only Views | 5/5 | Complete | 2026-04-04 |
+| 1. Foundation — Database, Auth, and Security | 5/5 | Complete | 2006-04-04 |
+| 2. Admin Core — Client, Project, and Task Management | 8/8 | Complete | 2006-04-04 |
+| 3. Team Workflow — Task Dashboard and Editing | 5/5 | Complete | 2006-04-04 |
+| 4. Client Portal — Public Read-Only Views | 5/5 | Complete | 2006-04-04 |
+| 5. UI/UX Polish and Refinement | 3/3 | Complete   | 2026-04-04 |

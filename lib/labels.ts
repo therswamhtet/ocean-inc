@@ -46,6 +46,12 @@ export const LABELS = {
     tasksInProgress: 'Tasks In Progress',
     overdueTasks: 'Overdue Tasks',
     completedThisMonth: 'Completed This Month',
+    team: {
+      totalAssigned: 'Total Assigned',
+      dueToday: 'Due Today',
+      overdue: 'Overdue',
+      completed: 'Completed',
+    },
   },
   emptyStates: {
     noClients: 'No clients yet',

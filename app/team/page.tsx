@@ -97,10 +97,10 @@ export default async function TeamDashboardPage() {
     })
 
   const metrics = [
-    { label: 'Total Assigned', value: tasks.length },
-    { label: 'Due Today', value: tasks.filter((task) => task.dueDate === today).length },
-    { label: 'Overdue', value: tasks.filter((task) => task.isOverdue).length },
-    { label: 'Completed', value: tasks.filter((task) => task.status === 'done').length },
+    { label: LABELS.dashboard.team.totalAssigned, value: tasks.length },
+    { label: LABELS.dashboard.team.dueToday, value: tasks.filter((task) => task.dueDate === today).length },
+    { label: LABELS.dashboard.team.overdue, value: tasks.filter((task) => task.isOverdue).length },
+    { label: LABELS.dashboard.team.completed, value: tasks.filter((task) => task.status === 'done').length },
   ]
 
   return (

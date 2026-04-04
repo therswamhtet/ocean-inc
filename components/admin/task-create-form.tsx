@@ -100,20 +100,20 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           {errors.title ? <FieldError>{errors.title.message}</FieldError> : null}
         </Field>
 
-      <Field>
-        <FieldLabel>{LABELS.task.briefing}</FieldLabel>
-        <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" {...register('briefing')} />
-        {errors.briefing ? <FieldError>{errors.briefing.message}</FieldError> : null}
-      </Field>
+        <Field className="sm:col-span-2">
+          <FieldLabel>{LABELS.task.briefing}</FieldLabel>
+          <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" {...register('briefing')} />
+          {errors.briefing ? <FieldError>{errors.briefing.message}</FieldError> : null}
+        </Field>
 
-      <Field className="sm:col-span-2">
-        <div className="flex items-center justify-between gap-3">
-          <FieldLabel htmlFor="caption">{LABELS.task.caption}</FieldLabel>
-          <span className="text-xs text-muted-foreground">Copy button appears on the task detail screen.</span>
-        </div>
-        <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
-        {errors.caption ? <FieldError>{errors.caption.message}</FieldError> : null}
-      </Field>
+        <Field className="sm:col-span-2">
+          <div className="flex items-center justify-between gap-3">
+            <FieldLabel htmlFor="caption">{LABELS.task.caption}</FieldLabel>
+            <span className="text-xs text-muted-foreground">Copy button appears on the task detail screen.</span>
+          </div>
+          <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
+          {errors.caption ? <FieldError>{errors.caption.message}</FieldError> : null}
+        </Field>
 
         <Field>
           <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
@@ -121,27 +121,27 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
         </Field>
 
-      <Field>
-        <FieldLabel htmlFor="dueDate">{LABELS.task.dueDate}</FieldLabel>
-        <Input id="dueDate" type="date" {...register('dueDate')} />
-        {errors.dueDate ? <FieldError>{errors.dueDate.message}</FieldError> : null}
-      </Field>
+        <Field>
+          <FieldLabel htmlFor="dueDate">{LABELS.task.dueDate}</FieldLabel>
+          <Input id="dueDate" type="date" {...register('dueDate')} />
+          {errors.dueDate ? <FieldError>{errors.dueDate.message}</FieldError> : null}
+        </Field>
 
-      <Field>
-        <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
-        <Input id="deadline" type="date" {...register('deadline')} />
-        {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
-      </Field>
+        <Field>
+          <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
+          <Input id="deadline" type="date" {...register('deadline')} />
+          {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
+        </Field>
 
-      <Field>
-        <FieldLabel>{LABELS.task.status}</FieldLabel>
-        <Select
-          defaultValue="todo"
-          value={watch('status')}
-          onValueChange={(value: 'todo' | 'in_progress' | 'done') => setValue('status', value, { shouldValidate: true })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
+        <Field>
+          <FieldLabel>{LABELS.task.status}</FieldLabel>
+          <Select
+            defaultValue="todo"
+            value={watch('status')}
+            onValueChange={(value: 'todo' | 'in_progress' | 'done') => setValue('status', value, { shouldValidate: true })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todo">To Do</SelectItem>

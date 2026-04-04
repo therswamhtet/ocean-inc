@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { format, isSameMonth } from 'date-fns'
 
 import { StatusDot } from '@/components/ui/status-dot'
+import { LABELS } from '@/lib/labels'
 import { buildMonthGrid, buildWeekGrid, groupTasksByPostingDate } from '@/lib/portal/calendar-utils'
 import type { PortalTask } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
@@ -39,7 +40,7 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
               type="button"
               onClick={() => setMode(nextMode)}
               className={cn(
-                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
+                'flex-1 min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
                 mode === nextMode
                   ? 'bg-[#222222] text-white'
                   : 'border border-transparent text-foreground hover:bg-muted/40'
@@ -51,94 +52,100 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-        {weekDayLabels.map((label) => (
-          <p key={label}>{label}</p>
-        ))}
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px] grid grid-cols-7 gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          {weekDayLabels.map((label) => (
+            <p key={label}>{label}</p>
+          ))}
+        </div>
       </div>
 
       {mode === 'month' ? (
-        <div className="space-y-2">
-          {monthGrid.map((week, weekIndex) => (
-            <div key={`month-week-${weekIndex}`} className="grid grid-cols-7 gap-2">
-              {week.map((day) => {
-                const key = format(day, 'yyyy-MM-dd')
-                const dayTasks = groupedTasks[key] ?? []
+        <div className="overflow-x-auto">
+          <div className="min-w-[560px] space-y-2">
+            {monthGrid.map((week, weekIndex) => (
+              <div key={`month-week-${weekIndex}`} className="grid grid-cols-7 gap-2">
+                {week.map((day) => {
+                  const key = format(day, 'yyyy-MM-dd')
+                  const dayTasks = groupedTasks[key] ?? []
 
-                return (
-                  <article
-                    key={key}
-                    className={cn(
-                      'min-h-28 rounded-sm border border-border p-2',
-                      isSameMonth(day, anchorDate) ? 'bg-background' : 'bg-muted/30'
-                    )}
-                  >
-                    <p className="mb-2 text-xs text-muted-foreground">{format(day, 'd')}</p>
+                  return (
+                    <article
+                      key={key}
+                      className={cn(
+                        'min-h-[44px] rounded-sm border border-border p-2',
+                        isSameMonth(day, anchorDate) ? 'bg-background' : 'bg-muted/30'
+                      )}
+                    >
+                      <p className="mb-1 text-xs text-muted-foreground">{format(day, 'd')}</p>
 
-                    <div className="space-y-1">
-                      {dayTasks.map((task) => (
-                        <button
-                          key={task.id}
-                          type="button"
-                          onClick={() => onTaskSelect(task)}
-                          className="flex w-full items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
-                        >
-                          <StatusDot status={task.status} />
-                          <p className="truncate text-xs text-foreground">{task.title}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          ))}
+                      <div className="space-y-1">
+                        {dayTasks.map((task) => (
+                          <button
+                            key={task.id}
+                            type="button"
+                            onClick={() => onTaskSelect(task)}
+                            className="flex w-full min-h-[28px] items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
+                          >
+                            <StatusDot status={task.status} />
+                            <p className="truncate text-xs text-foreground">{task.title}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-7 gap-2">
-          {weekGrid.map((day) => {
-            const key = format(day, 'yyyy-MM-dd')
-            const dayTasks = groupedTasks[key] ?? []
+        <div className="overflow-x-auto">
+          <div className="min-w-[560px] grid grid-cols-7 gap-2">
+            {weekGrid.map((day) => {
+              const key = format(day, 'yyyy-MM-dd')
+              const dayTasks = groupedTasks[key] ?? []
 
-            return (
-              <article key={key} className="min-h-40 rounded-sm border border-border p-2">
-                <p className="mb-2 text-xs text-muted-foreground">
-                  {format(day, 'EEE')} {format(day, 'd')}
-                </p>
+              return (
+                <article key={key} className="min-h-[44px] rounded-sm border border-border p-2">
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    {format(day, 'EEE')} {format(day, 'd')}
+                  </p>
 
-                <div className="space-y-1">
-                  {dayTasks.map((task) => (
-                    <button
-                      key={task.id}
-                      type="button"
-                      onClick={() => onTaskSelect(task)}
-                      className="flex w-full items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
-                    >
-                      <StatusDot status={task.status} />
-                      <p className="truncate text-xs text-foreground">{task.title}</p>
-                    </button>
-                  ))}
-                </div>
-              </article>
-            )
-          })}
+                  <div className="space-y-1">
+                    {dayTasks.map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={() => onTaskSelect(task)}
+                        className="flex w-full min-h-[28px] items-center gap-1.5 rounded-sm border border-border px-1.5 py-1 text-left hover:bg-muted/20"
+                      >
+                        <StatusDot status={task.status} />
+                        <p className="truncate text-xs text-foreground">{task.title}</p>
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
         </div>
       )}
 
-      {!hasTasks ? <p className="text-sm text-muted-foreground">No tasks with posting dates are available yet.</p> : null}
+      {!hasTasks ? <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noPortalTasks}</p> : null}
 
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => setAnchorDate((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
-          className="rounded-sm border border-border px-3 py-2 text-sm text-foreground hover:bg-muted/30"
+          className="min-h-[44px] rounded-sm border border-border px-3 py-2 text-sm text-foreground hover:bg-muted/30"
         >
           Previous
         </button>
         <button
           type="button"
           onClick={() => setAnchorDate((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
-          className="rounded-sm border border-border px-3 py-2 text-sm text-foreground hover:bg-muted/30"
+          className="min-h-[44px] rounded-sm border border-border px-3 py-2 text-sm text-foreground hover:bg-muted/30"
         >
           Next
         </button>

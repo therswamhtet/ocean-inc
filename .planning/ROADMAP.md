@@ -78,7 +78,7 @@ Plans:
 - [x] 03-02: Dedicated team task detail page with read-only context and independent caption/file/status editing (wave 2)
 - [x] 03-03: Notify Assigner confirmation flow, admin-notification creation, and team notification INSERT policy (wave 3)
 - [x] 03-04: Admin unread bell badge and notification-state revalidation wiring (wave 1)
-- [ ] 03-05: Automated team-member RLS isolation verification script (wave 4)
+- [x] 03-05: Automated team-member RLS isolation verification script (wave 4)
 
 ### Phase 4: Client Portal — Public Read-Only Views
 **Goal**: Clients can view their active project through a public, read-only portal with Kanban, Calendar, and Timeline views

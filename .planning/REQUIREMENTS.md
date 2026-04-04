@@ -66,15 +66,15 @@
 
 ### Client Portal
 
-- [ ] **CLIENT-01**: Client can access portal via `/portal/[slug]` URL (no login required)
-- [ ] **CLIENT-02**: Portal shows the client's active project
+- [x] **CLIENT-01**: Client can access portal via `/portal/[slug]` URL (no login required)
+- [x] **CLIENT-02**: Portal shows the client's active project
 - [ ] **CLIENT-03**: Kanban view with four columns: todo, in_progress, done, overdue
 - [ ] **CLIENT-04**: Calendar view with week and month toggle, tasks plotted by posting date
 - [ ] **CLIENT-05**: Timeline view with month-grouped swimlanes, task bars by date
 - [ ] **CLIENT-06**: Task card shows: title, posting date, status indicator (animated pulsing dot)
 - [ ] **CLIENT-07**: Clicking a task opens modal/drawer showing: caption with copy button, design file with download button, posting date, status
-- [ ] **CLIENT-08**: Portal is read-only — no mutations from client side
-- [ ] **CLIENT-09**: Portal uses `force-dynamic` rendering to prevent stale cache
+- [x] **CLIENT-08**: Portal is read-only — no mutations from client side
+- [x] **CLIENT-09**: Portal uses `force-dynamic` rendering to prevent stale cache
 - [ ] **CLIENT-10**: Design file downloads use signed URLs (60s expiry)
 
 ### UI/UX
@@ -163,15 +163,15 @@
 | NOTIF-03 | Phase 3 | Complete |
 | NOTIF-04 | Phase 3 | Complete |
 | NOTIF-05 | Phase 3 | Complete |
-| CLIENT-01 | Phase 4 | Pending |
-| CLIENT-02 | Phase 4 | Pending |
+| CLIENT-01 | Phase 4 | Complete |
+| CLIENT-02 | Phase 4 | Complete |
 | CLIENT-03 | Phase 4 | Pending |
 | CLIENT-04 | Phase 4 | Pending |
 | CLIENT-05 | Phase 4 | Pending |
 | CLIENT-06 | Phase 4 | Pending |
 | CLIENT-07 | Phase 4 | Pending |
-| CLIENT-08 | Phase 4 | Pending |
-| CLIENT-09 | Phase 4 | Pending |
+| CLIENT-08 | Phase 4 | Complete |
+| CLIENT-09 | Phase 4 | Complete |
 | CLIENT-10 | Phase 4 | Pending |
 | UI-01 | Phase 1 | Complete |
 | UI-02 | Phase 1 | Complete |

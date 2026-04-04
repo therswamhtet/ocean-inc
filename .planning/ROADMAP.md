@@ -94,7 +94,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01: Portal foundation — typed data contracts, slug validation, force-dynamic route shell, read-only policy migration
+- [x] 04-01: Portal foundation — typed data contracts, slug validation, force-dynamic route shell, read-only policy migration
 - [ ] 04-02: Read-only Kanban view with locked 3 columns and overdue visual flag task cards
 - [ ] 04-03: Calendar view with month default, week toggle, and posting-date plotting helpers
 - [ ] 04-04: Timeline view with month swimlanes, date-positioned bars, and horizontal scroll lanes

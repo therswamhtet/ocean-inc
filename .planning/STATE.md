@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-04-04T06:04:26.481Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-04-04T06:13:37.777Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 12
-  completed_plans: 10
-  percent: 67
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 02 (admin-core-client-project-and-task-management) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-04-04
 
-Progress: [███████░░░] 67%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [███████░░░] 67%
 | Phase 02 P01 | 4 min | 3 tasks | 13 files |
 | Phase 02 P05 | 1 min | 2 tasks | 3 files |
 | Phase 02 P03 | 13 min | 7 tasks | 16 files |
+| Phase 02 P04 | 5 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Split TaskViewToggle into its own client entry file so the project page can remain server-rendered under Next.js 16 boundaries.
 - [Phase 02]: Resolved concrete project and task paths before calling revalidatePath instead of using wildcard routes, matching current Next.js behavior.
 - [Phase 02]: Task uploads now use a temp storage path that server actions copy into the final task directory after the task row is created.
+- [Phase 02]: Kept the task detail route server-rendered and moved interactive editing into a colocated client component to follow Next.js App Router boundaries.
+- [Phase 02]: Used a local signed-url download helper inside the task form instead of creating a reusable downloader ahead of plan 02-07.
+- [Phase 02]: Escaped briefing HTML before applying linkify because the preview uses dangerouslySetInnerHTML.
 
 ### Pending Todos
 
@@ -95,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T06:04:26.477Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-04-04T06:13:21.420Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

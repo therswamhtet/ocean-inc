@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
+import { LABELS } from '@/lib/labels'
 
 type ClientRow = {
   id: string
@@ -87,7 +88,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       {clients.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>No clients yet</CardTitle>
+            <CardTitle>{LABELS.emptyStates.noClients}</CardTitle>
             <CardDescription>Create your first client to start organizing monthly projects.</CardDescription>
           </CardHeader>
         </Card>

@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react'
 
 import { createClientAction } from './actions'
 import { Button } from '@/components/ui/button'
+import { LABELS } from '@/lib/labels'
 import {
   Dialog,
   DialogContent,
@@ -33,14 +34,14 @@ export function CreateClientDialog({ errorMessage }: CreateClientDialogProps) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />
-          Add Client
+          {LABELS.client.create}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create client</DialogTitle>
+          <DialogTitle>{LABELS.client.createTitle}</DialogTitle>
           <DialogDescription>
-            Add a client by name only. A unique slug is generated automatically for portal access.
+            {LABELS.client.createDescription}
           </DialogDescription>
         </DialogHeader>
 

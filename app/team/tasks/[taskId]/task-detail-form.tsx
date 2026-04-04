@@ -6,6 +6,7 @@ import { notifyAssignerAction, updateTeamTaskContentAction, updateTeamTaskFilePa
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
+import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -94,7 +95,7 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
       void notifyAssignerAction(task.id).then((result) => {
         if (result.success) {
           setStatus('done')
-          setFeedback('Assigner notified and task marked as done.')
+          setFeedback(LABELS.notify.success)
           return
         }
 
@@ -124,17 +125,17 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
           </Field>
 
           <Field>
-            <FieldLabel>Posting date</FieldLabel>
+            <FieldLabel>{LABELS.task.postingDate}</FieldLabel>
             <ReadOnlyValue value={task.postingDate} />
           </Field>
 
           <Field>
-            <FieldLabel>Due date</FieldLabel>
+            <FieldLabel>{LABELS.task.dueDate}</FieldLabel>
             <ReadOnlyValue value={task.dueDate} />
           </Field>
 
           <Field className="sm:col-span-2">
-            <FieldLabel>Deadline</FieldLabel>
+            <FieldLabel>{LABELS.task.deadline}</FieldLabel>
             <ReadOnlyValue value={task.deadline} />
           </Field>
         </div>
@@ -256,21 +257,21 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
 
         <section className="space-y-4 rounded-lg border border-border p-5">
           <div>
-            <h3 className="text-base font-semibold text-foreground">Notify Assigner</h3>
+            <h3 className="text-base font-semibold text-foreground">{LABELS.notify.title}</h3>
             <p className="text-sm text-muted-foreground">Notify the admin when your work is complete.</p>
           </div>
 
           <Dialog open={isNotifyDialogOpen} onOpenChange={setIsNotifyDialogOpen}>
             <DialogTrigger asChild>
               <Button type="button" variant="default" className="w-full">
-                Notify Assigner
+                {LABELS.notify.button}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Notify Assigner</DialogTitle>
+                <DialogTitle>{LABELS.notify.title}</DialogTitle>
                 <DialogDescription>
-                  This will notify the admin that your work is complete and mark the task as done.
+                  {LABELS.notify.description}
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4 text-sm text-muted-foreground">
@@ -291,7 +292,7 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
                     handleNotifyAssigner()
                   }}
                 >
-                  {isNotifying ? 'Notifying...' : 'Confirm and mark done'}
+                  {isNotifying ? LABELS.notify.assigning : LABELS.notify.confirmButton}
                 </Button>
               </DialogFooter>
             </DialogContent>

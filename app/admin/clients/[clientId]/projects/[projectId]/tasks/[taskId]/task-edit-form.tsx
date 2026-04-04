@@ -17,6 +17,7 @@ import {
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
+import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -172,7 +173,7 @@ export function TaskEditForm({
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="postingDate">Posting date</FieldLabel>
+            <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
             <Input id="postingDate" type="date" {...register('postingDate')} />
             {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
           </Field>

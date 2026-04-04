@@ -8,6 +8,7 @@ import { MoreHorizontal } from 'lucide-react'
 
 import { deleteTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
+import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,7 +49,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
-        No tasks yet. Create the first task to populate this project.
+        {LABELS.emptyStates.noTasks}
       </div>
     )
   }

@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 
 import { StatusDot } from '@/components/ui/status-dot'
 import { createClient } from '@/lib/supabase/server'
+import { LABELS } from '@/lib/labels'
 
 type DisplayStatus = 'todo' | 'in_progress' | 'done' | 'overdue'
 

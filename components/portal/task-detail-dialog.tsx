@@ -2,6 +2,7 @@
 
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
+import { LABELS } from '@/lib/labels'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { StatusDot } from '@/components/ui/status-dot'
 import type { PortalTask } from '@/lib/portal/types'
@@ -26,8 +27,8 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
     return null
   }
 
-  const caption = task.caption ?? 'No caption has been added yet.'
-  const postingDate = task.postingDate ?? 'No posting date'
+  const caption = task.caption ?? LABELS.emptyStates.noCaption
+  const postingDate = task.postingDate ?? 'Not available'
   const fileName = getFileName(task.designFilePath)
 
   return (
@@ -52,13 +53,13 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
             {task.designFilePath && fileName ? (
               <DesignFileDownloader filePath={task.designFilePath} fileName={fileName} />
             ) : (
-              <p className="text-sm text-muted-foreground">No design file uploaded yet.</p>
+              <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noDesignFile}</p>
             )}
           </section>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Posting date</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{LABELS.task.postingDate}</p>
               <p className="text-sm text-foreground">{postingDate}</p>
             </section>
 

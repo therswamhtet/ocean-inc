@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 import { createTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
+import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -115,7 +116,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="postingDate">Posting date</FieldLabel>
+          <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
           <Input id="postingDate" type="date" {...register('postingDate')} />
           {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
         </Field>

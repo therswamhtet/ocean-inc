@@ -27,8 +27,13 @@ export async function markNotificationAsRead(notificationId: string) {
 
   await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
 
+  // Revalidate all surfaces that can show notification state:
+  // - Dashboard (recent notifications list)
+  // - Notifications page (full list)
+  // - Layout (bell badge with unread count)
   revalidatePath('/admin')
   revalidatePath('/admin/notifications')
+  revalidatePath('/admin', 'layout')
 }
 
 export async function markAllNotificationsAsRead() {
@@ -36,6 +41,11 @@ export async function markAllNotificationsAsRead() {
 
   await supabase.from('notifications').update({ read: true }).eq('read', false)
 
+  // Revalidate all surfaces that can show notification state:
+  // - Dashboard (recent notifications list)
+  // - Notifications page (full list)
+  // - Layout (bell badge with unread count)
   revalidatePath('/admin')
   revalidatePath('/admin/notifications')
+  revalidatePath('/admin', 'layout')
 }

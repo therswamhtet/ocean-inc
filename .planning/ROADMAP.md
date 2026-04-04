@@ -115,14 +115,14 @@ Plans:
   6. Dashboard metric cards display in responsive grid with clear visual hierarchy
   7. Card components share consistent tokens (border, padding, spacing) across all surfaces
   8. No new build errors, lint warnings, or regressions introduced
-**Plans:** 3/3 plans complete
+**Plans:** 4/5 plans executed
 
 Plans:
 - [x] 05-01: Shared component audit — modal sizing, terminology constants, share link fixes (wave 1)
 - [x] 05-02: Mobile navigation + responsive tables — hamburger menus, card-layout conversion (wave 2)
 - [x] 05-03: Calendar polish + dashboard redesign — touch targets, scroll, responsive metric grid (wave 2)
 - [ ] 05-04: Card redesign unification — shared tokens, kanban/list/metric variants across surfaces (wave 2)
-- [ ] 05-05: Bug fixes + regression sweep — address accumulated issues, full build verification (wave 3)
+- [x] 05-05: Bug fixes + regression sweep — address accumulated issues, full build verification (wave 3)
 
 ## Progress
 
@@ -135,4 +135,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Admin Core — Client, Project, and Task Management | 8/8 | Complete | 2006-04-04 |
 | 3. Team Workflow — Task Dashboard and Editing | 5/5 | Complete | 2006-04-04 |
 | 4. Client Portal — Public Read-Only Views | 5/5 | Complete | 2006-04-04 |
-| 5. UI/UX Polish and Refinement | 3/3 | Complete   | 2026-04-04 |
+| 5. UI/UX Polish and Refinement | 4/5 | In Progress|  |

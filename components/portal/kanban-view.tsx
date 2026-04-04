@@ -1,5 +1,6 @@
 import { isBefore, startOfDay } from 'date-fns'
 
+import { LABELS } from '@/lib/labels'
 import { PortalKanbanTaskCard } from '@/components/portal/kanban-task-card'
 import type { PortalTask, PortalTaskStatus } from '@/lib/portal/types'
 
@@ -10,10 +11,16 @@ type PortalKanbanViewProps = {
 
 const columnOrder: PortalTaskStatus[] = ['todo', 'in_progress', 'done']
 
+const kanbanLabels = {
+  todo: LABELS.kanban.columns.todo,
+  in_progress: LABELS.kanban.columns.in_progress,
+  done: LABELS.kanban.columns.done,
+}
+
 const columnLabels: Record<PortalTaskStatus, string> = {
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  done: 'Done',
+  todo: kanbanLabels.todo,
+  in_progress: kanbanLabels.in_progress,
+  done: kanbanLabels.done,
 }
 
 function isTaskOverdue(task: PortalTask) {
@@ -61,7 +68,7 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
 
               {tasksInColumn.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
-                  No tasks.
+                  {LABELS.emptyStates.noTasksInColumn}
                 </div>
               ) : null}
             </div>
@@ -71,7 +78,7 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
 
       {!hasTasks ? (
         <p className="md:col-span-3 text-sm text-muted-foreground">
-          No tasks are scheduled yet for this active project.
+          {LABELS.emptyStates.noTasksScheduled}
         </p>
       ) : null}
     </div>

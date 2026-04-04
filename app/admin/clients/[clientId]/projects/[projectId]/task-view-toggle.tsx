@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { KanbanBoard } from '@/components/admin/kanban-board'
 import { TaskCreateForm } from '@/components/admin/task-create-form'
 import { TaskList } from '@/components/admin/task-list'
+import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -63,7 +64,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>Create Task</Button>
+            <Button>{LABELS.task.create}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>

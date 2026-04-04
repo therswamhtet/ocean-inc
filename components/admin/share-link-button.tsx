@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check, Copy, Link as LinkIcon } from 'lucide-react'
+import { Check, Link as LinkIcon } from 'lucide-react'
+
+import { LABELS } from '@/lib/labels'
 
 export function ShareLinkButton({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false)
@@ -45,17 +47,17 @@ export function ShareLinkButton({ slug }: { slug: string }) {
         {copied ? (
           <>
             <Check className="h-3 w-3" />
-            Copied
+            {LABELS.share.copied}
           </>
         ) : (
           <>
             <LinkIcon className="h-3 w-3" />
-            Share Link
+            {LABELS.share.copyAction}
           </>
         )}
       </button>
       <span aria-live="polite" className="text-xs text-muted-foreground">
-        {copied ? 'Link copied.' : ''}
+        {copied ? LABELS.share.copied : ''}
       </span>
     </div>
   )

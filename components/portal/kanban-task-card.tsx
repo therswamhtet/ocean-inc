@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 
+import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import type { PortalTask } from '@/lib/portal/types'
 
@@ -11,12 +12,12 @@ type PortalKanbanTaskCardProps = {
 
 function formatPostingDate(postingDate: string | null) {
   if (!postingDate) {
-    return 'No date'
+    return LABELS.emptyStates.noDate
   }
 
   const parsed = new Date(postingDate)
   if (Number.isNaN(parsed.getTime())) {
-    return 'No date'
+    return LABELS.emptyStates.noDate
   }
 
   return format(parsed, 'MMM d')

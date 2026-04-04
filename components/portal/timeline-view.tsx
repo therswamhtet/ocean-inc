@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
 
+import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { calculateTimelineOffset, groupTasksByMonth } from '@/lib/portal/timeline-utils'
 import type { PortalTask } from '@/lib/portal/types'
@@ -37,7 +38,7 @@ export function PortalTimelineView({ tasks, onTaskSelect }: PortalTimelineViewPr
   const monthEntries = Object.entries(grouped)
 
   if (monthEntries.length === 0) {
-    return <p className="text-sm text-muted-foreground">No tasks with posting dates are available yet.</p>
+    return <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noPortalTasks}</p>
   }
 
   return (

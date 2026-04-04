@@ -226,7 +226,7 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
               <DesignFileDownloader filePath={designFilePath} fileName={currentFileName} />
             </div>
           ) : (
-            <FieldDescription>No design file uploaded yet.</FieldDescription>
+            <FieldDescription>{LABELS.emptyStates.noDesignFile}</FieldDescription>
           )}
 
           <div className="border-t border-border pt-4">

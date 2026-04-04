@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { createProjectAction, deleteProjectAction } from './actions'
+import { LABELS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
 
 type ClientRecord = {
@@ -97,28 +98,28 @@ export default async function ClientProjectsPage({
         </nav>
         <div className="flex flex-col gap-4 rounded-lg border border-border p-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Client projects</p>
+            <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
             <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
             <p className="text-sm text-muted-foreground">
-              Manage monthly project cycles for this client.
+              {LABELS.common.projectDescription}
             </p>
           </div>
 
           <div className="w-full max-w-md">
             <Dialog>
-              <DialogTrigger>Add Project</DialogTrigger>
+              <DialogTrigger>{LABELS.project.create}</DialogTrigger>
               <DialogContent>
                 <form action={createProjectAction.bind(null, clientId)} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium" htmlFor="name">
-                      Name
+                      {LABELS.common.name}
                     </label>
                     <input
                       className="w-full rounded-lg border border-input px-3 py-2 text-sm"
                       id="name"
                       minLength={2}
                       name="name"
-                      placeholder="April Content Plan"
+                      placeholder={LABELS.common.monthPlaceholder}
                       required
                       type="text"
                     />
@@ -127,7 +128,7 @@ export default async function ClientProjectsPage({
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium" htmlFor="month">
-                        Month
+                        {LABELS.common.month}
                       </label>
                       <select
                         className="w-full rounded-lg border border-input px-3 py-2 text-sm"
@@ -145,7 +146,7 @@ export default async function ClientProjectsPage({
 
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium" htmlFor="year">
-                        Year
+                        {LABELS.common.year}
                       </label>
                       <input
                         className="w-full rounded-lg border border-input px-3 py-2 text-sm"
@@ -195,7 +196,7 @@ export default async function ClientProjectsPage({
 
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center">
-          <p className="text-lg font-medium">No projects yet. Create the first one.</p>
+          <p className="text-lg font-medium">{LABELS.emptyStates.noProjects}</p>
         </div>
       ) : (
         <>

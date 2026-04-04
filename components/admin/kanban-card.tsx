@@ -7,6 +7,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
+import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 
 type KanbanCardProps = {
@@ -41,7 +42,7 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <StatusDot status={isOverdue ? 'overdue' : task.status} />
         <span className="text-xs text-muted-foreground">
-          {task.posting_date ? format(new Date(task.posting_date), 'MMM d') : 'No date'}
+          {task.posting_date ? format(new Date(task.posting_date), 'MMM d') : LABELS.task.noDate}
         </span>
       </div>
 

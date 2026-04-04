@@ -65,7 +65,7 @@ export function CreateClientDialog({ errorMessage }: CreateClientDialogProps) {
           ) : null}
 
           <div className="flex justify-end">
-            <Button type="submit">Create Client</Button>
+            <Button type="submit">{LABELS.project.create}</Button>
           </div>
         </form>
       </DialogContent>

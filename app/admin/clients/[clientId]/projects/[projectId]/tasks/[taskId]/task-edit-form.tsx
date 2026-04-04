@@ -179,19 +179,19 @@ export function TaskEditForm({
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="dueDate">Due date</FieldLabel>
+            <FieldLabel htmlFor="dueDate">{LABELS.task.dueDate}</FieldLabel>
             <Input id="dueDate" type="date" {...register('dueDate')} />
             {errors.dueDate ? <FieldError>{errors.dueDate.message}</FieldError> : null}
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="deadline">Deadline</FieldLabel>
+            <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
             <Input id="deadline" type="date" {...register('deadline')} />
             {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
           </Field>
 
           <Field>
-            <FieldLabel>Status</FieldLabel>
+            <FieldLabel>{LABELS.task.status}</FieldLabel>
             <Select
               value={watch('status')}
               onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
@@ -280,7 +280,7 @@ export function TaskEditForm({
             variant="destructive"
             disabled={isDeleting}
             onClick={() => {
-              const confirmed = window.confirm('Delete this task? This also removes the current design file.')
+              const confirmed = window.confirm(LABELS.task.deleteConfirm)
 
               if (!confirmed) {
                 return
@@ -300,7 +300,7 @@ export function TaskEditForm({
             }}
           >
             {isDeleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-            Delete task
+            {LABELS.task.deleted}
           </Button>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -308,7 +308,7 @@ export function TaskEditForm({
               <Link href={projectPath}>Back to project</Link>
             </Button>
             <Button disabled={isSaving || isReplacing} type="submit">
-              {isSaving ? 'Saving...' : 'Save task'}
+              {isSaving ? 'Saving...' : LABELS.common.save}
             </Button>
           </div>
         </div>

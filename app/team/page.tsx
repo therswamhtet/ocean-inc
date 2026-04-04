@@ -26,7 +26,7 @@ type AssignmentRecord = {
   } | null
 }
 
-const metricCardClassName = 'rounded-lg border border-border p-4'
+const metricCardClassName = 'rounded-lg border border-border p-5'
 
 function compareNullableDates(a: string | null, b: string | null) {
   if (a && b) {
@@ -111,11 +111,11 @@ export default async function TeamDashboardPage() {
           <p className="text-sm text-muted-foreground">See what is due next and keep your assigned content moving.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric) => (
             <article key={metric.label} className={metricCardClassName}>
-              <p className="text-sm text-muted-foreground">{metric.label}</p>
-              <p className="mt-1 text-2xl font-bold">{metric.value}</p>
+              <p className="text-sm text-[#888888]">{metric.label}</p>
+              <p className="mt-1 text-3xl font-bold text-foreground">{metric.value}</p>
             </article>
           ))}
         </div>
@@ -145,7 +145,7 @@ export default async function TeamDashboardPage() {
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{task.dueDate ? `Due ${task.dueDate}` : 'No due date'}</span>
+                    <span>{task.dueDate ? `Due ${task.dueDate}` : LABELS.task.noDate}</span>
                     <StatusDot status={task.displayStatus} showLabel />
                   </div>
                 </Link>
@@ -153,7 +153,7 @@ export default async function TeamDashboardPage() {
             ))}
           </ul>
         ) : (
-          <p className="px-4 py-6 text-sm text-muted-foreground">No tasks assigned yet.</p>
+          <p className="px-4 py-6 text-sm text-muted-foreground">{LABELS.emptyStates.noTasksAssigned}</p>
         )}
       </section>
     </div>

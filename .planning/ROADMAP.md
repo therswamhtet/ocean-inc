@@ -136,3 +136,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Team Workflow — Task Dashboard and Editing | 5/5 | Complete | 2006-04-04 |
 | 4. Client Portal — Public Read-Only Views | 5/5 | Complete | 2006-04-04 |
 | 5. UI/UX Polish and Refinement | 4/5 | In Progress|  |
+
+### Phase 05.1: UI/UX Polish phase for urgent refinement work discovered mid-milestone (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 05.1 to break down)

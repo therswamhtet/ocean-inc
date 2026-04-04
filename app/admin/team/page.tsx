@@ -55,30 +55,61 @@ export default async function TeamPage() {
             <p className="text-sm text-muted-foreground">Invite your first member below.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  <th className="px-3 py-3 font-medium">Name</th>
-                  <th className="px-3 py-3 font-medium">Email</th>
-                  <th className="px-3 py-3 font-medium">Assigned Tasks</th>
-                  <th className="px-3 py-3 font-medium">Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamMembers.map((member) => (
-                  <tr key={member.id} className="border-b border-border/80 last:border-b-0">
-                    <td className="px-3 py-4 font-medium text-foreground">{member.name}</td>
-                    <td className="px-3 py-4 text-muted-foreground">{member.email}</td>
-                    <td className="px-3 py-4">{member.assignedTaskCount}</td>
-                    <td className="px-3 py-4 text-muted-foreground">
-                      {format(new Date(member.created_at), 'MMM d, yyyy')}
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    <th className="px-3 py-3 font-medium">Name</th>
+                    <th className="px-3 py-3 font-medium">Email</th>
+                    <th className="px-3 py-3 font-medium">Assigned Tasks</th>
+                    <th className="px-3 py-3 font-medium">Joined</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {teamMembers.map((member) => (
+                    <tr key={member.id} className="border-b border-border/80 last:border-b-0">
+                      <td className="px-3 py-4 font-medium text-foreground">{member.name}</td>
+                      <td className="px-3 py-4 text-muted-foreground">{member.email}</td>
+                      <td className="px-3 py-4">{member.assignedTaskCount}</td>
+                      <td className="px-3 py-4 text-muted-foreground">
+                        {format(new Date(member.created_at), 'MMM d, yyyy')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="space-y-3 md:hidden">
+              {teamMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="rounded-lg border border-border bg-white p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-base font-medium text-foreground">{member.name}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.1em]">Email</span>
+                      <p className="truncate">{member.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.1em]">Assigned Tasks</span>
+                      <p>{member.assignedTaskCount}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-xs uppercase tracking-[0.1em]">Joined</span>
+                      <p>{format(new Date(member.created_at), 'MMM d, yyyy')}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </section>
 

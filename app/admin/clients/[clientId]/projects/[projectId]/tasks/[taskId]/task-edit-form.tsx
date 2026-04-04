@@ -14,6 +14,7 @@ import {
   updateTaskAction,
   updateTaskFilePathAction,
 } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
+import CopyButton from '@/components/admin/copy-button'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
@@ -198,7 +199,10 @@ export function TaskEditForm({
           <Field className="sm:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <FieldLabel htmlFor="caption">Caption</FieldLabel>
-              <span className="text-xs text-muted-foreground">Keep the final social copy current here.</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">Keep the final social copy current here.</span>
+                <CopyButton label="Copy" text={watch('caption') ?? ''} />
+              </div>
             </div>
             <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
             {errors.caption ? <FieldError>{errors.caption.message}</FieldError> : null}

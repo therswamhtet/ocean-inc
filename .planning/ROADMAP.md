@@ -55,7 +55,7 @@ Plans:
 - [ ] 02-03: Task creation form with file upload, list view, and kanban view
 - [ ] 02-04: Task detail page with full edit, team member assignment, and briefing link rendering
 - [x] 02-05: Admin dashboard with metrics, overdue detection, and notifications list
-- [ ] 02-06: Team member management — list, task counts, invite generation
+- [x] 02-06: Team member management — list, task counts, invite generation
 - [ ] 02-07: Supabase Storage integration for design file upload/download, caption copy button
 
 ### Phase 3: Team Workflow — Task Dashboard and Editing

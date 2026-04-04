@@ -43,7 +43,7 @@
 - [ ] **ADMIN-11**: Briefing text renders URLs as clickable anchor tags
 - [ ] **ADMIN-12**: Design file upload uses Supabase Storage with download capability
 - [ ] **ADMIN-13**: Caption field shows a "Copy" button (clipboard copy)
-- [ ] **ADMIN-14**: Admin can manage team members: view list, see task counts per member, invite new members by email
+- [x] **ADMIN-14**: Admin can manage team members: view list, see task counts per member, invite new members by email
 
 ### Team Member: Task Workflow
 
@@ -149,7 +149,7 @@
 | ADMIN-11 | Phase 2 | Pending |
 | ADMIN-12 | Phase 2 | Pending |
 | ADMIN-13 | Phase 2 | Pending |
-| ADMIN-14 | Phase 2 | Pending |
+| ADMIN-14 | Phase 2 | Complete |
 | TEAM-01 | Phase 3 | Pending |
 | TEAM-02 | Phase 3 | Pending |
 | TEAM-03 | Phase 3 | Pending |

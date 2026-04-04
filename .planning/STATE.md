@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-04-04T05:54:07.916Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-04-04T05:58:12.688Z"
 last_activity: 2026-04-04
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 67
 ---
 
@@ -77,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Client list derives active project counts from a left-joined projects relation without adding new database functions.
 - [Phase 02]: Kept the dashboard as a Server Component and ran the four metric counts in one Promise.all batch.
 - [Phase 02]: Shared notification mutations in a dedicated 'use server' file so both dashboard and full notifications page reuse the same revalidation flow.
+- [Phase 02]: Normalized invite emails to lowercase and blocked invites for existing team members before inserting invite_tokens.
+- [Phase 02]: Used a dedicated client invite section so clipboard feedback stays browser-only while the team list remains server-rendered.
 
 ### Pending Todos
 
@@ -89,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T05:54:07.908Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-04-04T05:57:17.578Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None

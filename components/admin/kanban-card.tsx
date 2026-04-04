@@ -9,6 +9,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
+import { cn } from '@/lib/utils'
 
 type KanbanCardProps = {
   task: TaskRow
@@ -34,7 +35,9 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
     <article
       ref={setNodeRef}
       style={style}
-      className="border border-border rounded-sm bg-background p-3 cursor-grab hover:border-foreground/30 active:cursor-grabbing"
+      className={cn(
+        'rounded-lg border border-border bg-background p-3 cursor-grab transition hover:border-foreground/30 active:cursor-grabbing',
+      )}
       data-dragging={isDragging ? 'true' : 'false'}
       {...attributes}
       {...listeners}

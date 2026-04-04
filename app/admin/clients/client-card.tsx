@@ -1,5 +1,6 @@
 'use client'
 
+import { Calendar, Link as LinkIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -33,7 +34,7 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt }: C
   }
 
   return (
-    <Card className="cursor-pointer transition hover:bg-muted/10" onClick={handleCardClick}>
+    <Card className="cursor-pointer transition-all hover:bg-muted/10 hover:border-muted-foreground/20" onClick={handleCardClick}>
       <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-3">
@@ -49,6 +50,16 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt }: C
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
             <span>Slug: {slug}</span>
             <ShareLinkButton slug={slug} />
+            <Link
+              href={`/portal/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 text-sm underline underline-offset-4 hover:text-foreground"
+            >
+              <Calendar className="h-4 w-4" />
+              Calendar
+            </Link>
             <span>Created {format(new Date(createdAt), 'MMM d, yyyy')}</span>
           </div>
         </div>

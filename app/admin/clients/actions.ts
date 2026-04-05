@@ -26,6 +26,7 @@ export async function createClientAction(formData: FormData) {
   }
 
   const name = String(formData.get('name') ?? '').trim()
+  const color = String(formData.get('color') ?? '#3B82F6').trim()
 
   if (name.length < MIN_CLIENT_NAME_LENGTH) {
     redirect(`/admin/clients?error=${encodeError('Client name must be at least 2 characters.')}`)
@@ -33,7 +34,7 @@ export async function createClientAction(formData: FormData) {
 
   for (let attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt += 1) {
     const slug = crypto.randomBytes(8).toString('hex')
-    const { error } = await supabase.from('clients').insert({ name, slug })
+    const { error } = await supabase.from('clients').insert({ name, slug, color })
 
     if (!error) {
       revalidatePath('/admin/clients')

@@ -9,6 +9,8 @@ type ClientRow = {
   name: string
   slug: string
   created_at: string
+  color: string
+  logo_path: string | null
   projects: Array<{ id: string; status: string | null }> | null
 }
 
@@ -96,6 +98,8 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               slug={client.slug}
               activeProjectsCount={client.activeProjectsCount}
               createdAt={client.created_at}
+              color={client.color}
+              logoPath={client.logo_path}
             />
           ))}
         </div>

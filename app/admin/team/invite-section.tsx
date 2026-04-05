@@ -69,7 +69,8 @@ export function InviteSection() {
           aria-label="Team member email address"
         />
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Generating…' : 'Generate Invite Link'}
+          <Link2 className="h-4 w-4" />
+          {isPending ? 'Generating…' : 'Generate'}
         </Button>
       </form>
 

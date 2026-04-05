@@ -177,7 +177,7 @@
 - [ ] **CLIENT-11**: Admin can add a description when creating a client (optional field)
 - [ ] **CLIENT-12**: Client portal shows client description in the portal header
 - [ ] **CLIENT-13**: Client portal displays client as "blocked" in the admin view when needed
-- [ ] **CLIENT-14**: Client view redesigned to match the new brand theme
+- [ ] **CLIENT-14**: Client portal displays client as "blocked" in the admin view when needed
 
 ### Mobile Optimization
 
@@ -305,12 +305,44 @@
 | UI-30 | Phase 6 | Complete |
 | UI-31 | Phase 6 | Complete |
 | UI-32 | Phase 6 | Complete |
+| CLIENT-11 | Phase 8 | Pending |
+| CLIENT-12 | Phase 8 | Pending |
+| CLIENT-13 | Phase 8 | Pending |
+| USER-01 | Phase 8 | Pending |
+| USER-02 | Phase 8 | Pending |
+| TASK-01 | Phase 9 | Pending |
+| TASK-02 | Phase 9 | Pending |
+| TASK-03 | Phase 9 | Pending |
+| TASK-04 | Phase 9 | Pending |
+| TASK-05 | Phase 9 | Pending |
+| TASK-06 | Phase 9 | Pending |
+| CAL-01 | Phase 10 | Pending |
+| CAL-02 | Phase 10 | Pending |
+| CAL-03 | Phase 10 | Pending |
+| CAL-04 | Phase 10 | Pending |
+| TASKS-01 | Phase 10 | Pending |
+| TASKS-02 | Phase 10 | Pending |
+| CLIENT-14 | Phase 11 | Pending |
+| THEME-01 | Phase 12 | Pending |
+| THEME-02 | Phase 12 | Pending |
+| THEME-03 | Phase 12 | Pending |
+| THEME-04 | Phase 12 | Pending |
+| THEME-05 | Phase 12 | Pending |
+| THEME-06 | Phase 12 | Pending |
+| THEME-07 | Phase 12 | Pending |
+| MOB-01 | Phase 12 | Pending |
+| MOB-02 | Phase 12 | Pending |
+| MOB-03 | Phase 12 | Pending |
+| MOB-04 | Phase 12 | Pending |
 
 **Coverage:**
 - v1 requirements: 90 total
 - Mapped to phases: 90
 - Unmapped: 0 ✓
+- v1.1 requirements: 29 total
+- Mapped to phases: 29
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-05 after Phase 6 addition*
+*Last updated: 2026-04-05 after v1.1 roadmap creation*

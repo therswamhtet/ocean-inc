@@ -68,10 +68,12 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
             <p className="font-medium text-foreground truncate">{task.title}</p>
             <Badge
               className={cn(
-                'flex-shrink-0 mt-0.5',
+                'flex-shrink-0 mt-0 capitalize',
                 isOverdue
                   ? 'border-destructive bg-destructive/10 text-destructive'
-                  : 'capitalize',
+                  : task.status === 'in_progress'
+                    ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                    : 'border-muted-foreground/20 bg-muted text-muted-foreground',
               )}
             >
               {isOverdue ? 'overdue' : task.status.replace('_', ' ')}

@@ -31,7 +31,7 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
       onClick={() => onSelect(task)}
       className="w-full text-left bg-background"
     >
-      <ContentCard variant="kanban" className="hover:bg-muted/30">
+      <ContentCard variant="kanban" className="hover:bg-muted/30 border-l-4 border-amber-500">
       <div className="mb-3 flex items-center justify-between gap-3">
         <StatusDot status={isOverdue ? 'overdue' : task.status} />
         <span className="text-xs text-muted-foreground">{formatPostingDate(task.postingDate)}</span>

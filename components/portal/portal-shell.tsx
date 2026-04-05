@@ -46,7 +46,7 @@ export function PortalShell({ tasks }: PortalShellProps) {
             className={cn(
               'flex-1 min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
               activeTab === tab
-                ? 'bg-[#222222] text-white'
+                ? 'bg-[#b45309] text-white'
                 : 'border border-transparent text-foreground hover:bg-muted/40'
             )}
           >

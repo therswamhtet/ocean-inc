@@ -34,9 +34,9 @@ export function AdminSidebar({ mobile = false }: { mobile?: boolean }) {
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-sm text-muted-foreground transition hover:border-border hover:bg-muted/40 hover:text-foreground",
+              "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-amber-50 hover:text-foreground",
               active &&
-                "border-border bg-muted/50 font-semibold text-foreground"
+                "bg-amber-100/60 font-medium text-foreground"
             )}
           >
             <Icon className="h-4 w-4" />

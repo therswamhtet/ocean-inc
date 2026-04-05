@@ -9,7 +9,7 @@ import { format, formatDistanceToNow, startOfMonth, endOfMonth, startOfWeek, end
 import { markNotificationAsRead } from '@/app/admin/notifications/actions'
 import { cn } from '@/lib/utils'
 
-const metricCardClassName = 'rounded-lg border border-border p-5'
+const metricCardClassName = 'rounded-lg border border-border p-5 bg-gradient-to-br from-amber-50 to-orange-50'
 
 function formatNotificationTime(createdAt: string | null) {
   if (!createdAt) {

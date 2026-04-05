@@ -1,22 +1,30 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Brand colors */
-  --color-background: #ffffff;
-  --color-foreground: #111111;
-  --color-primary: #222222;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #111111;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #888888;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #111111;
+  /* Brand colors - cream/beige aesthetic */
+  --color-background: #FAF8F0;
+  --color-foreground: #1a1a1a;
+  --color-primary: #4a5568;
+  --color-primary-foreground: #FAF8F0;
+  --color-secondary: #f5f0e8;
+  --color-secondary-foreground: #1a1a1a;
+  --color-muted: #f5f0e8;
+  --color-muted-foreground: #6b7280;
+  --color-accent: #fef3c7;
+  --color-accent-foreground: #92400e;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e5e5e5;
-  --color-input: #e5e5e5;
-  --color-ring: #111111;
+  --color-border: #e5e0d8;
+  --color-input: #e5e0d8;
+  --color-ring: #92400e;
+
+  /* Warm gradient tokens for accent cards */
+  --gradient-coral: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+  --gradient-amber: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --gradient-emerald: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --gradient-violet: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  --gradient-rose: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+  --gradient-sky: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
 
   /* Status colors */
   --color-status-done: #22c55e;
@@ -34,8 +42,8 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #111111;
+  --background: #FAF8F0;
+  --foreground: #1a1a1a;
 }
 
 * {

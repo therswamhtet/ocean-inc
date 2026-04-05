@@ -8,6 +8,7 @@ type TeamMemberRow = {
   id: string
   name: string
   email: string
+  username: string | null
   created_at: string
   task_assignments: Array<{ count: number | null }> | null
 }
@@ -24,7 +25,7 @@ export default async function TeamPage() {
 
   const { data, error } = await supabase
     .from('team_members')
-    .select('id, name, email, created_at, task_assignments(count)')
+    .select('id, name, email, username, created_at, task_assignments(count)')
     .order('created_at', { ascending: false })
     .returns<TeamMemberRow[]>()
 
@@ -63,6 +64,7 @@ export default async function TeamPage() {
               <table className="min-w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    <th className="px-3 py-3 font-medium">Username</th>
                     <th className="px-3 py-3 font-medium">Name</th>
                     <th className="px-3 py-3 font-medium">Email</th>
                     <th className="px-3 py-3 font-medium">Assigned Tasks</th>
@@ -72,6 +74,9 @@ export default async function TeamPage() {
                 <tbody>
                   {teamMembers.map((member) => (
                     <tr key={member.id} className="border-b border-border/80 last:border-b-0">
+                      <td className="px-3 py-4 font-mono text-sm">
+                        {member.username ? `@${member.username}` : <span className="text-muted-foreground italic">not set</span>}
+                      </td>
                       <td className="px-3 py-4 font-medium text-foreground">{member.name}</td>
                       <td className="px-3 py-4 text-muted-foreground">{member.email}</td>
                       <td className="px-3 py-4">{member.assignedTaskCount}</td>
@@ -95,6 +100,10 @@ export default async function TeamPage() {
                     <p className="text-base font-medium text-foreground">{member.name}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.1em]">Username</span>
+                      <p className="font-mono">{member.username ? `@${member.username}` : <span className="italic">not set</span>}</p>
+                    </div>
                     <div>
                       <span className="text-xs uppercase tracking-[0.1em]">Email</span>
                       <p className="truncate">{member.email}</p>

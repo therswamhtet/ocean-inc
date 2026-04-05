@@ -39,7 +39,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
 
   const { data: client, error: clientError } = await serviceRoleClient
     .from('clients')
-    .select('id, name, slug, color, is_active')
+    .select('id, name, slug, color, description, is_active')
     .eq('slug', normalizedSlug)
     .eq('is_active', true)
     .maybeSingle<ClientRow>()
@@ -53,6 +53,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     name: client.name,
     slug: client.slug,
     color: client.color,
+    description: client.description,
   }
 
   const { data: projects, error: projectError } = await serviceRoleClient

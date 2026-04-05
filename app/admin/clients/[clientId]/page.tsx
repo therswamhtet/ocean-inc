@@ -138,11 +138,29 @@ export default async function ClientProjectsPage({
             <div>
               <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
               <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
-              <p className="text-sm text-muted-foreground">
-                {LABELS.common.projectDescription}
-              </p>
+              <form action={updateClientDescriptionAction.bind(null, clientId)} className="mt-1">
+                <Textarea
+                  name="description"
+                  defaultValue={client.description ?? ''}
+                  placeholder="Add a client description…"
+                  maxLength={200}
+                  className="min-h-[60px] text-sm"
+                />
+                <div className="mt-1 flex justify-end">
+                  <Button type="submit" variant="secondary" size="sm">Save description</Button>
+                </div>
+              </form>
             </div>
           </div>
+
+          {client.is_active === false && (
+            <div className="flex items-center gap-2 rounded-md border border-border p-3 text-sm">
+              <span className="text-muted-foreground">Client is currently blocked.</span>
+              <form action={toggleClientStatusAction}>
+                <Button type="submit" variant="default" size="sm">Unblock client</Button>
+              </form>
+            </div>
+          )}
 
           <Dialog>
             <DialogTrigger asChild>

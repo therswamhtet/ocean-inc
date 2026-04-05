@@ -51,6 +51,12 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
         </span>
       </div>
 
+      {task.assigned_to_username && (
+        <span className="mb-1 block text-[11px] font-mono text-muted-foreground">
+          @ {task.assigned_to_username}
+        </span>
+      )}
+
       <Link
         href={`/admin/clients/${params.clientId}/projects/${projectId}/tasks/${task.id}`}
         className="block truncate text-sm font-medium text-foreground underline-offset-4 hover:underline"

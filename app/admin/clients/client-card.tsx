@@ -57,8 +57,8 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt, col
 
   return (
     <Card className="cursor-pointer transition-all hover:bg-muted/10 hover:border-muted-foreground/20" onClick={handleCardClick}>
-      <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1 space-y-2">
+      <CardContent className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-3">
             <div className="h-4 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: displayColor }} />
             {logoSrc && (
@@ -74,7 +74,6 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt, col
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            <span>Slug: {slug}</span>
             <ShareLinkButton slug={slug} />
             <Link
               href={`/portal/${slug}`}
@@ -84,7 +83,7 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt, col
               className="inline-flex items-center gap-1 text-sm underline underline-offset-4 hover:text-foreground"
             >
               <Calendar className="h-4 w-4" />
-              Calendar
+              View portal
             </Link>
             <span>Created {format(new Date(createdAt), 'MMM d, yyyy')}</span>
           </div>

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { logout } from '@/app/login/actions'
 import { TeamMobileNav } from '@/app/team/mobile-nav'
 import { TeamSidebar } from '@/app/team/sidebar'
+import { TeamNotificationBell } from '@/components/team/notification-bell'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function TeamLayout({
@@ -23,12 +24,25 @@ export default async function TeamLayout({
     redirect('/admin')
   }
 
+  // Fetch notifications for this team member
+  const { data: notifications, error: notifError } = await supabase
+    .from('notifications')
+    .select('id, message, created_at, read')
+    .eq('team_member_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-white lg:flex lg:flex-col">
-        <div className="border-b border-border px-6 py-5">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-          <h1 className="mt-2 text-lg font-semibold">Team Workspace</h1>
+        <div className="flex items-center justify-between border-b border-border px-6 py-5">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
+            <h1 className="mt-2 text-lg font-semibold">Team Workspace</h1>
+          </div>
+          <TeamNotificationBell notifications={notifications} unreadCount={unreadCount} />
         </div>
 
         <div className="flex-1 px-4 py-5">
@@ -52,8 +66,10 @@ export default async function TeamLayout({
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
               <h1 className="text-base font-semibold">Team</h1>
             </div>
-
-            <TeamMobileNav email={user.email ?? ''} />
+            <div className="flex items-center gap-2">
+              <TeamNotificationBell notifications={notifications} unreadCount={unreadCount} />
+              <TeamMobileNav email={user.email ?? ''} />
+            </div>
           </div>
         </header>
 

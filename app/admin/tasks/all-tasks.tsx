@@ -95,7 +95,7 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {/* Assigned To */}
         <div className="flex items-start gap-2">
-          <User className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <User className="h-3.5 w-3.5 text-muted-foreground mt-0 flex-shrink-0" />
           <div>
             <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               {LABELS.common.assignedTo}
@@ -108,7 +108,7 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
 
         {/* Posting Date */}
         <div className="flex items-start gap-2">
-          <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0 flex-shrink-0" />
           <div>
             <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               {LABELS.task.postingDate}
@@ -119,19 +119,6 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
           </div>
         </div>
 
-        {/* Content Plan (Month) */}
-        <div className="flex items-start gap-2">
-          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Content Plan
-            </p>
-            <p className="text-sm text-foreground">{getMonthLabel(task.posting_date)}</p>
-          </div>
-        </div>
-
-        {/* Spacer for grid alignment */}
-        <div />
       </div>
 
       {/* Navigation Link */}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Calendar } from 'lucide-react'
+import { ChevronDown, ChevronUp, Calendar, ListChecks } from 'lucide-react'
 
 import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns'
 
@@ -135,12 +135,55 @@ type DashboardCalendarProps = {
   currentMonth: Date
 }
 
+// ── Colour categories based on task title (same as portal calendar) ──
+function adminCategoriseTask(task: TaskForCalendar): number {
+  const title = task.title.toLowerCase()
+  if (/standup|stand-up|sync /.test(title)) return 0
+  if (/lunch|dinner|coffee|break/.test(title)) return 1
+  if (/one.?on.?one|1on1|1:1/.test(title)) return 2
+  if (/all.?hands|demo|meeting|catch ?up/.test(title)) return 3
+  if (/plann|strateg|roadmap/.test(title)) return 4
+  if (/design|content |creative/.test(title)) return 5
+  if (/deep work|writing|coding/.test(title)) return 6
+  if (/inspection|engagment|client/.test(title)) return 7
+  if (/review|audit|quarterly/.test(title)) return 8
+  const hash = task.title.split('').reduce((h, c) => (h + c.charCodeAt(0) * 31) % 10, 0)
+  return hash
+}
+
+const ADMIN_DOT_COLOURS = [
+  'bg-slate-400', 'bg-pink-400', 'bg-purple-400', 'bg-indigo-400', 'bg-blue-400',
+  'bg-violet-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400', 'bg-gray-400',
+]
+
+function AdminEventDot({ task }: { task: TaskForCalendar }) {
+  const cat = adminCategoriseTask(task)
+  return <span className={cn('h-[6px] w-[6px] rounded-full', ADMIN_DOT_COLOURS[cat % ADMIN_DOT_COLOURS.length])} />
+}
+
+// Build week start/end helpers
+function weekStartOfWeek(date: Date, weekStartsOn: number): Date {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = (day - weekStartsOn + 7) % 7
+  d.setDate(d.getDate() - diff)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function weekEndOfWeek(date: Date, weekStartsOn: number): Date {
+  const d = weekStartOfWeek(date, weekStartsOn)
+  d.setDate(d.getDate() + 6)
+  d.setHours(23, 59, 59, 999)
+  return d
+}
+
 export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProps) {
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
-  
+
   const tasksByDate = (tasks ?? []).reduce((acc, task) => {
     if (task.posting_date) {
       if (!acc[task.posting_date]) acc[task.posting_date] = []
@@ -148,6 +191,15 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
     }
     return acc
   }, {} as Record<string, TaskForCalendar[]>)
+
+  // Build the full calendar grid (weeks x days, including padding days)
+  const gridStart = weekStartOfWeek(monthStart, 0)
+  const gridEnd = weekEndOfWeek(monthEnd, 0)
+  const allDays = eachDayOfInterval({ start: gridStart, end: gridEnd })
+  const weeks: Date[][] = []
+  for (let i = 0; i < allDays.length; i += 7) {
+    weeks.push(allDays.slice(i, i + 7))
+  }
 
   return (
     <section className="rounded-lg border border-border overflow-x-auto">
@@ -159,73 +211,95 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
         <p className="text-sm text-muted-foreground">{format(currentMonth, 'MMMM yyyy')}</p>
       </div>
       <div className="overflow-visible p-4">
-        <div className="grid grid-cols-7 gap-px text-center text-xs">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <div key={i} className="py-1 text-xs sm:text-sm font-medium text-muted-foreground">{d}</div>
-          ))}
-          {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-            <div key={`empty-${i}`} className="min-h-[48px]" />
-          ))}
-          {days.map((day) => {
-            const dateKey = format(day, 'yyyy-MM-dd')
-            const dayTasks = tasksByDate[dateKey] ?? []
-            const isToday = isSameDay(day, new Date())
-            const isExpanded = expandedDay === dateKey
+        {/* Weekday header */}
+        <div className="mb-2 flex">
+          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-muted-foreground w-full">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+              <div key={d} className="py-1">{d}</div>
+            ))}
+          </div>
+        </div>
 
-            return (
-              <div
-                key={dateKey}
-                className={cn(
-                  'relative rounded border border-border p-1 text-xs',
-                  dayTasks.length > 0 && 'cursor-pointer hover:border-muted-foreground',
-                  isToday && 'border-foreground',
-                  isExpanded && 'z-10 bg-muted/60'
-                )}
-                style={{ minHeight: '48px' }}
-              >
-                <button
-                  type="button"
-                  className="w-full text-left"
-                  onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
-                  aria-label={dayTasks.length > 0 ? `${format(day, 'd')} – ${dayTasks.length} task(s)` : format(day, 'd')}
-                >
-                  <span className="text-xs sm:text-sm">{format(day, 'd')}</span>
-                </button>
-                {dayTasks.length > 0 && (
-                  <>
-                    <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5 pointer-events-none">
-                      {dayTasks.slice(0, 3).map((task, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            'h-2 w-2 rounded-full',
-                            task.status === 'done' ? 'bg-green-500' :
-                            task.status === 'in_progress' ? 'bg-yellow-500' :
-                            'bg-gray-400'
-                          )}
-                        />
-                      ))}
+        {/* Day grid */}
+        <div className="space-y-2">
+          {weeks.map((week, wi) => (
+            <div key={`admin-week-${wi}`} className="grid grid-cols-7 gap-2">
+              {week.map((day) => {
+                const dateKey = format(day, 'yyyy-MM-dd')
+                const dayTasks = tasksByDate[dateKey] ?? []
+                const isToday = isSameDay(day, new Date())
+                const isCurrentMonth = isSameMonth(day, currentMonth)
+                const isExpanded = expandedDay === dateKey
+
+                return (
+                  <div
+                    key={dateKey}
+                    tabIndex={0}
+                    onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && dayTasks.length > 0) {
+                        e.preventDefault()
+                        setExpandedDay(isExpanded ? null : dateKey)
+                      }
+                    }}
+                    role="button"
+                    aria-label={`${format(day, 'd')} – ${dayTasks.length} task(s)`}
+                    aria-expanded={isExpanded}
+                    className={cn(
+                      'relative cursor-pointer rounded-lg border p-2 text-left transition',
+                      isToday
+                        ? 'border-black/30 bg-[#222222]/[0.04]'
+                        : isCurrentMonth
+                          ? 'border-border bg-white hover:bg-muted/40'
+                          : 'border-border/50 bg-muted/20 hover:bg-muted/30'
+                    )}
+                    style={{ minHeight: '48px' }}
+                  >
+                    {/* Day number */}
+                    <div className="mb-1">
+                      {isToday ? (
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#222222] text-xs font-semibold text-white">
+                          {format(day, 'd')}
+                        </span>
+                      ) : (
+                        <span className={cn(
+                          'text-xs font-medium',
+                          isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                        )}>
+                          {format(day, 'd')}
+                        </span>
+                      )}
                     </div>
-                    {isExpanded && (
-                      <div className="absolute top-full left-0 z-20 mt-1 w-56 rounded-md border border-border bg-background p-2 shadow-lg">
+
+                    {/* Task dots */}
+                    {dayTasks.length > 0 && (
+                      <>
+                        <div className="flex flex-wrap gap-1">
+                          {dayTasks.slice(0, 5).map((task) => (
+                            <AdminEventDot key={task.id} task={task} />
+                          ))}
+                        </div>
+                        {dayTasks.length > 5 && (
+                          <p className="mt-0.5 text-[11px] text-muted-foreground text-clip">+{dayTasks.length - 5} more</p>
+                        )}
+                      </>
+                    )}
+
+                    {/* Expanded popup */}
+                    {isExpanded && dayTasks.length > 0 && (
+                      <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border bg-background p-2 shadow-lg">
                         {dayTasks.map((task, i) => {
                           const taskHref = task.project_id && task.projects?.client_id
                             ? `/admin/clients/${task.projects.client_id}/projects/${task.project_id}/tasks/${task.id}`
                             : undefined
 
-                          const linkClasses = cn(
-                            'block rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
-                            i > 0 && 'mt-1 border-t border-border pt-1'
-                          )
-
                           return (
-                            <div key={task.id} className={linkClasses}>
+                            <div key={task.id} className={cn(
+                              'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                              i > 0 && 'mt-1 border-t border-border pt-1'
+                            )}>
                               {taskHref ? (
-                                <Link
-                                  href={taskHref}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-xs font-medium truncate hover:underline"
-                                >
+                                <Link href={taskHref} className="text-xs font-medium truncate block" onClick={(e) => e.stopPropagation()}>
                                   {task.title}
                                 </Link>
                               ) : (
@@ -237,13 +311,20 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
                             </div>
                           )
                         })}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setExpandedDay(null); }}
+                          className="mt-1 w-full text-center text-[11px] text-muted-foreground underline underline-offset-2"
+                        >
+                          Close
+                        </button>
                       </div>
                     )}
-                  </>
-                )}
-              </div>
-            )
-          })}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -281,7 +362,7 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
     const content = (
       <>
         <span className="font-medium">{task.title}</span>
-        {projectName && <span className="text-muted-foreground"> — {projectName}</span>}
+        {projectName && <span className="text-muted-foreground"> — { projectName}</span>}
       </>
     )
 
@@ -342,5 +423,98 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
         </section>
       )}
     </div>
+  )
+}
+
+type TaskForMyTasks = {
+  id: string
+  title: string
+  status: string
+  posting_date: string | null
+  due_date: string | null
+  project_id: string | null
+  client_id: string | null
+  project_name: string | null
+  client_name: string | null
+  assignee_name: string | null
+}
+
+export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
+  const today = format(new Date(), 'yyyy-MM-dd')
+
+  const overdue = tasks.filter(
+    (t) => t.posting_date && t.posting_date < today && t.status !== 'done'
+  )
+  const inProgress = tasks.filter((t) => t.status === 'in_progress')
+  const todo = tasks.filter((t) => t.status === 'todo')
+
+  function getTaskHref(task: TaskForMyTasks) {
+    return task.project_id && task.client_id
+      ? `/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`
+      : undefined
+  }
+
+  function TaskLink({ task }: { task: TaskForMyTasks }) {
+    const href = getTaskHref(task)
+    const content = (
+      <>
+        <span className="font-medium">{task.title}</span>
+        {task.project_name && (
+          <span className="text-muted-foreground"> — {task.project_name}</span>
+        )}
+        {task.assignee_name && (
+          <span className="text-muted-foreground"> ({task.assignee_name})</span>
+        )}
+      </>
+    )
+
+    return href ? (
+      <Link href={href} className="block text-sm transition hover:text-foreground/70">
+        {content}
+      </Link>
+    ) : (
+      <span className="block text-sm">{content}</span>
+    )
+  }
+
+  function StatusGroup({ title, items, borderColor, textColor }: { title: string; items: TaskForMyTasks[]; borderColor: string; textColor: string }) {
+    if (items.length === 0) return null
+    return (
+      <section className={cn('rounded-lg border border-l-4', borderColor, 'border-border p-4')}>
+        <h3 className={cn('mb-2 text-sm font-semibold', textColor)}>
+          {title}
+        </h3>
+        <ul className="space-y-2">
+          {items.slice(0, 5).map((task) => (
+            <li key={task.id}>
+              <TaskLink task={task} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-lg border border-border">
+      <div className="border-b border-border px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold">My Tasks</h3>
+          <ListChecks className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-muted-foreground">Tasks assigned to your team that need attention.</p>
+      </div>
+      <div className="space-y-4 p-4">
+        {overdue.length === 0 && inProgress.length === 0 && todo.length === 0 ? (
+          <p className="text-sm text-muted-foreground">All caught up — no assigned tasks.</p>
+        ) : (
+          <>
+            <StatusGroup title="Overdue" items={overdue} borderColor="border-l-red-500" textColor="text-red-600" />
+            <StatusGroup title="In Progress" items={inProgress} borderColor="border-l-blue-500" textColor="text-blue-600" />
+            <StatusGroup title="To Do" items={todo} borderColor="border-l-gray-300" textColor="text-gray-600" />
+          </>
+        )}
+      </div>
+    </section>
   )
 }

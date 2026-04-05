@@ -3,7 +3,7 @@
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { LABELS } from '@/lib/labels'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { StatusDot } from '@/components/ui/status-dot'
 import type { PortalTask } from '@/lib/portal/types'
 
@@ -36,7 +36,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{task.title}</DialogTitle>
-          <DialogDescription>Read-only task details for this project item.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

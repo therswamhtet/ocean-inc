@@ -38,23 +38,33 @@ function isTaskOverdue(task: PortalTask) {
 
 export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps) {
   const hasTasks = tasks.length > 0
+  const overdueCount = tasks.filter((t) => isTaskOverdue(t)).length
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {/* D-01 lock: 3 columns only (todo/in_progress/done); overdue is visual-only. */}
-      {columnOrder.map((status) => {
-        const tasksInColumn = tasks.filter((task) => task.status === status)
+    <div className="space-y-4">
+      {/* Header matching Calendar view structure */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-semibold text-foreground">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
+        {overdueCount > 0 && (
+          <p className="text-sm text-destructive">{overdueCount} overdue</p>
+        )}
+      </div>
 
-        return (
-          <section
-            key={status}
-            aria-label={columnLabels[status]}
-            className="space-y-3 rounded-lg border border-border bg-muted/20 p-4"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-foreground">{columnLabels[status]}</h3>
-              <span className="text-xs text-muted-foreground">{tasksInColumn.length}</span>
-            </div>
+      {/* Columns */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {columnOrder.map((status) => {
+          const tasksInColumn = tasks.filter((task) => task.status === status)
+
+          return (
+            <section
+              key={status}
+              aria-label={columnLabels[status]}
+              className="space-y-3 rounded-lg border border-border bg-muted/20 p-4"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-foreground">{columnLabels[status]}</h3>
+                <span className="text-xs text-muted-foreground">{tasksInColumn.length}</span>
+              </div>
 
               <div className="space-y-3">
                 {tasksInColumn.map((task) => (
@@ -66,18 +76,19 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
                   />
                 ))}
 
-              {tasksInColumn.length === 0 ? (
-                <div className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
-                  {LABELS.emptyStates.noTasksInColumn}
-                </div>
-              ) : null}
-            </div>
-          </section>
-        )
-      })}
+                {tasksInColumn.length === 0 ? (
+                  <div className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
+                    {LABELS.emptyStates.noTasksInColumn}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )
+        })}
+      </div>
 
       {!hasTasks ? (
-        <p className="md:col-span-3 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {LABELS.emptyStates.noTasksScheduled}
         </p>
       ) : null}

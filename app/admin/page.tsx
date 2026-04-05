@@ -1,6 +1,6 @@
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'
 
-import { DashboardMetrics, DashboardNotifications, DashboardCalendar, DashboardTaskSections } from '@/components/admin/dashboard-inner'
+import { DashboardMetrics, DashboardCalendar, DashboardTaskSections, DashboardMyTasks } from '@/components/admin/dashboard-inner'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
@@ -21,6 +21,7 @@ export default async function AdminDashboard() {
     { data: calendarTasks },
     { data: overdueTasks },
     { data: todayTasks },
+    { data: myTasksAssigned },
   ] = await Promise.all([
     serviceRoleClient.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     serviceRoleClient.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
@@ -52,15 +53,30 @@ export default async function AdminDashboard() {
       .gte('posting_date', todayStart)
       .lte('posting_date', todayEnd)
       .limit(5),
+    // Fetch task assignments with assignee + project info for "My Tasks" section
+    supabase
+      .from('task_assignments')
+      .select('task_id, team_member_id, team_members(name), tasks(id, title, status, posting_date, due_date, project_id, projects(name, client_id))')
+      .limit(50),
   ])
 
-  const { data: notifications } = await supabase
-    .from('notifications')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0
+  // Normalize task assignments into the DashboardMyTasks type
+  const myTasks = (myTasksAssigned ?? []).map((raw: any) => {
+    const task = raw.tasks
+    const projects = task?.projects
+    return {
+      id: task?.id ?? '',
+      title: task?.title ?? '',
+      status: task?.status ?? 'todo',
+      posting_date: task?.posting_date ?? null,
+      due_date: task?.due_date ?? null,
+      project_id: task?.project_id ?? null,
+      client_id: projects?.client_id ?? null,
+      project_name: projects?.name ?? null,
+      client_name: null,
+      assignee_name: raw.team_members?.name ?? null,
+    }
+  })
 
   const metrics = [
     { label: LABELS.dashboard.totalProjects, value: activeProjects ?? 0 },
@@ -84,14 +100,14 @@ export default async function AdminDashboard() {
         <DashboardMetrics metrics={metrics} />
       </section>
 
+      <DashboardMyTasks tasks={myTasks} />
+
       <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
 
       <DashboardTaskSections
         overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
         todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
       />
-
-      <DashboardNotifications notifications={notifications} unreadCount={unreadCount} />
     </div>
   )
 }

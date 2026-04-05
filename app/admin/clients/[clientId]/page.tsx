@@ -53,10 +53,28 @@ const projectStatuses = {
   done: 'Done',
 } as const
 
+const projectStatusColors = {
+  active: 'bg-green-500',
+  paused: 'bg-yellow-500',
+  done: 'bg-gray-400',
+} as const
+
 function Badge({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex rounded-md border border-border px-2 py-1 text-xs font-medium uppercase tracking-[0.12em] text-foreground">
       {children}
+    </span>
+  )
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colorClass = projectStatusColors[status as keyof typeof projectStatusColors] ?? 'bg-gray-400'
+  const label = projectStatuses[status as keyof typeof projectStatuses] ?? status
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`h-2 w-2 rounded-full ${colorClass}`} />
+      <span className="text-sm text-foreground">{label}</span>
     </span>
   )
 }
@@ -241,7 +259,7 @@ export default async function ClientProjectsPage({
                       <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
                       <td className="px-4 py-3">
-                        <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                        <StatusBadge status={project.status} />
                       </td>
                       <td className="px-4 py-3">
                         <form action={deleteProjectAction.bind(null, project.id, clientId)}>
@@ -267,7 +285,7 @@ export default async function ClientProjectsPage({
                   >
                     {project.name}
                   </Link>
-                  <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                      <StatusBadge status={project.status} />
                 </div>
                 <div className="flex gap-3 text-sm text-muted-foreground">
                   <span>{monthName(project.month)} {project.year}</span>

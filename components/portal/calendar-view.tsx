@@ -120,7 +120,7 @@ function MonthDayCell({
       aria-label={`${format(day, 'd')} – ${tasks.length} task(s)`}
       aria-expanded={expanded}
       className={cn(
-        'relative cursor-pointer rounded-lg border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'relative cursor-pointer border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         isToday
           ? 'border-black/30 bg-[#222222]/[0.04]'
           : isCurrentMonth

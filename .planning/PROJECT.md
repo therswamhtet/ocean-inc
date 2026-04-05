@@ -25,13 +25,14 @@ Admins can create and manage social media content tasks, assign them to team mem
 - [x] Team members can mark tasks as done and notify admin — Phase 03
 - [x] Supabase RLS enforces role-based data access — Phase 03
 - [x] Admin authentication via email + password — Phase 01
+- [x] Client portal is accessible via unique slug URL (no login) — Phase 04
+- [x] Client portal shows active project with Kanban, Calendar, and Timeline views — Phase 04
+- [x] Client can view task details (caption, design file, posting date, status) — Phase 04
+- [x] UI/UX polish across admin, team, and portal surfaces — Phase 05/06
 
 ### Active
 
 - [ ] Team members can comment on tasks
-- [ ] Client portal is accessible via unique slug URL (no login)
-- [ ] Client portal shows active project with Kanban, Calendar, and Timeline views
-- [ ] Client can view task details (caption, design file, posting date, status)
 
 ### Out of Scope
 
@@ -65,11 +66,14 @@ Admins can create and manage social media content tasks, assign them to team mem
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | Validated in Phase 02/03 — fully operational |
-| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | Pending Phase 04 |
-| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | Validated in Phase 02 — implemented |
-| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | Validated in Phase 03 — in-app notifications only |
+|----------|-----------|--------|
+| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | ✓ Validated — fully operational |
+| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | ✓ Validated in Phase 04 — portal working |
+| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | ✓ Validated in Phase 02 — implemented |
+| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | ✓ Validated in Phase 03 — in-app only |
+| Tailwind CSS 4 + shadcn/ui | Design system with black/white brand, Poppins font | ✓ Validated in Phase 05/06 — consistent UI |
+| Kanban as default project view | More actionable than timeline for monthly content | ✓ Validated — team uses Kanban daily |
+| Client color/logo branding | Per-client visual identity in portal | ✓ Validated in Phase 06 — enhances client experience |
 
 ## Evolution
 
@@ -88,5 +92,11 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
+## Current State
+
+**Milestone v1.0 MVP shipped.** Full admin/team/client portal platform operational.
+
+**Tech stack:** Next.js 15, Tailwind CSS 4, shadcn/ui, Supabase (DB + Auth + Storage), Vercel
+
 ---
-*Last updated: 2026-04-04 after Phase 03 completion — Team workspace with task dashboard, detail view, and notification workflows validated*
+*Last updated: 2026-04-05 after v1.0 MVP milestone completion*

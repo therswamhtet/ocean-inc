@@ -26,6 +26,7 @@ import {
 type ClientRecord = {
   id: string
   name: string
+  color: string
 }
 
 type ProjectRecord = {
@@ -36,16 +37,44 @@ type ProjectRecord = {
   status: 'active' | 'paused' | 'done' | string
 }
 
+const CLIENT_PALETTE = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+
+function getColorForClient(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return CLIENT_PALETTE[Math.abs(hash) % CLIENT_PALETTE.length]
+}
+
 const projectStatuses = {
   active: 'Active',
   paused: 'Paused',
   done: 'Done',
 } as const
 
+const projectStatusColors = {
+  active: 'bg-green-500',
+  paused: 'bg-yellow-500',
+  done: 'bg-gray-400',
+} as const
+
 function Badge({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex rounded-md border border-border px-2 py-1 text-xs font-medium uppercase tracking-[0.12em] text-foreground">
       {children}
+    </span>
+  )
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colorClass = projectStatusColors[status as keyof typeof projectStatusColors] ?? 'bg-gray-400'
+  const label = projectStatuses[status as keyof typeof projectStatuses] ?? status
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`h-2 w-2 rounded-full ${colorClass}`} />
+      <span className="text-sm text-foreground">{label}</span>
     </span>
   )
 }
@@ -68,7 +97,7 @@ export default async function ClientProjectsPage({
 
   const { data: client, error: clientError } = await supabase
     .from('clients')
-    .select('id, name')
+    .select('id, name, color')
     .eq('id', clientId)
     .single<ClientRecord>()
 
@@ -99,12 +128,15 @@ export default async function ClientProjectsPage({
           <span className="text-foreground">{client.name}</span>
         </nav>
         <div className="flex flex-col gap-4 rounded-lg border border-border p-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
-            <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              {LABELS.common.projectDescription}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: client.color || getColorForClient(client.name) }} />
+            <div>
+              <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
+              <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
+              <p className="text-sm text-muted-foreground">
+                {LABELS.common.projectDescription}
+              </p>
+            </div>
           </div>
 
           <Dialog>
@@ -227,7 +259,7 @@ export default async function ClientProjectsPage({
                       <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
                       <td className="px-4 py-3">
-                        <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                        <StatusBadge status={project.status} />
                       </td>
                       <td className="px-4 py-3">
                         <form action={deleteProjectAction.bind(null, project.id, clientId)}>
@@ -253,7 +285,7 @@ export default async function ClientProjectsPage({
                   >
                     {project.name}
                   </Link>
-                  <Badge>{projectStatuses[project.status as keyof typeof projectStatuses] ?? project.status}</Badge>
+                      <StatusBadge status={project.status} />
                 </div>
                 <div className="flex gap-3 text-sm text-muted-foreground">
                   <span>{monthName(project.month)} {project.year}</span>

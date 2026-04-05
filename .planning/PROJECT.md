@@ -92,11 +92,59 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-## Current State
+## Current Milestone: v1.1 Frontend Redesign & New Features
 
-**Milestone v1.0 MVP shipped.** Full admin/team/client portal platform operational.
+**Goal:** Complete frontend redesign with premium brand aesthetic, improved task workflow, and new features including usernames, task comments, calendar overhaul, and mobile optimization.
 
-**Tech stack:** Next.js 15, Tailwind CSS 4, shadcn/ui, Supabase (DB + Auth + Storage), Vercel
+**Target features:**
+- New brand theme: cream/beige backgrounds, colorful gradient cards, warm typography (replaces black-and-white)
+- Dashboard redesign: consistent card alignment, proper copy sizing, improved metric cards
+- Kanban board for tasks (admin-editable inline) with proper card editing
+- Calendar overhaul: square day blocks, no overflow, mobile-friendly
+- My Tasks filters: Today, This week, This month
+- Task comments for team interaction
+- Username selection on first login (display name for assignments)
+- Client portal upgrade: block elements, client description field
+- Mobile optimization: hamburger left, no overlaps, responsive sidebar
+- Image previewer fix: proper preview mode, reload stability
+- Sidebar redesign: remove large square blocks, modern navigation
+
+## Constraints
+
+- **Tech stack**: Next.js 15 (App Router + API Routes + Server Actions), Tailwind CSS, shadcn/ui, Supabase (DB + Auth + Storage), Vercel hosting — mandated for consistency
+- **Design**: New brand direction — cream/beige (#FAF8F0), warm gradients, colorful accent cards, bold modern typography — see design reference screenshots
+- **Mobile**: Must work on 375px width screens — agency clients access via phone
+- **Auth**: Supabase Auth with RLS — security requirement for team member data isolation
+- **Budget**: No paid third-party services beyond Supabase and Vercel — keep costs minimal
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|--------|
+| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | ✓ Validated — fully operational |
+| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | ✓ Validated in Phase 04 — portal working |
+| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | ✓ Validated in Phase 02 — implemented |
+| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | ✓ Validated in Phase 03 — in-app only |
+| Tailwind CSS 4 + shadcn/ui | Design system — migrated from black/white to warm premium aesthetic | ✓ Validated in Phase 05/06 — consistent UI |
+| Kanban as default project view | More actionable than timeline for monthly content | ✓ Validated — team uses Kanban daily |
+| Client color/logo branding | Per-client visual identity in portal | ✓ Validated in Phase 06 — enhances client experience |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after v1.0 MVP milestone completion*
+*Last updated: 2026-04-05 after v1.1 Frontend Redesign milestone*

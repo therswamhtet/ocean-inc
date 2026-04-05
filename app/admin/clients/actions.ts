@@ -5,7 +5,7 @@ import crypto from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const MIN_CLIENT_NAME_LENGTH = 2
 const SLUG_BYTES = 8
@@ -25,8 +25,11 @@ export async function createClientAction(formData: FormData) {
     redirect('/login')
   }
 
+  const serviceRoleClient = createServiceRoleClient()
   const name = String(formData.get('name') ?? '').trim()
   const color = String(formData.get('color') ?? '#3B82F6').trim()
+  const descriptionRaw = String(formData.get('description') ?? '').trim()
+  const description = descriptionRaw.length > 0 ? descriptionRaw : null
 
   if (name.length < MIN_CLIENT_NAME_LENGTH) {
     redirect(`/admin/clients?error=${encodeError('Client name must be at least 2 characters.')}`)
@@ -34,7 +37,7 @@ export async function createClientAction(formData: FormData) {
 
   for (let attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt += 1) {
     const slug = crypto.randomBytes(8).toString('hex')
-    const { error } = await supabase.from('clients').insert({ name, slug, color })
+    const { error } = await serviceRoleClient.from('clients').insert({ name, slug, color, description })
 
     if (!error) {
       revalidatePath('/admin/clients')
@@ -59,7 +62,8 @@ export async function deleteClientAction(clientId: string) {
     redirect('/login')
   }
 
-  const { error } = await supabase.from('clients').delete().eq('id', clientId)
+  const serviceRoleClient = createServiceRoleClient()
+  const { error } = await serviceRoleClient.from('clients').delete().eq('id', clientId)
 
   if (error) {
     redirect(`/admin/clients?error=${encodeError(error.message)}`)
@@ -69,9 +73,9 @@ export async function deleteClientAction(clientId: string) {
   redirect('/admin/clients?deleted=1')
 }
 
-type Client = { id: string; name: string; color: string }
+type Client = { id: string; name: string; color: string; description: string | null; is_active: boolean }
 type Project = { id: string; name: string; month: string; year: number }
-type TeamMember = { id: string; name: string; email: string }
+type TeamMember = { id: string; name: string; email: string; username: string | null }
 
 export async function getClientsAction(): Promise<
   { success: true; clients: Client[] } | { success: false; error: string }
@@ -85,9 +89,10 @@ export async function getClientsAction(): Promise<
     return { success: false, error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase
+  const serviceRoleClient = createServiceRoleClient()
+  const { data, error } = await serviceRoleClient
     .from('clients')
-    .select('id, name, color')
+    .select('id, name, color, description, is_active')
     .order('name', { ascending: true })
 
   if (error) {
@@ -109,7 +114,7 @@ export async function getProjectsAction(
     return { success: false, error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await createServiceRoleClient()
     .from('projects')
     .select('id, name, month, year')
     .eq('client_id', clientId)
@@ -136,9 +141,9 @@ export async function getTeamMembersAction(): Promise<
     return { success: false, error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await createServiceRoleClient()
     .from('team_members')
-    .select('id, name, email')
+    .select('id, name, email, username')
     .order('name', { ascending: true })
 
   if (error) {
@@ -163,14 +168,15 @@ export async function getAdminDataAction(): Promise<{
     return { success: false, error: 'Not authenticated' }
   }
 
-  const { data: clientsData, error: clientsError } = await supabase
+  const serviceRoleClient = createServiceRoleClient()
+  const { data: clientsData, error: clientsError } = await serviceRoleClient
     .from('clients')
-    .select('id, name, color')
+    .select('id, name, color, description, is_active')
     .order('name', { ascending: true })
 
-  const { data: teamMembersData, error: teamMembersError } = await supabase
+  const { data: teamMembersData, error: teamMembersError } = await serviceRoleClient
     .from('team_members')
-    .select('id, name, email')
+    .select('id, name, email, username')
     .order('name', { ascending: true })
 
   if (clientsError) {
@@ -187,4 +193,37 @@ export async function getAdminDataAction(): Promise<{
     teamMembers: teamMembersData ?? [],
     projects: [],
   }
+}
+
+export async function toggleClientStatusAction(clientId: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const serviceRoleClient = createServiceRoleClient()
+
+  const { data: current, error: fetchError } = await serviceRoleClient
+    .from('clients')
+    .select('is_active')
+    .eq('id', clientId)
+    .maybeSingle()
+
+  if (fetchError || !current) {
+    return { success: false, error: 'Client not found' }
+  }
+
+  const { error: updateError } = await serviceRoleClient
+    .from('clients')
+    .update({ is_active: !current.is_active })
+    .eq('id', clientId)
+
+  if (updateError) {
+    return { success: false, error: updateError.message }
+  }
+
+  revalidatePath('/admin/clients')
+  return { success: true }
 }

@@ -33,7 +33,8 @@ async function fetchTasks(
       ),
       task_assignments (
         team_members (
-          name
+          name,
+          username
         )
       )
     `,
@@ -66,7 +67,8 @@ async function fetchTasks(
     const projects = row.projects as Record<string, unknown> | null
     const clients = (projects?.clients ?? {}) as Record<string, unknown> | null
     const assignments = row.task_assignments as any[] | null
-    const assignee = assignments?.[0]?.team_members?.name ?? null
+    const assigneeUsername = assignments?.[0]?.team_members?.username ?? null
+    const assigneeName = assignments?.[0]?.team_members?.name ?? null
 
     return {
       id: row.id,
@@ -76,7 +78,8 @@ async function fetchTasks(
       due_date: row.due_date as string | null,
       deadline: row.deadline as string | null,
       status: row.status,
-      assigned_to_name: assignee,
+      assigned_to_username: assigneeUsername,
+      assigned_to_name: assigneeName,
       client_id: (clients?.id as string) ?? '',
       client_name: (clients?.name as string) ?? 'Unknown',
       client_color: (clients?.color as string | null) ?? null,

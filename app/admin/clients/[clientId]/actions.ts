@@ -25,11 +25,11 @@ async function requireAdmin() {
     redirect('/login')
   }
 
-  return supabase
+  return createServiceRoleClient()
 }
 
 export async function createProjectAction(clientId: string, formData: FormData) {
-  const supabase = await requireAdmin()
+  const serviceClient = await requireAdmin()
 
   const parsed = createProjectSchema.safeParse({
     name: formData.get('name'),
@@ -42,7 +42,7 @@ export async function createProjectAction(clientId: string, formData: FormData) 
     redirect(`/admin/clients/${clientId}?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? 'Invalid project data')}`)
   }
 
-  const { error } = await supabase.from('projects').insert({
+  const { error } = await serviceClient.from('projects').insert({
     client_id: clientId,
     name: parsed.data.name,
     month: parsed.data.month,
@@ -71,5 +71,24 @@ export async function deleteProjectAction(projectId: string, clientId: string) {
 
   revalidatePath(`/admin/clients/${clientId}`)
   revalidatePath('/admin')
+  redirect(`/admin/clients/${clientId}`)
+}
+
+export async function updateClientDescriptionAction(clientId: string, formData: FormData) {
+  const serviceRoleClient = await requireAdmin()
+
+  const descriptionRaw = String(formData.get('description') ?? '').trim()
+  const description = descriptionRaw.length > 0 ? descriptionRaw : null
+
+  const { error } = await serviceRoleClient
+    .from('clients')
+    .update({ description })
+    .eq('id', clientId)
+
+  if (error) {
+    redirect(`/admin/clients/${clientId}?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath(`/admin/clients/${clientId}`)
   redirect(`/admin/clients/${clientId}`)
 }

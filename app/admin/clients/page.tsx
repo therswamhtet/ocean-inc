@@ -11,6 +11,8 @@ type ClientRow = {
   created_at: string
   color: string
   logo_path: string | null
+  description: string | null
+  is_active: boolean
   activeProjectsCount?: number
 }
 
@@ -40,7 +42,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   // Fetch clients without join
   const { data, error } = await serviceRoleClient
     .from('clients')
-    .select('id, name, slug, created_at, color, logo_path')
+    .select('id, name, slug, created_at, color, logo_path, description, is_active')
     .order('created_at', { ascending: false })
     .returns<ClientRow[]>()
 
@@ -107,6 +109,8 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               createdAt={client.created_at}
               color={client.color}
               logoPath={client.logo_path}
+              description={client.description}
+              isActive={client.is_active}
             />
           ))}
         </div>

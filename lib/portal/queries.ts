@@ -6,6 +6,7 @@ type ClientRow = {
   name: string
   slug: string
   color: string
+  is_active: boolean
 }
 
 type ProjectRow = {
@@ -38,8 +39,9 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
 
   const { data: client, error: clientError } = await serviceRoleClient
     .from('clients')
-    .select('id, name, slug, color')
+    .select('id, name, slug, color, is_active')
     .eq('slug', normalizedSlug)
+    .eq('is_active', true)
     .maybeSingle<ClientRow>()
 
   if (clientError || !client) {

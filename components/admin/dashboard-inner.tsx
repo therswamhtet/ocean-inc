@@ -435,6 +435,7 @@ type TaskForMyTasks = {
   project_name: string | null
   client_name: string | null
   assignee_name: string | null
+  assignee_username: string | null
 }
 
 export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
@@ -460,8 +461,8 @@ export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
         {task.project_name && (
           <span className="text-muted-foreground"> — {task.project_name}</span>
         )}
-        {task.assignee_name && (
-          <span className="text-muted-foreground"> ({task.assignee_name})</span>
+        {(task.assignee_username || task.assignee_name) && (
+          <span className="text-muted-foreground"> ({task.assignee_username ? `@${task.assignee_username}` : task.assignee_name})</span>
         )}
       </>
     )

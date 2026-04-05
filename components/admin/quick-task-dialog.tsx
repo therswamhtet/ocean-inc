@@ -48,6 +48,7 @@ type TeamMember = {
   id: string
   name: string
   email: string
+  username: string | null
 }
 
 const taskSchema = z.object({
@@ -115,7 +116,7 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
 
       const { data: membersData } = await supabase
         .from('team_members')
-        .select('id, name, email')
+        .select('id, name, email, username')
         .order('name', { ascending: true })
 
       if (membersData) {
@@ -164,7 +165,7 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       const result = await createTaskAction(selectedProjectId, {
         ...values,
         designFilePath: values.designFilePath ?? '',
-      })
+      }, values.assignedTo || null)
 
       if (result.success) {
         setMessage('Task created')
@@ -370,7 +371,7 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
                       <SelectItem value="self">Assign to myself</SelectItem>
                       {teamMembers.map((member) => (
                         <SelectItem key={member.id} value={member.id}>
-                          {member.name}
+                          {member.username ? `@${member.username}` : member.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -394,7 +395,7 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
                 <div className="rounded-lg border border-border px-3 py-2 text-sm">{message}</div>
               ) : null}
 
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <Button variant="outline" type="button" onClick={handleClose}>
                   {LABELS.common.cancel}
                 </Button>

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const taskSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -31,12 +31,12 @@ async function requireAdmin() {
     throw new Error('Unauthorized')
   }
 
-  return supabase
+  return createServiceRoleClient()
 }
 
 async function getProjectRoute(projectId: string) {
-  const supabase = await requireAdmin()
-  const { data: project, error } = await supabase
+  const serviceClient = await requireAdmin()
+  const { data: project, error } = await serviceClient
     .from('projects')
     .select('id, client_id')
     .eq('id', projectId)
@@ -47,15 +47,15 @@ async function getProjectRoute(projectId: string) {
   }
 
   return {
-    supabase,
+    serviceClient,
     project,
     projectPath: `/admin/clients/${project.client_id}/projects/${projectId}`,
   }
 }
 
 async function getTaskRoute(taskId: string) {
-  const supabase = await requireAdmin()
-  const { data: task, error } = await supabase
+  const serviceClient = await requireAdmin()
+  const { data: task, error } = await serviceClient
     .from('tasks')
     .select('id, project_id, projects(client_id)')
     .eq('id', taskId)
@@ -66,7 +66,7 @@ async function getTaskRoute(taskId: string) {
   }
 
   return {
-    supabase,
+    serviceClient,
     task,
     projectPath: `/admin/clients/${task.projects.client_id}/projects/${task.project_id}`,
     taskPath: `/admin/clients/${task.projects.client_id}/projects/${task.project_id}/tasks/${taskId}`,
@@ -113,14 +113,53 @@ export async function createTaskAction(
   assignedToTeamMemberId?: string | null
 ): Promise<MutationResult> {
   try {
-    const { supabase, projectPath } = await getProjectRoute(projectId)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { serviceClient, projectPath } = await getProjectRoute(projectId)
     const parsed = taskSchema.safeParse(data)
 
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid task data' }
     }
 
-    const { data: task, error: insertError } = await supabase
+    // Resolve 'self' to the admin's actual team_member_id
+    let resolvedMemberId: string | null = assignedToTeamMemberId ?? null
+    if (resolvedMemberId === 'self' || resolvedMemberId === '') {
+      const email = user.email || user.user_metadata?.email || null
+      const name = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || (email ? email.split('@')[0] : 'Admin')
+
+      if (!email) {
+        console.error('[createTaskAction] No email found for user')
+      } else {
+        // Try to find existing team member by email
+        const { data: existing } = await serviceClient
+          .from('team_members')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle()
+        if (existing) {
+          resolvedMemberId = existing.id
+        } else {
+          // Auto-create team member for this user
+          const { data: newMember } = await serviceClient
+            .from('team_members')
+            .insert({ name, email })
+            .select('id')
+            .single()
+          if (newMember) {
+            resolvedMemberId = newMember.id
+          }
+        }
+      }
+    }
+
+    const { data: task, error: insertError } = await serviceClient
       .from('tasks')
       .insert({
         project_id: projectId,
@@ -141,9 +180,9 @@ export async function createTaskAction(
     }
 
     try {
-      const finalPath = await moveTaskDesignFile(supabase, projectId, task.id, parsed.data.designFilePath)
+      const finalPath = await moveTaskDesignFile(serviceClient, projectId, task.id, parsed.data.designFilePath)
 
-      const { error: updateFileError } = await supabase
+      const { error: updateFileError } = await serviceClient
         .from('tasks')
         .update({ design_file_path: finalPath })
         .eq('id', task.id)
@@ -152,10 +191,10 @@ export async function createTaskAction(
         throw new Error(updateFileError.message)
       }
 
-      if (assignedToTeamMemberId) {
-        const { error: assignmentError } = await supabase.from('task_assignments').insert({
+      if (resolvedMemberId) {
+        const { error: assignmentError } = await serviceClient.from('task_assignments').insert({
           task_id: task.id,
-          team_member_id: assignedToTeamMemberId,
+          team_member_id: resolvedMemberId,
         })
 
         if (assignmentError) {
@@ -163,7 +202,8 @@ export async function createTaskAction(
         }
       }
     } catch (error) {
-      await supabase.from('tasks').delete().eq('id', task.id)
+      const serviceRoleClient = createServiceRoleClient()
+      await serviceRoleClient.from('tasks').delete().eq('id', task.id)
       return { success: false, error: error instanceof Error ? error.message : 'Unable to finish task setup' }
     }
 
@@ -178,7 +218,7 @@ export async function createTaskAction(
 
 export async function updateTaskAction(taskId: string, data: TaskFormData): Promise<MutationResult> {
   try {
-    const { supabase, task, projectPath, taskPath } = await getTaskRoute(taskId)
+    const { serviceClient, task, projectPath, taskPath } = await getTaskRoute(taskId)
     const parsed = taskSchema.safeParse(data)
 
     if (!parsed.success) {
@@ -186,13 +226,13 @@ export async function updateTaskAction(taskId: string, data: TaskFormData): Prom
     }
 
     const nextDesignFilePath = await moveTaskDesignFile(
-      supabase,
+      serviceClient,
       task.project_id,
       taskId,
       parsed.data.designFilePath
     )
 
-    const { error } = await supabase
+    const { error } = await serviceClient
       .from('tasks')
       .update({
         title: parsed.data.title,
@@ -226,17 +266,18 @@ export async function deleteTaskAction(
   designFilePath?: string
 ): Promise<MutationResult> {
   try {
-    const { supabase, projectPath } = await getProjectRoute(projectId)
+    const { serviceClient, projectPath } = await getProjectRoute(projectId)
 
     if (designFilePath) {
-      const { error: storageError } = await supabase.storage.from('design-files').remove([designFilePath])
+      const { error: storageError } = await serviceClient.storage.from('design-files').remove([designFilePath])
 
       if (storageError) {
         return { success: false, error: storageError.message }
       }
     }
 
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+    const serviceRoleClient = createServiceRoleClient()
+    const { error } = await serviceRoleClient.from('tasks').delete().eq('id', taskId)
 
     if (error) {
       return { success: false, error: error.message }
@@ -253,9 +294,9 @@ export async function deleteTaskAction(
 
 export async function updateTaskStatusAction(taskId: string, newStatus: 'todo' | 'in_progress' | 'done'): Promise<StatusResult> {
   try {
-    const { supabase, projectPath, taskPath } = await getTaskRoute(taskId)
+    const { serviceClient, projectPath, taskPath } = await getTaskRoute(taskId)
 
-    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId)
+    const { error } = await serviceClient.from('tasks').update({ status: newStatus }).eq('id', taskId)
 
     if (error) {
       return { success: false, error: error.message }
@@ -276,18 +317,67 @@ export async function assignTaskToMemberAction(
   teamMemberId: string | null
 ): Promise<StatusResult> {
   try {
-    const { supabase, projectPath, taskPath } = await getTaskRoute(taskId)
+    // Resolve the logged-in user before proceeding
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    const { error: deleteError } = await supabase.from('task_assignments').delete().eq('task_id', taskId)
+    let resolvedId: string | null = null
+
+    if (teamMemberId === 'self' || teamMemberId === '') {
+      const email = user?.email || user?.user_metadata?.email || null
+
+      if (!email) {
+        return { success: false, error: 'Could not resolve your team member record (no email found).' }
+      }
+
+      const serviceClient = createServiceRoleClient()
+
+      // Try to find existing team member by email
+      let selfMember = (await serviceClient
+        .from('team_members')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()).data
+
+      // If not found, auto-create a team member record for this user
+      if (!selfMember) {
+        const name = user?.user_metadata?.full_name
+          || (email.split('@')[0])
+          || 'Team Member'
+
+        const { data: newMember, error: createError } = await serviceClient
+          .from('team_members')
+          .insert({
+            name,
+            email,
+          })
+          .select('id')
+          .single()
+
+        if (createError || !newMember) {
+          return { success: false, error: `Could not create your team member record: ${createError?.message || 'unknown error'}` }
+        }
+        selfMember = newMember
+      }
+
+      resolvedId = selfMember.id
+    } else if (teamMemberId) {
+      // Real UUID passed through
+      resolvedId = teamMemberId
+    }
+
+    const { serviceClient, projectPath, taskPath } = await getTaskRoute(taskId)
+
+    const { error: deleteError } = await serviceClient.from('task_assignments').delete().eq('task_id', taskId)
 
     if (deleteError) {
       return { success: false, error: deleteError.message }
     }
 
-    if (teamMemberId) {
-      const { error: insertError } = await supabase.from('task_assignments').insert({
+    if (resolvedId) {
+      const { error: insertError } = await serviceClient.from('task_assignments').insert({
         task_id: taskId,
-        team_member_id: teamMemberId,
+        team_member_id: resolvedId,
       })
 
       if (insertError) {
@@ -307,9 +397,9 @@ export async function assignTaskToMemberAction(
 
 export async function updateTaskFilePathAction(taskId: string, filePath: string): Promise<StatusResult> {
   try {
-    const { supabase, projectPath, taskPath } = await getTaskRoute(taskId)
+    const { serviceClient, projectPath, taskPath } = await getTaskRoute(taskId)
 
-    const { error } = await supabase
+    const { error } = await serviceClient
       .from('tasks')
       .update({ design_file_path: filePath })
       .eq('id', taskId)

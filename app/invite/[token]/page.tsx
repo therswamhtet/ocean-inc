@@ -1,5 +1,5 @@
 import { validateToken } from '@/lib/invite/validate'
-import { register } from './actions'
+import { InviteRegistrationForm } from './invite-registration-form'
 
 export default async function InvitePage({
   params,
@@ -31,17 +31,11 @@ export default async function InvitePage({
                 {sp.error}
               </div>
             )}
-            <form action={register.bind(null, token)} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm mb-1">Full Name</label>
-                <input id="name" name="name" type="text" required minLength={2} className="w-full border rounded p-2" />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm mb-1">Password</label>
-                <input id="password" name="password" type="password" required minLength={8} className="w-full border rounded p-2" />
-              </div>
-              <button type="submit" className="w-full bg-primary text-primary-foreground p-2 rounded">Create Account</button>
-            </form>
+            <InviteRegistrationForm
+              token={token}
+              email={validation.email}
+              initialError={sp.error}
+            />
           </>
         )}
       </div>

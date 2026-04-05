@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { createProjectAction, deleteProjectAction } from './actions'
+import { createProjectAction, deleteProjectAction, updateClientDescriptionAction } from './actions'
+import { toggleClientStatusAction } from '../actions'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { ContentCard } from '@/components/ui/content-card'
 import {
   Dialog,
@@ -27,6 +29,8 @@ type ClientRecord = {
   id: string
   name: string
   color: string
+  description: string | null
+  is_active: boolean
 }
 
 type ProjectRecord = {
@@ -98,7 +102,7 @@ export default async function ClientProjectsPage({
 
   const { data: client, error: clientError } = await serviceRoleClient
     .from('clients')
-    .select('id, name, color')
+    .select('id, name, color, description, is_active')
     .eq('id', clientId)
     .single<ClientRecord>()
 

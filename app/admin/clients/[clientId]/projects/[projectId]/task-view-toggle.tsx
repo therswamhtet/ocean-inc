@@ -31,6 +31,7 @@ export type TaskRow = {
   status: 'todo' | 'in_progress' | 'done'
   created_at: string
   assigned_to_name: string | null
+  assigned_to_username: string | null
 }
 
 type TaskViewToggleProps = {

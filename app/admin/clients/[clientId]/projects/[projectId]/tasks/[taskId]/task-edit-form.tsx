@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,7 +29,42 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { createClient } from '@/lib/supabase/client'
 import { linkify } from '@/lib/utils'
+
+function isImageFile(path: string) {
+  const ext = path.split('.').pop()?.toLowerCase() ?? ''
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext)
+}
+
+/** Fetches a signed URL for a design file image and returns it for display. */
+function useDesignImageUrl(filePath: string | null) {
+  const [url, setUrl] = useState<string | null>(null)
+  const prevPath = useRef(filePath)
+
+  useEffect(() => {
+    if (!filePath || prevPath.current !== filePath) {
+      setUrl(null)
+      prevPath.current = filePath
+    }
+    if (!filePath) return
+
+    let cancelled = false
+    createClient()
+      .storage
+      .from('design-files')
+      .createSignedUrl(filePath, 3600)
+      .then(({ data, error }) => {
+        if (!cancelled && !error && data?.signedUrl) {
+          setUrl(data.signedUrl)
+        }
+      })
+
+    return () => { cancelled = true }
+  }, [filePath])
+
+  return url
+}
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -61,21 +96,10 @@ type TaskEditFormProps = {
     id: string
     name: string
     email: string
+    username: string | null
   }>
+  adminTeamMemberId: string | null
   initialAssignmentId: string | null
-}
-
-function BriefingPreview({ text }: { text: string }) {
-  if (!text) {
-    return null
-  }
-
-  return (
-    <div
-      className="rounded-lg border border-border px-3 py-3 text-sm text-foreground"
-      dangerouslySetInnerHTML={{ __html: linkify(text) }}
-    />
-  )
 }
 
 export function TaskEditForm({
@@ -83,6 +107,7 @@ export function TaskEditForm({
   projectId,
   task,
   teamMembers,
+  adminTeamMemberId,
   initialAssignmentId,
 }: TaskEditFormProps) {
   const router = useRouter()
@@ -115,8 +140,12 @@ export function TaskEditForm({
     formState: { errors },
   } = form
 
+  // Generate signed URL for image preview (auto-loads on mount / change)
+  const previewUrl = useDesignImageUrl(designFilePath)
+
   const currentFileName = useMemo(() => designFilePath?.split('/').pop() ?? null, [designFilePath])
   const projectPath = `/admin/clients/${clientId}/projects/${projectId}`
+  const showDesignImage = designFilePath && isImageFile(designFilePath)
 
   const onSubmit = handleSubmit((values) => {
     setFeedback(null)
@@ -137,28 +166,28 @@ export function TaskEditForm({
   })
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+    <div className="space-y-6">
       <form className="space-y-6 rounded-lg border border-border p-5" onSubmit={onSubmit}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field className="sm:col-span-2">
+        <div className="space-y-4">
+          <Field>
             <FieldLabel htmlFor="title">Title</FieldLabel>
             <Input id="title" placeholder="Instagram carousel" {...register('title')} />
-            {errors.title ? <FieldError>{errors.title.message}</FieldError> : null}
+            {errors.title && <FieldError>{errors.title.message}</FieldError>}
           </Field>
 
-          <Field className="sm:col-span-2">
+          <Field>
             <FieldLabel htmlFor="briefing">Briefing</FieldLabel>
-            <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" {...register('briefing')} />
-            <FieldDescription>URLs render below as clickable preview links.</FieldDescription>
-            {errors.briefing ? <FieldError>{errors.briefing.message}</FieldError> : null}
+            <Textarea
+              id="briefing"
+              placeholder="Key notes, references, or campaign direction"
+              rows={4}
+              {...register('briefing')}
+            />
+            <FieldDescription>URLs render as clickable links for the team member.</FieldDescription>
+            {errors.briefing && <FieldError>{errors.briefing.message}</FieldError>}
           </Field>
 
-          <Field className="sm:col-span-2">
-            <FieldLabel>Briefing preview</FieldLabel>
-            <BriefingPreview text={watch('briefing') ?? ''} />
-          </Field>
-
-          <Field className="sm:col-span-2">
+          <Field>
             <div className="flex items-center justify-between gap-3">
               <FieldLabel htmlFor="caption">Caption</FieldLabel>
               <div className="flex items-center gap-3">
@@ -167,55 +196,115 @@ export function TaskEditForm({
               </div>
             </div>
             <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
-            {errors.caption ? <FieldError>{errors.caption.message}</FieldError> : null}
+            {errors.caption && <FieldError>{errors.caption.message}</FieldError>}
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
-            <Input id="postingDate" type="date" {...register('postingDate')} />
-            {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
+              <Input id="postingDate" type="date" {...register('postingDate')} />
+              {errors.postingDate && <FieldError>{errors.postingDate.message}</FieldError>}
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
-            <Input id="deadline" type="date" {...register('deadline')} />
-            {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
-          </Field>
+            <Field>
+              <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
+              <Input id="deadline" type="date" {...register('deadline')} />
+              {errors.deadline && <FieldError>{errors.deadline.message}</FieldError>}
+            </Field>
 
-          <Field>
-            <FieldLabel>{LABELS.task.status}</FieldLabel>
-            <Select
-              value={watch('status')}
-              onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
-                setValue('status', value, { shouldDirty: true, shouldValidate: true })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todo">To Do</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.status ? <FieldError>{errors.status.message}</FieldError> : null}
-          </Field>
+            <Field>
+              <FieldLabel>{LABELS.task.status}</FieldLabel>
+              <Select
+                value={watch('status')}
+                onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
+                  setValue('status', value, { shouldDirty: true, shouldValidate: true })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.status && <FieldError>{errors.status.message}</FieldError>}
+            </Field>
+
+            <Field>
+              <FieldLabel>{LABELS.task.assignee}</FieldLabel>
+              <Select
+                value={assignmentId}
+                onValueChange={(value) => {
+                  setFeedback(null)
+                  setAssignmentId(value)
+
+                  startAssigning(async () => {
+                    const nextMemberId = value === 'unassigned' ? null : value
+                    const result = await assignTaskToMemberAction(task.id, nextMemberId)
+
+                    if (result.success) {
+                      setFeedback(nextMemberId ? 'Task reassigned.' : 'Task unassigned.')
+                      router.refresh()
+                    } else {
+                      setFeedback(result.error)
+                      setAssignmentId(initialAssignmentId ?? 'unassigned')
+                    }
+                  })
+                }}
+              >
+                <SelectTrigger disabled={isAssigning}>
+                  <SelectValue placeholder="Unassigned" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  <SelectItem value="self">Assign to myself</SelectItem>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.username ? `@${member.username}` : member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>
+                {isAssigning ? 'Updating assignment...' : 'Changes save immediately.'}
+              </FieldDescription>
+            </Field>
+          </div>
         </div>
 
+        {/* Design file — full-width */}
         <Field>
           <div className="flex items-center justify-between gap-3">
             <FieldLabel>Design file</FieldLabel>
-            {currentFileName ? <span className="text-xs text-muted-foreground">Replace the current upload any time.</span> : null}
+            {currentFileName && (
+              <span className="text-xs text-muted-foreground">Replace the current upload any time.</span>
+            )}
           </div>
 
           {designFilePath && currentFileName ? (
-            <div className="space-y-4 rounded-lg border border-border p-4">
+            <div className="space-y-4">
+              {/* Image preview shown automatically */}
+              {showDesignImage && previewUrl && (
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <img
+                    src={previewUrl}
+                    alt={currentFileName}
+                    className="h-auto w-full max-w-none object-contain"
+                  />
+                </div>
+              )}
+
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">Current file: {currentFileName}</p>
                 <p className="break-all text-xs text-muted-foreground">{designFilePath}</p>
               </div>
-              <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
+
+              <div className="flex flex-wrap gap-2">
+                <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
+              </div>
+
               <div className="border-t border-border pt-4">
                 <p className="mb-3 text-sm font-medium text-foreground">Replace file</p>
                 <DesignFileUploader
@@ -264,9 +353,20 @@ export function TaskEditForm({
           )}
         </Field>
 
-        {feedback ? <div className="rounded-lg border border-border px-3 py-2 text-sm">{feedback}</div> : null}
+        {feedback && (
+          <div className="rounded-lg border border-border px-3 py-2 text-sm">{feedback}</div>
+        )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+        {/* Action buttons — mobile-friendly stacking */}
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center border-t border-border pt-4">
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="outline">
+              <Link href={projectPath}>Back to project</Link>
+            </Button>
+            <Button disabled={isSaving || isReplacing} type="submit">
+              {isSaving ? 'Saving...' : LABELS.common.save}
+            </Button>
+          </div>
           <Button
             type="button"
             variant="destructive"
@@ -294,64 +394,8 @@ export function TaskEditForm({
             {isDeleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             {LABELS.task.deleted}
           </Button>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button asChild variant="outline">
-              <Link href={projectPath}>Back to project</Link>
-            </Button>
-            <Button disabled={isSaving || isReplacing} type="submit">
-              {isSaving ? 'Saving...' : LABELS.common.save}
-            </Button>
-          </div>
         </div>
       </form>
-
-      <aside className="self-start space-y-5 rounded-lg border border-border p-5">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Assignment</p>
-          <h2 className="text-lg font-semibold text-foreground">Team member</h2>
-          <p className="text-sm text-muted-foreground">Assign or unassign this task without leaving the page.</p>
-        </div>
-
-        <Field>
-          <FieldLabel>Assigned to</FieldLabel>
-          <Select
-            value={assignmentId}
-            onValueChange={(value) => {
-              setFeedback(null)
-              setAssignmentId(value)
-
-              startAssigning(async () => {
-                const nextMemberId = value === 'unassigned' ? null : value
-                const result = await assignTaskToMemberAction(task.id, nextMemberId)
-
-                if (result.success) {
-                  setFeedback(nextMemberId ? 'Task reassigned.' : 'Task unassigned.')
-                  router.refresh()
-                } else {
-                  setFeedback(result.error)
-                  setAssignmentId(initialAssignmentId ?? 'unassigned')
-                }
-              })
-            }}
-          >
-            <SelectTrigger disabled={isAssigning}>
-              <SelectValue placeholder="Select a team member" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unassigned">Unassign</SelectItem>
-              {teamMembers.map((member) => (
-                <SelectItem key={member.id} value={member.id}>
-                  {member.name} · {member.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldDescription>
-            {isAssigning ? 'Updating assignment...' : 'Changes save immediately for the project and task views.'}
-          </FieldDescription>
-        </Field>
-      </aside>
     </div>
   )
 }

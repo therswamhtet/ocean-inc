@@ -72,7 +72,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
     setMessage(null)
 
     startTransition(async () => {
-      const result = await createTaskAction(projectId, values)
+      const result = await createTaskAction(projectId, values, values.assignedTo || null)
 
       if (result.success) {
         setMessage('Task created')

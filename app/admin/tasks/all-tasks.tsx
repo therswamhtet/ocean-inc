@@ -19,6 +19,7 @@ type TaskRecord = {
   due_date: string | null
   deadline: string | null
   status: string
+  assigned_to_username: string | null
   assigned_to_name: string | null
   client_id: string
   client_name: string
@@ -104,7 +105,9 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
               {LABELS.common.assignedTo}
             </p>
             <p className="text-sm font-medium text-foreground">
-              {task.assigned_to_name ?? 'Unassigned'}
+              {task.assigned_to_username
+                ? `@${task.assigned_to_username}`
+                : task.assigned_to_name ?? 'Unassigned'}
             </p>
           </div>
         </div>
@@ -218,7 +221,9 @@ function TaskListView({ title, tasks, expanded, onToggle }: {
 
                   {/* Assignment */}
                   <span className="hidden lg:inline text-xs text-muted-foreground flex-shrink-0 w-28 truncate text-right">
-                    {task.assigned_to_name ?? '—'}
+                    {task.assigned_to_username
+                      ? `@${task.assigned_to_username}`
+                      : task.assigned_to_name ?? '—'}
                   </span>
                 </div>
               </div>

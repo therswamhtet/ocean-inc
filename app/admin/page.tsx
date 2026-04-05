@@ -71,7 +71,7 @@ export default async function AdminDashboard() {
     if (teamMember) {
       const { data: myTasksAssigned } = await serviceRoleClient
         .from('task_assignments')
-        .select('task_id, team_member_id, team_members(name), tasks(id, title, status, posting_date, due_date, project_id, projects(name, client_id))')
+        .select('task_id, team_member_id, team_members(name, username), tasks(id, title, status, posting_date, due_date, project_id, projects(name, client_id))')
         .eq('team_member_id', teamMember.id)
         .limit(50)
 
@@ -89,6 +89,7 @@ export default async function AdminDashboard() {
           client_id: projects?.client_id ?? null,
           project_name: projects?.name ?? null,
           client_name: null,
+          assignee_username: raw.team_members?.username ?? null,
           assignee_name: raw.team_members?.name ?? null,
         }
       })

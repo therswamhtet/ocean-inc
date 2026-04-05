@@ -21,6 +21,7 @@ type TeamMemberRecord = {
   id: string
   name: string
   email: string
+  username: string | null
 }
 
 type ProjectRecord = {
@@ -38,6 +39,7 @@ type AssignmentRecord = {
   team_members: {
     name: string
     email: string
+    username: string | null
   } | null
 }
 
@@ -66,12 +68,12 @@ export default async function TaskDetailPage({
         .single<ProjectRecord>(),
       serviceRoleClient
         .from('team_members')
-        .select('id, name, email')
+        .select('id, name, email, username')
         .order('name', { ascending: true })
         .returns<TeamMemberRecord[]>(),
       serviceRoleClient
         .from('task_assignments')
-        .select('team_member_id, team_members(name, email)')
+        .select('team_member_id, team_members(name, email, username)')
         .eq('task_id', taskId)
         .maybeSingle<AssignmentRecord>(),
     ])
@@ -86,6 +88,18 @@ export default async function TaskDetailPage({
 
   if (assignmentError && assignmentError.code !== 'PGRST116') {
     throw new Error(assignmentError.message)
+  }
+
+  // Get the admin user's team member id for "assign to myself"
+  const { data: { user } } = await supabase.auth.getUser()
+  let adminTeamMemberId: string | null = null
+  if (user) {
+    const { data: adminTeamMember } = await serviceRoleClient
+      .from('team_members')
+      .select('id')
+      .eq('email', user.email)
+      .maybeSingle()
+    adminTeamMemberId = adminTeamMember?.id ?? null
   }
 
   return (
@@ -131,6 +145,7 @@ export default async function TaskDetailPage({
           designFilePath: task.design_file_path,
         }}
         teamMembers={teamMembers ?? []}
+        adminTeamMemberId={adminTeamMemberId}
         initialAssignmentId={assignment?.team_member_id ?? null}
       />
     </div>

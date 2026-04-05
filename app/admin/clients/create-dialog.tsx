@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 type CreateClientDialogProps = {
   errorMessage?: string
@@ -78,6 +79,19 @@ export function CreateClientDialog({ errorMessage }: CreateClientDialogProps) {
               ))}
             </div>
             <input type="hidden" name="color" value={selectedColor} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="client-description">Description</Label>
+            <Textarea
+              id="client-description"
+              name="description"
+              maxLength={200}
+              placeholder="Optional — what does this client do?"
+            />
+            <p className="text-xs text-muted-foreground">
+              Brief description for internal reference (max 200 characters).
+            </p>
           </div>
 
           {errorMessage ? (

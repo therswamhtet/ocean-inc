@@ -10,6 +10,7 @@ const taskSchema = z.object({
   briefing: z.string().optional(),
   caption: z.string().optional(),
   postingDate: z.string().optional(),
+  postingTime: z.string().optional(),
   dueDate: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
@@ -167,6 +168,7 @@ export async function createTaskAction(
         briefing: parsed.data.briefing || null,
         caption: parsed.data.caption || null,
         posting_date: parsed.data.postingDate || null,
+        posting_time: parsed.data.postingTime || null,
         due_date: parsed.data.dueDate || null,
         deadline: parsed.data.deadline || null,
         status: parsed.data.status,
@@ -239,6 +241,7 @@ export async function updateTaskAction(taskId: string, data: TaskFormData): Prom
         briefing: parsed.data.briefing || null,
         caption: parsed.data.caption || null,
         posting_date: parsed.data.postingDate || null,
+        posting_time: parsed.data.postingTime || null,
         due_date: parsed.data.dueDate || null,
         deadline: parsed.data.deadline || null,
         status: parsed.data.status,
@@ -415,5 +418,28 @@ export async function updateTaskFilePathAction(taskId: string, filePath: string)
     return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unable to update file path' }
+  }
+}
+
+export async function updateTaskTimeAction(taskId: string, postingTime: string): Promise<StatusResult> {
+  try {
+    const { serviceClient, projectPath, taskPath } = await getTaskRoute(taskId)
+
+    const { error } = await serviceClient
+      .from('tasks')
+      .update({ posting_time: postingTime })
+      .eq('id', taskId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(taskPath)
+    revalidatePath(projectPath)
+    revalidatePath('/admin')
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to update task time' }
   }
 }

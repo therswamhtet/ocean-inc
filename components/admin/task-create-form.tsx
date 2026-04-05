@@ -34,6 +34,7 @@ const taskSchema = z.object({
   briefing: z.string().optional(),
   caption: z.string().optional(),
   postingDate: z.string().optional(),
+  postingTime: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
   assignedTo: z.string().optional(),
@@ -59,6 +60,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
       briefing: '',
       caption: '',
       postingDate: '',
+      postingTime: '10:00',
       deadline: '',
       status: 'todo',
       assignedTo: '',
@@ -104,6 +106,7 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           briefing: '',
           caption: '',
           postingDate: '',
+          postingTime: '10:00',
           deadline: '',
           status: 'todo',
           assignedTo: '',
@@ -147,6 +150,12 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
           <Input id="postingDate" type="date" {...register('postingDate')} />
           {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
+          <Input id="postingTime" type="time" {...register('postingTime')} />
+          {errors.postingTime ? <FieldError>{errors.postingTime.message}</FieldError> : null}
         </Field>
 
         <Field>

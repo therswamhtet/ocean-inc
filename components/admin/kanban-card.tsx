@@ -1,15 +1,35 @@
 'use client'
 
-import Link from 'next/link'
+import { useState, useTransition } from 'react'
 import { useParams } from 'next/navigation'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { ContentCard } from '@/components/ui/content-card'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { updateTaskAction, updateTaskStatusAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 type KanbanCardProps = {
@@ -17,8 +37,20 @@ type KanbanCardProps = {
   projectId: string
 }
 
+const editTaskSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  posting_date: z.string().optional(),
+  posting_time: z.string().optional(),
+  status: z.enum(['todo', 'in_progress', 'done']),
+})
+
+type EditTaskFormValues = z.infer<typeof editTaskSchema>
+
 export function KanbanCard({ task, projectId }: KanbanCardProps) {
   const params = useParams<{ clientId: string }>()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [feedback, setFeedback] = useState<string | null>(null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -32,38 +64,146 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
     task.posting_date && isBefore(startOfDay(new Date(task.posting_date)), startOfDay(new Date())) && task.status !== 'done'
   )
 
+  const form = useForm<EditTaskFormValues>({
+    resolver: zodResolver(editTaskSchema),
+    defaultValues: {
+      title: task.title,
+      posting_date: task.posting_date ?? '',
+      posting_time: task.posting_time ?? '10:00',
+      status: task.status,
+    },
+  })
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDialogOpen(true)
+  }
+
+  const onSubmit = (values: EditTaskFormValues) => {
+    setFeedback(null)
+    startTransition(async () => {
+      const result = await updateTaskAction(task.id, {
+        title: values.title,
+        postingDate: values.posting_date || undefined,
+        status: values.status,
+      })
+      if (result.success) {
+        setDialogOpen(false)
+        window.location.reload()
+      } else {
+        setFeedback(result.error)
+      }
+    })
+  }
+
   return (
-    <article
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      data-dragging={isDragging ? 'true' : 'false'}
-    >
-      <ContentCard
-        variant="kanban"
-        className={cn('bg-background cursor-grab active:cursor-grabbing hover:border-foreground/30')}
+    <>
+      <article
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        data-dragging={isDragging ? 'true' : 'false'}
+        onClick={handleCardClick}
       >
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <StatusDot status={isOverdue ? 'overdue' : task.status} />
-        <span className="text-xs text-muted-foreground">
-          {task.posting_date ? format(new Date(task.posting_date), 'MMM d') : LABELS.task.noDate}
-        </span>
-      </div>
+        <ContentCard
+          variant="kanban"
+          className={cn('bg-background cursor-grab active:cursor-grabbing hover:border-foreground/30')}
+        >
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <StatusDot status={isOverdue ? 'overdue' : task.status} />
+          <span className="text-xs text-muted-foreground">
+            {task.posting_date 
+              ? format(new Date(task.posting_date), 'MMM d') + (task.posting_time ? `, ${task.posting_time.substring(0, 5)}` : '')
+              : LABELS.task.noDate}
+          </span>
+        </div>
 
-      {task.assigned_to_username && (
-        <span className="mb-1 block text-[11px] font-mono text-muted-foreground">
-          @ {task.assigned_to_username}
-        </span>
-      )}
+        {task.assigned_to_username && (
+          <span className="mb-1 block text-[11px] font-mono text-muted-foreground">
+            @ {task.assigned_to_username}
+          </span>
+        )}
 
-      <Link
-        href={`/admin/clients/${params.clientId}/projects/${projectId}/tasks/${task.id}`}
-        className="block truncate text-sm font-medium text-foreground underline-offset-4 hover:underline"
-      >
-        {task.title}
-      </Link>
-      </ContentCard>
-    </article>
+        <span className="block truncate text-sm font-medium text-foreground">
+          {task.title}
+        </span>
+        </ContentCard>
+      </article>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium">Title</label>
+              <Input
+                id="title"
+                {...form.register('title')}
+              />
+              {form.formState.errors.title && (
+                <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="posting_date" className="text-sm font-medium">Posting Date</label>
+                <Input
+                  id="posting_date"
+                  type="date"
+                  {...form.register('posting_date')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="posting_time" className="text-sm font-medium">Posting Time</label>
+                <Input
+                  id="posting_time"
+                  type="time"
+                  {...form.register('posting_time')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="status" className="text-sm font-medium">Status</label>
+                <Select
+                  value={form.watch('status')}
+                  onValueChange={(value: 'todo' | 'in_progress' | 'done') => 
+                    form.setValue('status', value, { shouldDirty: true })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">To Do</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {feedback && (
+              <div className="rounded-lg border border-destructive px-3 py-2 text-sm text-destructive">
+                {feedback}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

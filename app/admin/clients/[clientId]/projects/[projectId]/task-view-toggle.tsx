@@ -26,6 +26,7 @@ export type TaskRow = {
   caption: string | null
   design_file_path: string | null
   posting_date: string | null
+  posting_time: string | null
   due_date: string | null
   deadline: string | null
   status: 'todo' | 'in_progress' | 'done'

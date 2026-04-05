@@ -71,6 +71,7 @@ const taskSchema = z.object({
   briefing: z.string().optional(),
   caption: z.string().optional(),
   postingDate: z.string().optional(),
+  postingTime: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
   designFilePath: z.string().optional(),
@@ -87,6 +88,7 @@ type TaskEditFormProps = {
     briefing: string | null
     caption: string | null
     postingDate: string | null
+    postingTime?: string | null
     dueDate?: string | null
     deadline: string | null
     status: 'todo' | 'in_progress' | 'done'
@@ -126,6 +128,7 @@ export function TaskEditForm({
       briefing: task.briefing ?? '',
       caption: task.caption ?? '',
       postingDate: task.postingDate ?? '',
+      postingTime: task.postingTime ?? '10:00',
       deadline: task.deadline ?? '',
       status: task.status,
       designFilePath: task.designFilePath ?? '',
@@ -204,6 +207,12 @@ export function TaskEditForm({
               <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
               <Input id="postingDate" type="date" {...register('postingDate')} />
               {errors.postingDate && <FieldError>{errors.postingDate.message}</FieldError>}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
+              <Input id="postingTime" type="time" {...register('postingTime')} />
+              {errors.postingTime && <FieldError>{errors.postingTime.message}</FieldError>}
             </Field>
 
             <Field>

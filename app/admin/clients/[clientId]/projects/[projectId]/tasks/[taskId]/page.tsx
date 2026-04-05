@@ -12,6 +12,7 @@ type TaskRecord = {
   caption: string | null
   design_file_path: string | null
   posting_date: string | null
+  posting_time: string | null
   due_date: string | null
   deadline: string | null
   status: 'todo' | 'in_progress' | 'done'
@@ -56,7 +57,7 @@ export default async function TaskDetailPage({
     await Promise.all([
       serviceRoleClient
         .from('tasks')
-        .select('id, project_id, title, briefing, caption, design_file_path, posting_date, due_date, deadline, status')
+        .select('id, project_id, title, briefing, caption, design_file_path, posting_date, posting_time, due_date, deadline, status')
         .eq('id', taskId)
         .eq('project_id', projectId)
         .single<TaskRecord>(),
@@ -139,6 +140,7 @@ export default async function TaskDetailPage({
           briefing: task.briefing,
           caption: task.caption,
           postingDate: task.posting_date,
+          postingTime: task.posting_time,
           dueDate: task.due_date,
           deadline: task.deadline,
           status: task.status,

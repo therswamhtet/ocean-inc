@@ -77,11 +77,16 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                 )
 
                 return (
-                  <TableRow key={task.id}>
+                  <TableRow 
+                    key={task.id} 
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById(`dropdown-${task.id}`)?.click()}
+                  >
                     <TableCell className="font-medium text-foreground">
                       <Link
                         className="underline-offset-4 hover:underline"
                         href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {task.title}
                       </Link>
@@ -96,9 +101,9 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                         : task.assigned_to_name ?? '—'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatOptionalDate(task.due_date)}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild id={`dropdown-${task.id}`}>
                           <Button aria-label={`Task actions for ${task.title}`} size="icon" variant="ghost">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>

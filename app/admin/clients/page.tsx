@@ -55,8 +55,8 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Clients</p>
           <div>
             <h2 className="text-2xl font-semibold">Client directory</h2>

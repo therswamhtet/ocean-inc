@@ -5,7 +5,6 @@ type ClientRow = {
   id: string
   name: string
   slug: string
-  color: string
 }
 
 type ProjectRow = {
@@ -50,7 +49,6 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     id: client.id,
     name: client.name,
     slug: client.slug,
-    color: client.color,
   }
 
   const { data: project, error: projectError } = await supabase

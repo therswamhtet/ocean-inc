@@ -134,34 +134,6 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
         <div />
       </div>
 
-      {/* Due Date & Deadline - Separate Row with Separator */}
-      <div className="border-t border-border pt-3 mt-3">
-        <div className="grid grid-cols-2 gap-x-4">
-          <div className="flex items-start gap-2">
-            <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {LABELS.task.dueDate}
-              </p>
-              <p className="text-sm text-foreground tabular-nums">
-                {formatOptionalDate(task.due_date, LABELS.task.noDate)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {LABELS.task.deadline}
-              </p>
-              <p className="text-sm text-foreground tabular-nums">
-                {formatOptionalDate(task.deadline, LABELS.task.noDate)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Navigation Link */}
       <div className="pt-3 mt-3">
         <Link
@@ -254,13 +226,8 @@ function TaskListView({ title, tasks, expanded, onToggle }: {
                     {task.project_name}
                   </span>
 
-                  {/* Due Date */}
-                  <span className="hidden md:inline text-xs text-muted-foreground flex-shrink-0 w-24 text-right tabular-nums">
-                    {formatOptionalDate(task.due_date, '—')}
-                  </span>
-
                   {/* Assignment */}
-                  <span className="hidden lg:inline text-xs text-muted-foreground flex-shrink-0 w-24 truncate text-right">
+                  <span className="hidden lg:inline text-xs text-muted-foreground flex-shrink-0 w-28 truncate text-right">
                     {task.assigned_to_name ?? '—'}
                   </span>
                 </div>

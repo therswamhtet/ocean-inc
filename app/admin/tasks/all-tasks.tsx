@@ -62,9 +62,21 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
   return (
     <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm">
       {/* Header */}
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div>
-          <p className="font-medium text-foreground">{task.title}</p>
+      <div className="mb-3 flex items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2">
+            <p className="font-medium text-foreground truncate">{task.title}</p>
+            <Badge
+              className={cn(
+                'flex-shrink-0 mt-0.5',
+                isOverdue
+                  ? 'border-destructive bg-destructive/10 text-destructive'
+                  : 'capitalize',
+              )}
+            >
+              {isOverdue ? 'overdue' : task.status.replace('_', ' ')}
+            </Badge>
+          </div>
           <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <span
@@ -74,89 +86,90 @@ function TaskDetailPanel({ task }: { task: TaskRecord }) {
               {task.client_name}
             </span>
             <span>·</span>
-            <span>{task.project_name}</span>
+            <span className="truncate">{task.project_name}</span>
           </div>
         </div>
-        <Badge
-          className={cn(
-            'flex-shrink-0',
-            isOverdue
-              ? 'border-destructive bg-destructive/10 text-destructive'
-              : 'capitalize',
-          )}
-        >
-          {isOverdue ? 'overdue' : task.status.replace('_', ' ')}
-        </Badge>
       </div>
 
-      {/* Detail Fields */}
-      <div className="space-y-3">
+      {/* Detail Fields - 2 Column Grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {/* Assigned To */}
-        <div className="flex items-center gap-2">
-          <User className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex items-start gap-2">
+          <User className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               {LABELS.common.assignedTo}
             </p>
-            <p className="font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground">
               {task.assigned_to_name ?? 'Unassigned'}
             </p>
           </div>
         </div>
 
         {/* Posting Date */}
-        <div className="flex items-center gap-2">
-          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex items-start gap-2">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               {LABELS.task.postingDate}
             </p>
-            <p className="text-foreground">
+            <p className="text-sm text-foreground tabular-nums">
               {formatOptionalDate(task.posting_date, LABELS.task.noDate)}
             </p>
           </div>
         </div>
 
         {/* Content Plan (Month) */}
-        <div className="flex items-center gap-2">
-          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex items-start gap-2">
+          <LinkIcon className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Content Plan
             </p>
-            <p className="text-foreground">{getMonthLabel(task.posting_date)}</p>
+            <p className="text-sm text-foreground">{getMonthLabel(task.posting_date)}</p>
           </div>
         </div>
 
-        {/* Due Date & Deadline */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              {LABELS.task.dueDate}
-            </p>
-            <p className="text-foreground">
-              {formatOptionalDate(task.due_date, LABELS.task.noDate)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">
-              {LABELS.task.deadline}
-            </p>
-            <p className="text-foreground">
-              {formatOptionalDate(task.deadline, LABELS.task.noDate)}
-            </p>
-          </div>
-        </div>
+        {/* Spacer for grid alignment */}
+        <div />
+      </div>
 
-        {/* Navigation Link */}
-        <div className="pt-2">
-          <Link
-            href={`/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`}
-            className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground transition"
-          >
-            Open task detail &rarr;
-          </Link>
+      {/* Due Date & Deadline - Separate Row with Separator */}
+      <div className="border-t border-border pt-3 mt-3">
+        <div className="grid grid-cols-2 gap-x-4">
+          <div className="flex items-start gap-2">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {LABELS.task.dueDate}
+              </p>
+              <p className="text-sm text-foreground tabular-nums">
+                {formatOptionalDate(task.due_date, LABELS.task.noDate)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {LABELS.task.deadline}
+              </p>
+              <p className="text-sm text-foreground tabular-nums">
+                {formatOptionalDate(task.deadline, LABELS.task.noDate)}
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Navigation Link */}
+      <div className="pt-3 mt-3">
+        <Link
+          href={`/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`}
+          className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground transition"
+        >
+          Open task detail &rarr;
+        </Link>
       </div>
     </div>
   )

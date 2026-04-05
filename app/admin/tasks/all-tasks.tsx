@@ -256,6 +256,11 @@ export default function AllTasks({ today, upcoming, overdue }: AllTasksProps) {
         <p className="text-sm text-muted-foreground">
           View tasks organized by urgency — today, upcoming, and overdue.
         </p>
+      </div>
+
+      {/* Action Bar */}
+      <div className="flex items-center justify-between">
+        <div />
         <QuickTaskDialog />
       </div>
 

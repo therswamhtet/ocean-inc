@@ -95,7 +95,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 8. Infrastructure & DB Migrations | v1.1 | 0/TBD | Not started | - |
+| 8. Infrastructure & DB Migrations | v1.1 | 4/5 | Complete    | 2026-04-05 |
 | 9. Task Management & Kanban | v1.1 | 0/TBD | Not started | - |
 | 10. Calendar Redesign & My Tasks | v1.1 | 0/TBD | Not started | - |
 | 11. Client Portal Upgrade | v1.1 | 0/TBD | Not started | - |

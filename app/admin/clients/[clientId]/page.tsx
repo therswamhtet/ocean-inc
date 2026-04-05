@@ -26,6 +26,7 @@ import {
 type ClientRecord = {
   id: string
   name: string
+  color: string
 }
 
 type ProjectRecord = {
@@ -34,6 +35,16 @@ type ProjectRecord = {
   month: number
   year: number
   status: 'active' | 'paused' | 'done' | string
+}
+
+const CLIENT_PALETTE = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+
+function getColorForClient(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return CLIENT_PALETTE[Math.abs(hash) % CLIENT_PALETTE.length]
 }
 
 const projectStatuses = {
@@ -68,7 +79,7 @@ export default async function ClientProjectsPage({
 
   const { data: client, error: clientError } = await supabase
     .from('clients')
-    .select('id, name')
+    .select('id, name, color')
     .eq('id', clientId)
     .single<ClientRecord>()
 
@@ -99,12 +110,15 @@ export default async function ClientProjectsPage({
           <span className="text-foreground">{client.name}</span>
         </nav>
         <div className="flex flex-col gap-4 rounded-lg border border-border p-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
-            <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              {LABELS.common.projectDescription}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: client.color || getColorForClient(client.name) }} />
+            <div>
+              <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
+              <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
+              <p className="text-sm text-muted-foreground">
+                {LABELS.common.projectDescription}
+              </p>
+            </div>
           </div>
 
           <Dialog>

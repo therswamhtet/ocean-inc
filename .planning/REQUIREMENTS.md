@@ -134,6 +134,58 @@
 - [x] **UI-31**: Poppins bold font applied to branding
 - [x] **UI-32**: "Management Panel" text removed from header
 
+## v1.1 Requirements
+
+### Branding & Design System
+
+- [ ] **THEME-01**: All UI elements adopt new brand aesthetic: cream/beige backgrounds, colorful gradient cards, warm typography
+- [ ] **THEME-02**: Tailwind CSS theme tokens updated: new CSS variables replace black-and-white palette with warm gradient system
+- [ ] **THEME-03**: Icon system updated with consistent, modern icon choices across all components
+- [ ] **THEME-04**: Dashboard metric cards redesigned with colorful gradient backgrounds and consistent alignment
+- [ ] **THEME-05**: Sidebar redesigned: remove large square blocks, modern minimal navigation style
+- [ ] **THEME-06**: Task card designs updated with consistent text alignment, proper sizing, and modern styling
+- [ ] **THEME-07**: Copy and typography sizing reduced across all components for cleaner readability
+
+### Task Management & Kanban
+
+- [ ] **TASK-01**: Admin Kanban board supports inline editing of task cards without navigating away
+- [ ] **TASK-02**: Kanban board displays tasks as cards with full edit capability (title, dates, status, assignee)
+- [ ] **TASK-03**: Task dropdown menu expands all content when clicking any part of the row, not just the dropdown icon
+- [ ] **TASK-04**: Task details dialog/drawer redesigned with modern aesthetic
+- [ ] **TASK-05**: Image previewer fixed: loads correctly on page reload, uses proper preview mode instead of full-resolution display
+- [ ] **TASK-06**: Tasks can be posted with a specific time; default posting time is 10:00 AM
+
+### Calendar
+
+- [ ] **CAL-01**: Calendar component redesigned: day cells are square blocks
+- [ ] **CAL-02**: Calendar displays all tasks without clipping or partial display issues
+- [ ] **CAL-03**: Calendar is fully responsive: no overflow or layout issues on mobile or desktop
+- [ ] **CAL-04**: Calendar reverts to initial calendar style with clean month grid layout
+
+### My Tasks
+
+- [ ] **TASKS-01**: "My Tasks" section includes filter options: "Today", "This week", "This month"
+- [ ] **TASKS-02**: Task filters correctly apply time-based filtering and update the displayed task list
+
+### User Profile & Onboarding
+
+- [ ] **USER-01**: New team members can set a username upon first login (invite registration)
+- [ ] **USER-02**: Username and real name are used together for task assignments throughout the app
+
+### Client Portal
+
+- [ ] **CLIENT-11**: Admin can add a description when creating a client (optional field)
+- [ ] **CLIENT-12**: Client portal shows client description in the portal header
+- [ ] **CLIENT-13**: Client portal displays client as "blocked" in the admin view when needed
+- [ ] **CLIENT-14**: Client view redesigned to match the new brand theme
+
+### Mobile Optimization
+
+- [ ] **MOB-01**: Mobile sidebar toggle (hamburger menu) positioned on the left side
+- [ ] **MOB-02**: Dashboard has no overlapping or overflow elements on 375px width screens
+- [ ] **MOB-03**: Calendar has no overflow or clipping on mobile 375px width screens
+- [ ] **MOB-04**: All cards and components resize gracefully on mobile screens
+
 ## v2 Requirements
 
 ### Content Review/Approval

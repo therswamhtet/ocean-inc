@@ -1,568 +1,568 @@
-# Architecture Patterns
+# Architecture Integration Analysis -- v1.1 Frontend Redesign
 
-**Domain:** Next.js 15 App Router + Supabase project management & client portal
-**Researched:** 2026-04-04
-**Confidence:** HIGH (verified against Supabase SSR docs, RLS documentation, Next.js App Router patterns)
+**Domain:** Next.js 15 App Router + Supabase RLS + shadcn/ui project management app -- v1.1 feature integration points
+**Researched:** 2026-04-05
+**Confidence:** HIGH (verified against existing codebase components, migrations, RLS policies, and Server Actions)
 
-## Recommended Architecture
+## Recommended Integration Architecture
 
-### System Overview
+The existing architecture is sound. Every new feature integrates into the established pattern: Server Components for reads, Server Actions for mutations, RLS at the database for enforcement, and shared shadcn/ui components. No architectural layer needs replacement. Three features require database migrations; zero require new third-party dependencies beyond what is already in `package.json`.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Presentation Layer                       │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  Admin App   │  │  Team Member │  │  Client Portal       │  │
-│  │  (auth'd)    │  │  (auth'd)    │  │  (slug, no auth)     │  │
-│  │              │  │              │  │  (public read)       │  │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘  │
-│         │                 │                      │              │
-├─────────┴─────────────────┴──────────────────────┴──────────────┤
-│                        Routing & Security                        │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌───────────────────────────────────────┐   │
-│  │   Middleware │  │  Route Groups                         │   │
-│  │   (cookies)  │  │  (app)/admin, (app)/team, (client)    │   │
-│  └──────┬───────┘  └──────────────┬────────────────────────┘   │
-│         │                         │                            │
-├─────────┴─────────────────────────┴────────────────────────────┤
-│                         Data Access Layer                       │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐  │
-│  │  Server Actions  │  │  Server Comps    │  │  Client Side │  │
-│  │  (mutations)     │  │  (reads)         │  │  (interact)  │  │
-│  └────────┬─────────┘  └────────┬─────────┘  └──────┬───────┘  │
-│           │                     │                    │          │
-├───────────┴─────────────────────┴────────────────────┴──────────┤
-│                         Supabase Backend                          │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  PostgreSQL  │  │  Auth        │  │  Storage Buckets     │  │
-│  │  + RLS       │  │  (cookies)   │  │  + bucket policies   │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+│                        Admin Layout (unchanged)                  │
+│  ┌──────────┐  ┌──────────────────────────────────────────────┐ │
+│  │ Sidebar   │  │                Main Content                   │ │
+│  │ (static)  │  │  ┌──────────────────┐  ┌──────────────────┐  │ │
+│  │ Desktop:  │  │  │ RSC Pages        │  │ Client Islands   │  │ │
+│  │ fixed L   │  │  │ (queries +       │  │ (Kanban, Cal,    │  │ │
+│  │           │  │  │  render)         │  │  Dialogs, Forms) │  │ │
+│  │ Mobile:   │  │  └────────┬─────────┘  └────────┬─────────┘  │ │
+│  │ Sheet     │  └───────────┼──────────────────────┼───────────┘ │
+│  └──────────┘              │                      │              │
+│                            ▼                      ▼              │
+│              ┌──────────────────────┬──────────────────────────┐ │
+│              │   Server Actions     │   Supabase browser ctrl  │ │
+│              │   (mutations +       │   (signed URLs,          │ │
+│              │    revalidatePath)   │    optimistic rollback)  │ │
+│              └──────────┬───────────┴──────────┬───────────────┘ │
+│                         │                      │                 │
+└─────────────────────────┼──────────────────────┼─────────────────┘
+                          │                      │
+┌─────────────────────────┼──────────────────────┼─────────────────┐
+│                        Supabase               │                  │
+│  ┌──────────┐ ┌─────────┐ ┌────────┐ ┌───────┴──┐ ┌───────────┐ │
+│  │ clients  │→│projects │→│ tasks  │ │comments  │ │ design-   │ │
+│  │ [+is_act,│ │         │ │        │ │[table    │ │ files     │ │
+│  │  +desc]  │ │         │ │        │ │ already  │ │ bucket    │ │
+│  └──────────┘ └─────────┘ └──┬─────┘ │  exists] │ └───────────┘ │
+│                              │       └────┬─────┘                 │
+│                    ┌───────┬─┴─┐     ┌────┴────┐                  │
+│                    │assign│members│   │notifs   │                  │
+│                    │ments │[+username]│         │                  │
+│                    └──────┴─────┘   └─────────┘                   │
+│               RLS policies enforce all access across all tables   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-### Component Responsibilities
+### Component Boundaries
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| **Middleware** | Token refresh, cookie forwarding, route protection | `middleware.ts` with `@supabase/ssr` cookie management |
-| **Server Components** | Data fetching, rendering, authorization checks | Async page/layout components using `createClient()` from server utils |
-| **Server Actions** | Database mutations (create/update/delete tasks, clients, etc.) | `'use server'` functions with revalidatePath after mutations |
-| **Client Components** | Interactive UI (forms, Kanban drag, file uploads) | Marked with `'use client'`, call server actions, use Supabase browser client |
-| **Route Groups** | URL-scoped feature isolation | `(admin)/`, `(team)/`, `client/` directory structure |
-| **RLS Policies** | Row-level data isolation per user role | Postgres policies on every table using `auth.uid()` and role checks |
-| **Storage Buckets** | Design file storage with role-scoped access | Separate buckets or bucket policies that mirror RLS logic |
+| Component | Responsibility (existing or new) | Communicates With |
+|-----------|--------------------------------|-------------------|
+| **Admin/Team Layouts** | Auth check, sidebar, mobile header, notification bell | Supabase server client, MobileNav/TeamMobileNav |
+| **TaskViewToggle** | Switches between List, Kanban, (new: Calendar) views | `KanbanBoard`, `TaskList`, (new: `ProjectCalendar`) |
+| **KanbanBoard** | Drag-drop with optimistic status updates | `updateTaskStatusAction`, `@dnd-kit/core` |
+| **KanbanCard** (existing) | Sortable card, links to task detail | `@dnd-kit/sortable`, click handler navigates to `TaskEditForm` |
+| **TaskEditForm** | Full task CRUD (react-hook-form + zod) | `updateTaskAction`, `deleteTaskAction`, `assignTaskToMemberAction`, Supabase storage |
+| **PortalCalendarView** (existing, portal only) | Month/week grid with task pills | Local state, calendar-utils from `lib/portal/` |
+| **ProjectCalendar** (new) | Admin-facing calendar with same grid logic | Shared calendar-utils, inline task detail popup |
+| **CommentSection** (new) | Display + create comments on a task | `createCommentAction` (new Server Action), inserts into `notifications` |
+| **PortalShell** | Client portal task view toggle (Kanban/Calendar/Timeline) | `PortalKanbanTaskCard`, `PortalCalendarView`, `PortalTimelineView`, `PortalTaskDetailDialog` |
+| **PortalTaskDetailDialog** | Read-only task detail with signed image preview | Supabase browser client `createSignedUrl` |
+| **MobileNav / TeamMobileNav** | Sheet-based mobile navigation | `AdminSidebar` / `TeamSidebar` via `mobile` prop |
+| **ImagePreviewDialog** (new) | Full-screen image preview with stable signed URLs | Shared `useSignedUrl` hook (new), `createSignedUrl` |
 
-## Recommended Project Structure
+### Data Flow
 
+**Reads (unchanged for v1.1):**
 ```
-src/
-├── app/
-│   ├── (auth)/                    # Route group: authentication routes
-│   │   ├── login/                 # Admin login page
-│   │   └── team-join/[token]/     # Team member registration via invite token
-│   ├── (admin)/                   # Route group: admin-only area
-│   │   ├── dashboard/             # Metrics overview
-│   │   ├── clients/               # Client CRUD
-│   │   ├── clients/[id]/          # Client detail + projects
-│   │   ├── projects/[id]/         # Project detail + task management
-│   │   ├── team/                  # Team member management
-│   │   └── notifications/         # In-app notifications
-│   ├── (team)/                    # Route group: team member area
-│   │   ├── tasks/                 # Assigned tasks list
-│   │   └── tasks/[id]/            # Task detail + edit + file upload
-│   ├── client/[slug]/             # Client portal (no route group = public)
-│   │   ├── page.tsx               # Kanban view (default)
-│   │   ├── calendar/              # Calendar view
-│   │   └── timeline/              # Timeline view
-│   ├── api/                       # Route handlers (if server actions insufficient)
-│   │   └── revalidate/            # On-demand ISR revalidation endpoint
-│   ├── layout.tsx                 # Root layout (Poppins font, B&W theme)
-│   └── page.tsx                   # Redirect to login
-│
-├── components/
-│   ├── ui/                        # shadcn/ui primitives
-│   ├── admin/                     # Admin-specific components
-│   ├── team/                      # Team-specific components
-│   ├── client/                    # Client portal components
-│   └── shared/                    # Cross-role components (status badges, copy button)
-│
-├── lib/
-│   ├── supabase/
-│   │   ├── server.ts              # createClient() for server components/actions
-│   │   ├── client.ts              # createBrowserClient() for client components
-│   │   └── middleware.ts          # createServerClient() for middleware
-│   ├── db/
-│   │   ├── queries/               # Reusable read queries (one file per table)
-│   │   └── mutations/             # Reusable write queries
-│   └── validations/               # Zod schemas for form validation
-│
-├── hooks/                         # Custom React hooks
-│   └── use-project-tasks.ts       # Example: shared task-fetching hook
-│
-├── types/                         # Shared TypeScript types
-│   └── database.ts                # Generated Supabase types
-│
-└── actions/                       # Server actions (mutations)
-    ├── client-actions.ts
-    ├── project-actions.ts
-    ├── task-actions.ts
-    ├── team-actions.ts
-    └── notification-actions.ts
+RSC Page → Supabase server/service client → normalized data props → Client component
 ```
 
-### Structure Rationale
+**Writes (unchanged for v1.1):**
+```
+Client component → Server Action → Supabase server/service → revalidatePath() → router.refresh() or optimistic rollback
+```
 
-- **Route groups `(admin)`, `(team)`:** Separate URL namespaces that share no layout concerns. Admin and team areas have different layouts, navigation, and auth requirements. Route groups prevent URL path collision without adding path segments.
-- **`client/` is NOT in a route group:** The client portal is public (no auth). It must be a top-level route so its pages are not accidentally wrapped in admin auth layout or protected by middleware.
-- **`actions/` separate from `lib/db/mutations/`:** Server actions are the public API for client components. The `actions/` directory contains the `'use server'` entry points; `lib/db/mutations/` contains lower-level database functions that can also be called from server components during initial render.
-- **`lib/supabase/` three-client pattern:** Next.js needs three Supabase client factories (server, browser, middleware). Colocating them prevents import confusion -- a documented Supabase SSR requirement.
+**New patterns for v1.1:**
+```
+Comment post → Server Action → INSERT comments + INSERT notifications → revalidatePath
+Kanban drag → optimistic setItems → updateTaskStatusAction → rollback on failure
+Signed URL → useSignedUrl hook (shared, memoized) → createSignedUrl (1hr expiry) → stale-if-error caching
+```
 
-## Architectural Patterns
+## Patterns to Follow
 
-### Pattern 1: Three-Client Supabase SSR
+### Pattern 1: Kanban Inline Editing Integration
 
-**What:** Create three distinct Supabase client factories, each bound to its execution context.
+**What:** The existing `KanbanBoard` (`components/admin/kanban-board.tsx`) already does optimistic drag-drop via `updateTaskStatusAction`. Inline editing adds field-level editing directly on the kanban card without navigating to the full `TaskEditForm` page.
 
-**When to use:** Always with Next.js App Router + Supabase. This is not optional -- it is the official SSR pattern from `@supabase/ssr`.
+**Integration approach:** Two components need changes:
 
-**Trade-offs:** Slightly more boilerplate than a single client, but prevents token leakage between requests and enables RLS to function correctly in server components.
+1. **`KanbanCard`** (`components/admin/kanban-card.tsx`): Currently uses `useSortable` drag listeners spread across the entire card. The fix: stop propagation on a click handler separate from the drag listeners. Clicking opens an inline editor.
 
+2. **`ProjectCalendar`** (new): Admin calendar component. Shares the same grid logic as `PortalCalendarView` but adds edit capability.
+
+**Technical detail -- separating click from drag:**
+```tsx
+// In KanbanCard: the drag listeners are spread across the outer wrapper.
+// Add an onClick that stops event propagation to the draggable layer:
+//
+//   <div {...attributes} {...listeners}>  ← drag layer
+//     <button onClick={(e) => { e.stopPropagation(); onEdit(task) }}>  ← click layer
+//       ... card content ...
+//     </button>
+//   </div>
+//
+// The inline editor can be a shadcn Popover or Dialog that appears on click.
+// It edits title, status, posting date -- fields small enough for card-level editing.
+// Full editing still uses the dedicated TaskEditForm page.
+```
+
+**Server Action integration:** Reuse existing `updateTaskAction` (in `app/admin/clients/[clientId]/projects/[projectId]/actions.ts`). No new Server Action needed for inline edits. Call the same action, same zod validation, same revalidatePath. The optimistic update pattern from `KanbanBoard.handleDragEnd` applies identically.
+
+**Confidence:** HIGH -- verified against existing `KanbanBoard.tsx` at lines 95-117 which already implements the optimistic update + rollback pattern.
+
+### Pattern 2: Calendar Redesign (Admin Integration)
+
+**What:** The calendar currently exists only in the client portal (`PortalCalendarView` at `components/portal/calendar-view.tsx`). For the v1.1 redesign, the admin needs calendar access with the same square day blocks and overflow handling. The calendar-utils (`lib/portal/calendar-utils.ts`) should be shared.
+
+**Integration approach -- recommended:** Add `'calendar'` as a third view in the existing `TaskViewToggle` (at `app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle.tsx`). This component already manages view switching between `'list'` and `'kanban'`. Adding `'calendar'` is a single state value.
+
+**What needs to happen:**
+1. Extract `buildMonthGrid`, `buildWeekGrid`, `groupTasksByPostingDate` from `lib/portal/calendar-utils.ts` → `lib/calendar-utils.ts` (shared, remove `portal` scoping)
+2. Create `components/admin/project-calendar.tsx` -- admin variant of the calendar that receives `TaskRow` data and renders the same grid
+3. Add `'calendar'` to the `view` state in `TaskViewToggle`
+4. Render `<ProjectCalendar>` instead of `<TaskList>` or `<KanbanBoard>` when selected
+
+**What does NOT need changing:**
+- The grid math (`buildMonthGrid`, `buildWeekGrid`) is pure math, role-agnostic
+- The task-to-date grouping (`groupTasksByPostingDate`) is pure function composition
+- The day cell rendering can be extracted into a shared `DayCell` component
+
+**Admin Calendar specifics:**
+- Admin calendar does NOT need the `TaskPill` color categorization (the portal's `categoriseTask` function is heuristically based on task titles and not meaningful to agency clients)
+- Admin calendar SHOULD show status indicators (StatusDot) and assignee names
+- Admin calendar can reuse the `onTaskSelect` callback to open the inline editor (Pattern 1)
+
+**Confidence:** HIGH -- verified both `calendar-utils.ts` (pure functions, no portal-specific imports) and `task-view-toggle.tsx` (already has the view toggle pattern).
+
+### Pattern 3: Task Comments Integration
+
+**What:** The `comments` table **already exists** in the original schema (`001_initial_schema.sql`). RLS policies already grant:
+- Admin: full access via `admin_all` policy (migration `002_rls_policies.sql`, line 35-38)
+- Team member SELECT: on their assigned tasks only (lines 141-152: `team_select_comments`)
+- Team member INSERT: on their assigned tasks only (lines 155-168: `team_insert_comments`)
+
+**The table has NEVER been used in application code.** No component, Server Action, or page references it.
+
+**What needs to be built:**
+
+**1. Server Action** (new -- add to existing `actions.ts` or create `comments-actions.ts`):
 ```typescript
-// lib/supabase/server.ts
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
-export async function createClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
-          // Must handle in middleware for server components
-          // setAll is called but cookies written here are discarded
-          // The middleware proxy handles the actual cookie writing
-        },
-      },
-    }
-  )
-}
-
-// Usage in a server component:
-export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  // This query runs with RLS based on the authenticated user's role
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select('*, projects(*), assigned_to:user_id(*)')
-```
-
-### Pattern 2: Server Actions for All Mutations
-
-**What:** Use `'use server'` functions for all database mutations instead of API route handlers.
-
-**When to use:** Always in Next.js 15 App Router for CRUD operations. Server actions eliminate the need for API routes for standard mutations, reduce client-server round trips, and integrate with form `action` props.
-
-**Trade-offs:** Server actions cannot be called from outside your app (no external API consumers). If third-party integrations are needed later, add route handlers in `app/api/`.
-
-```typescript
-// actions/task-actions.ts
+// New Server Action
 'use server'
-
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-
-export async function updateTaskCaption(taskId: string, caption: string) {
-  const supabase = await createClient()
-
-  // RLS policy ensures only the authenticated user can update
-  // their assigned tasks (or admin can update any)
-  const { error } = await supabase
-    .from('tasks')
-    .update({ caption })
-    .eq('id', taskId)
-
-  if (error) throw error
-
-  revalidatePath('/(team)/tasks')
-  revalidatePath('/(admin)/projects/[id]')
+export async function createCommentAction(
+  taskId: string,
+  content: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  // 1. Verify auth (requireAdmin or resolve team_member_id)
+  // 2. INSERT into comments (task_id, team_member_id, content)
+  // 3. INSERT into notifications (notify task assignees + admin)
+  // 4. revalidatePath(taskPath)
 }
 ```
 
-### Pattern 3: Middleware-Based Cookie Auth with Route Groups
+**2. Component** (`components/admin/comment-section.tsx`):
+- Display existing comments (fetched by RSC page, passed as props)
+- Textarea + submit button for new comment
+- Timestamps and author names
 
-**What:** A Next.js middleware refreshes Supabase auth tokens and forwards them via cookies to all server components. Route groups (`(admin)`, `(team)`) segment the app, while `client/` routes remain public.
+**3. Integration with TaskEditForm**: Embed `CommentSection` below the task form fields, separated by a heading.
 
-**When to use:** Always. This is the official Supabase SSR pattern for Next.js.
+**4. Notification integration:** The `notifications` table already exists. The Server Action should:
+- Insert a notification for the admin ("Team member X commented on task Y")
+- Optionally insert notifications for other team members assigned to the same task
 
-**Trade-offs:** Middleware runs on every matched request. Keep the matcher narrow (only auth'd routes) to avoid unnecessary token refresh on static/public pages.
+**Database query pattern for the page:**
+```sql
+-- In the RSC page (server component):
+SELECT c.id, c.content, c.created_at, tm.name AS author_name
+FROM comments c
+JOIN team_members tm ON tm.id = c.team_member_id
+WHERE c.task_id = $1
+ORDER BY c.created_at ASC;
+```
 
+**What team members see:** The existing `team_select_comments` RLS policy already restricts team members to comments on their assigned tasks. This is correct behavior -- a team member should not see comments on tasks they are not assigned to.
+
+**Confidence:** HIGH -- verified table exists (001), RLS policies exist (002), application code does not use them (zero grep hits for `createCommentAction`, `commentSection`, or comments table insert in any actions file).
+
+### Pattern 4: Username Selection on First Login
+
+**What:** The `team_members` table currently has `name` and `email`. There is no `username` column. The v1.1 requirement adds usernames for display on comments and task assignments.
+
+**Migration needed** (`supabase/migrations/012_add_username_to_team_members.sql` -- new):
+```sql
+ALTER TABLE public.team_members ADD COLUMN username TEXT;
+-- Optional: enforce uniqueness
+CREATE UNIQUE INDEX IF NOT EXISTS idx_team_members_username
+  ON public.team_members (username) WHERE username IS NOT NULL;
+```
+
+**Two flows need to be updated:**
+
+**Flow A -- New registrations (preferred path):**
+Update `/invite/[token]` page (`app/invite/[token]/page.tsx`):
+- Add a username input field alongside the existing name and password fields
+- `app/invite/actions.ts` (the `register` function) must insert `username` into `team_members`
+
+**Flow B -- Existing team members:**
+After the migration runs, existing team members will have `username = NULL`. The `/team` layout (`app/team/layout.tsx`) currently checks `user.app_metadata.role !== 'team_member'`. It needs an additional check:
 ```typescript
-// middleware.ts
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+// After the existing role check:
+const { data: member } = await supabase
+  .from('team_members')
+  .select('username')
+  .eq('id', user.id)
+  .single();
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value }) => response.cookies.set(name, value))
-        },
-      },
-    }
-  )
-
-  // Refresh the session -- this validates and updates the token
-  const { data: { session } } = await supabase.auth.getSession()
-
-  // Route protection logic
-  const { pathname } = request.nextUrl
-
-  // Protect admin and team routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/team')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-  }
-
-  return response
-}
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|client/).*)'],
+if (!member?.username) {
+  redirect('/team/choose-username');
 }
 ```
+Create `/team/choose-username/page.tsx` -- a simple form that sets the username.
 
-### Pattern 4: Role-Aware RLS Policies
+**Display logic:** Components that currently show `team_members.name` should prefer `team_members.username` (with `name` as fallback). This affects:
+- Task assignment dropdowns in `TaskEditForm`
+- Comment author display (new CommentSection)
+- Team member list page
 
-**What:** Every table has RLS enabled. Policies check the user's role (stored in `auth.users.raw_user_meta_data` or a `profiles` table) to determine access level. Admin bypasses all restrictions; team members see only assigned data; the client portal bypasses RLS entirely via public policies on a `public_project_data` view.
+**Confidence:** HIGH -- verified invite flow at `app/invite/[token]/page.tsx` (collects name + password), team layout at `app/team/layout.tsx` (checks role but not username), and team_members table structure (001_initial_schema.sql, no username column).
 
-**When to use:** Always. This is the core security model. No exceptions.
+### Pattern 5: Client Portal -- Block Clients + Description
 
-**Trade-offs:** RLS policies add query complexity and require indexes on policy-checked columns. Poorly written policies cause N+1 subqueries on every row.
+**What:** The `clients` table currently has `id`, `name`, `slug`, `color`, and a `logo_path` may or may not exist. There is no "blocked" or "is_active" flag, and no description field.
 
-**Critical insight from Supabase docs:** Use subqueries like `(select auth.uid())` instead of calling `auth.uid()` directly in policy expressions -- the subquery form is faster because the database can optimize it.
-
+**Migration needed** (`supabase/migrations/012_add_client_fields.sql` -- can be combined with migration 012):
 ```sql
--- Example RLS policies for tasks table
-
--- Admin: full access
-CREATE POLICY "Admins have full access on tasks"
-  ON tasks FOR ALL
-  TO authenticated
-  USING (
-    (select raw_user_meta_data->>'role' from auth.users where id = auth.uid()) = 'admin'
-  )
-  WITH CHECK (
-    (select raw_user_meta_data->>'role' from auth.users where id = auth.uid()) = 'admin'
-  );
-
--- Team members: read/update only assigned tasks
-CREATE POLICY "Team members see own tasks"
-  ON tasks FOR SELECT
-  TO authenticated
-  USING (
-    assigned_to = auth.uid()
-  );
-
-CREATE POLICY "Team members update own tasks"
-  ON tasks FOR UPDATE
-  TO authenticated
-  USING (assigned_to = auth.uid())
-  WITH CHECK (assigned_to = auth.uid());
-
--- Client portal: public read via view (not direct table access)
--- The client_slug determines which projects are visible
-CREATE POLICY "Public can view task data for client portal"
-  ON tasks FOR SELECT
-  TO anon
-  USING (true);  -- gated by application-level slug validation, not table-level RLS
+ALTER TABLE public.clients ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE public.clients ADD COLUMN description TEXT;
 ```
 
-**Important security note on the client portal:** Since client access is slug-based (no auth), the tasks table must allow `anon` SELECT. Security comes from the application layer: the server component validates the slug against the `clients` table, then queries only tasks belonging to that client's projects. The RLS `TO anon USING (true)` is intentional -- the slug is the auth token. If the slug is long and unguessable (e.g., UUID or nanoid), this is secure.
+**Integration points:**
 
-**Better approach for client portal security:** Create a dedicated view that joins only the columns needed for the client portal, and enable RLS on that view with `security_invoker = true`. This limits what a compromised slug can expose.
-
-```sql
--- Dedicated read-only view for client portal
-CREATE VIEW public_project_view WITH (security_invoker = true) AS
-SELECT
-  t.id,
-  t.title,
-  t.caption,
-  t.design_file_url,
-  t.posting_date,
-  t.status,
-  p.month_label,
-  c.name AS client_name
-FROM tasks t
-JOIN projects p ON p.id = t.project_id
-JOIN clients c ON c.id = p.client_id
-WHERE c.is_active = true;
-
--- Public can select from this view (RLS on base tables still applies)
-GRANT SELECT ON public_project_view TO anon;
+**1. Portal query update** (`lib/portal/queries.ts`, line 39):
+The `getPortalDataBySlug` function queries `clients` by slug. It must add `.eq('is_active', true)`:
+```typescript
+// Change:
+.from('clients')
+.select('id, name, slug, color')
+.eq('slug', normalizedSlug)
+// To:
+.from('clients')
+.select('id, name, slug, color, is_active')
+.eq('slug', normalizedSlug)
+.eq('is_active', true)
+.maybeSingle<ClientRow>()
 ```
 
-### Pattern 5: Invite Token Registration Flow
+When a blocked client visits their portal, this returns `null`, and the existing `notFound()` at `app/portal/[slug]/page.tsx` line 16 triggers. Optionally, differentiate between "client not found" and "client portal blocked" by checking first without the `is_active` filter.
 
-**What:** Team members register via a one-time use token embedded in a URL. The token is stored in a `team_invites` table and consumed during registration.
-
-**When to use:** Team member onboarding without email service.
-
-**Trade-offs:** Token must be delivered out-of-band (manually shared by admin). No email means no automated delivery, but eliminates email service dependency.
-
-```
-Admin creates invite → Token generated → Admin copies link
-     ↓
-Team member visits /team-join/[token] → Token validated → Registration form
-     ↓
-Supabase Auth signs up user → Token marked used → Role set to 'team_member'
-     ↓
-Redirect to /team/tasks
+**2. Admin interface:** Add a "Block Client" toggle to the client card (`app/admin/clients/client-card.tsx`) or client detail page. A new Server Action (`app/admin/clients/actions.ts` -- already exists) can handle `updateClientIsActiveAction`:
+```typescript
+export async function updateClientIsActiveAction(
+  clientId: string,
+  isActive: boolean
+): Promise<{ success: true } | { success: false; error: string }> {
+  // Use createServiceRoleClient() (existing pattern)
+  // .from('clients').update({ is_active: isActive }).eq('id', clientId)
+  // revalidatePath('/admin/clients')
+}
 ```
 
-```sql
--- Team invite tokens
-CREATE TABLE team_invites (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  token text UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
-  created_by uuid REFERENCES auth.users(id),
-  used_by uuid REFERENCES auth.users(id),
-  used_at timestamptz,
-  created_at timestamptz DEFAULT now(),
-  expires_at timestamptz DEFAULT (now() + interval '7 days')
-);
+**3. RLS consideration:** The portal currently uses `createServiceRoleClient()` (bypasses RLS entirely). The `is_active` check is **application-level**, not RLS-enforced. This is the correct pattern for the portal -- the service role client is used for the public-facing query, and application logic filters. If the portal switched to the regular server client with authenticated RLS, a new RLS policy would be needed.
 
--- After team member signs up, an Edge Function or server action:
--- 1. Validates the token exists and is unused/unexpired
--- 2. Creates the auth user
--- 3. Inserts into profiles table with role = 'team_member'
--- 4. Marks the invite as used
+**4. Existing projects/tasks for blocked clients:** No change needed. RLS policies already filter queries to assigned tasks. Blocking a client does not affect admin or team member access to that client's data -- admins and team members can still see and edit everything.
+
+**Confidence:** HIGH -- verified `getPortalDataBySlug` at `lib/portal/queries.ts` (uses service role client), `app/portal/[slug]/page.tsx` (calls notFound() when null), and `clients` table schema (no `is_active` column in 001).
+
+### Pattern 6: Image Previewer with Signed URL Stability
+
+**What:** The codebase already uses `createSignedUrl` in two places:
+1. `TaskEditForm` lines 41-67 (`useDesignImageUrl` hook)
+2. `PortalTaskDetailDialog` lines 44-72 (inline useEffect pattern)
+
+Both implementations follow the same pattern: create signed URL with 1-hour expiry, set state, handle cancellation. The "reload stability" problem manifests as:
+- **Flicker on every remount:** Each time the component mounts (e.g., after navigating back), a new signed URL is requested, showing a loading state
+- **Cache invalidation:** Browser forward/back does not reuse the previously loaded URL
+- **Duplication:** Two nearly identical implementations with slightly different caching logic
+
+**Integration approach:**
+
+**1. Extract shared hook** (`lib/use-signed-url.ts` -- new):
+```typescript
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
+export function useSignedUrl(filePath: string | null, duration = 3600) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const cache = useRef<Map<string, string>>(new Map())
+
+  useEffect(() => {
+    if (!filePath) {
+      setUrl(null)
+      return
+    }
+
+    // Return cached URL immediately (prevents flicker)
+    const cached = cache.current.get(filePath)
+    if (cached) {
+      setUrl(cached)
+      return
+    }
+
+    setLoading(true)
+    let cancelled = false
+    createClient()
+      .storage.from('design-files')
+      .createSignedUrl(filePath, duration)
+      .then(({ data, error }) => {
+        if (!cancelled && !error && data?.signedUrl) {
+          cache.current.set(filePath, data.signedUrl)
+          setUrl(data.signedUrl)
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+
+    return () => { cancelled = true }
+  }, [filePath, duration])
+
+  return { url, loading }
+}
 ```
 
-## Data Flow
+**2. Create full-screen preview dialog** (`components/admin/image-preview-dialog.tsx` -- new):
+- Shadcn Dialog with full-screen image display
+- `useSignedUrl` hook for signed URL generation
+- Download button (reuse `DesignFileDownloader`)
+- Close button and click-outside-to-close
 
-### Request Flow (Admin creates a task)
+**3. Replace existing implementations:**
+- `TaskEditForm.useDesignImageUrl` → `useSignedUrl`
+- `PortalTaskDetailDialog` inline logic → `useSignedUrl`
+- Both existing `<img>` tags → wrapped in `ImagePreviewDialog`
 
-```
-Admin clicks "Create Task"
-    ↓
-Client Component form submits to Server Action (task-actions.ts)
-    ↓
-Server Action calls createClient() → Supabase server client
-    ↓
-Supabase executes INSERT with RLS check (user is authenticated as 'admin')
-    ↓
-RLS policy grants: admin role has full access
-    ↓
-revalidatePath('/(admin)/projects/[id]')
-    ↓
-Admin page re-renders with new task
-```
+**Critical detail:** Signed URLs expire after 1 hour. The `Map` cache does not handle expiration. For an agency tool with session-based usage, this is acceptable. If 1-hour expiration becomes a real issue, add a timestamp to the cache and re-generate on error (403 response).
 
-### Request Flow (Client views portal)
+**Confidence:** HIGH -- verified both existing implementations follow the same pattern, both can be extracted without changing behavior. The hook approach is the standard React pattern for deduplicating async side effects.
 
-```
-Client visits /client/acme-corp
-    ↓
-Server Component (page.tsx) receives slug as param
-    ↓
-Server Component queries clients table: "WHERE slug = 'acme-corp' AND is_active = true"
-    ↓
-If no match → 404 page
-    ↓
-If match → queries public_project_view for this client's projects
-    ↓
-RLS: anon user, public policy allows SELECT (gated by join conditions)
-    ↓
-Server Component renders Kanban/Calendar/Timeline with fetched data
-```
+### Pattern 7: Mobile Sidebar -- Minimal Change Required
 
-### Request Flow (Team member updates task)
+**What:** Mobile navigation is already implemented correctly for both admin and team roles:
+- `app/admin/mobile-nav.tsx`: Uses shadcn `Sheet` wrapping `AdminSidebar`
+- `app/team/mobile-nav.tsx`: Uses shadcn `Sheet` wrapping `TeamSidebar`
+- Both use `z-30` on the sticky header, sheet uses default `z-50` from radix -- no overlap
+- All interactive elements use `min-h-[44px]` for touch accessibility
 
-```
-Team member edits caption, uploads file
-    ↓
-Client Component calls updateTaskCaption() server action
-    ↓
-Server action calls createClient() → Supabase with auth cookies
-    ↓
-Supabase checks RLS: is this user the assigned_to on this task?
-    ↓
-If yes → UPDATE succeeds → revalidatePath
-    ↓
-If no → RLS rejects → error returned to user
-```
+**The 375px requirement is already met.** The `Sheet` component (from `components/ui/sheet.tsx`) renders a fixed panel over content at `w-60`, which fits within 375px width (375 - 240 = 135px content remains visible behind backdrop).
 
-### State Management Strategy
+**What SHOULD change for v1.1:**
 
-```
-Server Components (default) → Server Actions (mutations) → Revalidation → Server Components
+1. **Visual theming only:** Update the `MobileNav` background, text, and border colors from the current black-and-white theme to the new cream/beige design system. This is CSS-only -- no structure changes.
 
-     ↑                                                         ↓
-     └── Client Components (interactive UI only, minimal state) ──┘
-```
+2. **New navigation items:** If the Kanban calendar view gets its own route (Pattern 2, rejected in favor of embedded approach), or if the team member area gets a "My Calendar" view, the respective sidebar nav arrays (`AdminSidebar` at `app/admin/sidebar.tsx` line 9-13, `TeamSidebar` at `app/team/sidebar.tsx` line 9-11) need new entries.
 
-**Opinionated rule:** All application state lives in the Supabase database. Server components are the single source of truth for rendering. Client components maintain only ephemeral UI state (form inputs, drag position, loading spinners). No Zustand, no Redux, no global client state library. After every mutation, `revalidatePath` or `revalidateTag` triggers a fresh server-side fetch.
+3. **Sheet title accessibility:** The admin `MobileNav` already includes `<SheetTitle className="sr-only">` (line 29). The team `MobileNav` should match this pattern for accessibility parity.
 
-This pattern works because:
-1. Next.js 15 server components handle async data fetching natively
-2. RLS ensures each user sees only their data on every render
-3. `revalidatePath` is fast for this data volume (single Supabase project, modest row counts)
-4. Eliminates client-server state synchronization bugs entirely
+**What should NOT change:**
+- The `Sheet` component itself (radix-ui wrapper, working correctly)
+- The layout structure (`aside` for desktop, `header` for mobile, main content wrapper)
+- The touch target sizes (already `min-h-[44px]`)
+- The z-index layering (already correct)
 
-## Build Order Implications
+**Confidence:** HIGH -- verified `MobileNav` uses Sheet pattern correctly, Sheet uses radix dialog which handles all layering and accessibility, no structural issues at 375px viewport width.
 
-The architecture dictates this build sequence (dependencies flow downward):
+### Pattern 8: Admin Calendar Embedded in TaskViewToggle
 
-```
-1. Database Schema + RLS Policies (foundation -- everything depends on this)
-    ├── Tables: clients, projects, tasks, profiles, notifications, team_invites
-    ├── Storage buckets: design-files
-    ├── RLS policies for all tables
-    └── Generated TypeScript types
+**Architecture Decision:** Add calendar as a third view tab in the existing `TaskViewToggle` component rather than creating a new route.
 
-2. Supabase SSR Infrastructure (middleware, three clients)
-    ├── middleware.ts (cookie management + route protection)
-    ├── lib/supabase/server.ts
-    ├── lib/supabase/client.ts
-    └── lib/supabase/middleware.ts
+**Why embedded over separate route:**
 
-3. Admin Authentication + Team Member Registration
-    ├── (auth)/login page
-    ├── (auth)/team-join/[token] flow
-    ├── Root layout with B&W theme + Poppins font
-    └── Admin dashboard skeleton
+| Criterion | Embedded (recommended) | Separate route |
+|-----------|----------------------|----------------|
+| Data availability | Already loaded by RSC page | Requires duplicate query |
+| View switching | Single state change | Client-side navigation |
+| URL structure | `/admin/clients/.../projects/proj-id` | `/admin/clients/.../projects/proj-id/calendar` |
+| revalidatePath | One path to invalidate | Two paths |
+| Code reuse | Direct import of calendar-utils | Would need SSR rendering |
+| Bookmarkable | Calendar state not in URL | URL reflects view |
 
-4. Admin CRUD (clients, projects, team)
-    ├── Client management (create, view)
-    ├── Project creation (monthly cycles)
-    ├── Team member management (invite generation)
-    └── Admin layout with navigation
+**Trade-off:** The embedded approach means the calendar view is not directly linkable. Users must navigate to the project page, then switch to calendar tab. For an agency tool with ~5-20 clients, this is acceptable.
 
-5. Task Management (admin creates, team edits)
-    ├── Task CRUD in admin view
-    ├── Task assignment to team members
-    ├── File upload to Supabase Storage
-    ├── Server actions for all mutations
+**Integration into TaskViewToggle:**
+```typescript
+// Current state:
+const [view, setView] = useState<'list' | 'kanban'>('kanban')
+// Becomes:
+const [view, setView] = useState<'list' | 'kanban' | 'calendar'>('kalender')
 
-6. Team Member Dashboard
-    ├── My tasks list
-    ├── Task editing (caption, file upload, status)
-    ├── Task comments
-    └── Notifications
-
-7. Client Portal (public, slug-based)
-    ├── Public client lookup by slug
-    ├── Kanban view
-    ├── Calendar view (week + month)
-    ├── Timeline view
-    └── Task detail modal (caption copy, file download)
+// Current render:
+{view === 'list' ? <TaskList /> : <KanbanBoard />}
+// Becomes:
+{view === 'list' ? <TaskList /> : view === 'kanban' ? <KanbanBoard /> : <ProjectCalendar />}
 ```
 
-**Why this order:** The database schema is built first because every server action and server component depends on tables existing with correct RLS. The Supabase SSR infrastructure comes next because all authenticated routes require middleware. Authentication gates everything. Admin CRUD unlocks task creation, which unlocks team member workflows, which finally enables the client portal to display meaningful data.
+**Data requirements:** `ProjectCalendar` needs the same `TaskRow[]` data that `KanbanBoard` and `TaskList` already receive. The `TaskRow` type already includes `posting_date`. No additional data fetching is required.
 
-## Scaling Considerations
+## Anti-Patterns to Avoid
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0-100 users (MVP) | Monolith is fine. Single Supabase project, no CDN config beyond defaults, no query optimization beyond basic indexes. |
-| 100-10K users | Add database indexes on RLS policy columns (`assigned_to`, `client_id`, `project_id`). Consider Supabase read replicas if dashboard queries get slow. Implement pagination on task lists. |
-| 10K+ users | This is an internal agency tool -- unlikely to reach this scale. If it does, consider splitting client portal into a separate Next.js app to isolate public traffic from admin load. |
+### Anti-Pattern 1: Client-Side Data Fetching for Server Routes
 
-### What Breaks First
+**What:** Moving data fetching from Server Components to `useEffect` in client components.
+**Why bad:** The existing architecture correctly uses RSC for initial data load. Client-side fetching duplicates Supabase query logic and adds loading states.
+**Instead:** Keep RSC as the data source. Pass as props. Use Server Actions for mutations.
 
-1. **Unpaginated task lists** -- A project with 200+ tasks will render slowly on the Kanban view. Add pagination or virtual scrolling early (Phase 5).
-2. **File storage without cleanup** -- Design files accumulate. Add a storage bucket size monitoring or lifecycle policy if the free tier is approached.
-3. **RLS policy performance** -- Policies that join multiple tables on every query slow down as row counts grow. Index `assigned_to`, `project_id`, `client_id` columns from day one.
+### Anti-Pattern 2: Duplicating Signed URL Logic
 
-## Anti-Patterns
+**What:** Three implementations of `createSignedUrl` after adding the new ImagePreviewDialog.
+**Why bad:** Already duplicated twice. Third copy makes global fixes (caching, error retries) impossible to apply consistently.
+**Instead:** Extract to `lib/use-signed-url.ts` and replace all existing implementations.
 
-### Anti-Pattern 1: Client-Side Data Fetching for Authenticated Data
+### Anti-Pattern 3: Bypassing RLS for New Features
 
-**What people do:** Use `useEffect` + Supabase browser client to fetch data in client components.
+**What:** Using `createServiceRoleClient()` for new feature queries that could use authenticated clients.
+**Why bad:** The codebase has carefully crafted RLS policies (migrations 002, 011). Using service role for everything undermines the security model.
+**Instead:** Comments INSERT already has proper team-member RLS. New Server Actions should use the authenticated client when possible, or verify auth before escalating to service role (the pattern already used in `actions.ts` `requireAdmin()`).
 
-**Why it's wrong:** Data is not available during initial render (flash of loading state). Every user interaction causes a visible loading cycle. Browser client bypasses server-side RLS optimizations.
+### Anti-Pattern 4: Inline Editing Without Optimistic Updates
 
-**Do this instead:** Fetch in server components, pass data as props to client components. Only use the browser client for real-time subscriptions (e.g., live notifications) or when server components cannot be used.
+**What:** Waiting for Server Action round-trip before showing updated data.
+**Why bad:** The Kanban already does optimistic updates with rollback. Any feature without this pattern feels laggy.
+**Instead:** Every user-facing mutation updates local state immediately, fires Server Action, rolls back on failure.
 
-### Anti-Pattern 2: getSession() in Server Components
+### Anti-Pattern 5: Modifying existing components without extraction
 
-**What people do:** Call `supabase.auth.getSession()` in server components to check if user is authenticated.
+**What:** Adding inline editor code directly into `KanbanCard` making it do drag + edit + display.
+**Why bad:** `KanbanCard` is already 63 lines with drag listeners, style transforms, and status rendering. Adding inline editing inline with all of this creates an unwieldy component.
+**Instead:** Create `components/admin/inline-task-editor.tsx` as a separate component triggered by click. `KanbanCard` only needs to add the click handler (3 lines) and pass-through prop.
 
-**Why it's wrong:** `getSession()` does not validate the JWT token -- it reads from the cookie store, which can be spoofed. An attacker with a crafted cookie can bypass auth.
+## Suggested Build Order
 
-**Do this instead:** Use `supabase.auth.getClaims()` in server code. It validates the JWT signature against Supabase's public keys. This is the official Supabase recommendation for server-side auth validation.
+Build order determined by dependency analysis (features with no blockers first, shared infrastructure before consumption):
 
-### Anti-Pattern 3: Overly Broad RLS Policies
+```
+1. Image Previewer (lib/use-signed-url.hook + ImagePreviewDialog)
+   └── Depends on: nothing (pure refactoring)
+   └── Unblocks: TaskEditForm and PortalTaskDetailDialog use shared hook
+   └── Risk: LOW -- isolated refactoring, no DB changes
 
-**What people do:** Write `USING (true)` on authenticated tables to "get it working" and plan to tighten later.
+2. Username flows
+   ├── 2a. DB migration (adds username column to team_members)
+   ├── 2b. Update invite registration form (app/invite/[token]/page.tsx)
+   └── 2c. Create /team/choose-username page (handles existing members)
+   └── Depends on: Migration #1
+   └── Unblocks: Comments (need author display name)
+   └── Risk: LOW -- simple column add, backward compatible
 
-**Why it's wrong:** Every query returns every row to every authenticated user. The `client_id` or `project_id` filtering then happens in application code, meaning data is already in memory. A compromised team member account sees everything.
+3. Client block/unblock
+   ├── 3a. DB migration (adds is_active + description to clients)
+   ├── 3b. Update portal query (lib/portal/queries.ts)
+   └── 3c. Admin UI toggle (client card or detail page)
+   └── Depends on: Migration #2
+   └── Risk: LOW -- is_active defaults to TRUE, no data loss
 
-**Do this instead:** Write restrictive policies from day one. Start with the most restrictive policy (team members see only assigned tasks), then add admin bypass policies. Test policies with `EXPLAIN ANALYZE` to verify they execute as expected.
+4. Task Comments
+   ├── 4a. Create CommentSection component (components/admin/comment-section.tsx)
+   ├── 4b. Server action: createCommentAction (extends actions.ts)
+   ├── 4c. Notification integration (INSERT into notifications table)
+   └── 4d. Embed in TaskEditForm
+   └── Depends on: Username #2 (comment author names)
+   └── Unblocks: Kanban inline editing (if comment count displayed on cards)
+   └── Risk: MEDIUM -- RLS policies exist but have never been exercised
+   └── NOTE: The comments table + RLS was designed but never tested in application code.
+       The team_insert_comments policy (migration 002, line 155) has an EXISTS subquery
+       that joins task_assignments. If the task_assignments table is empty for a task,
+       the INSERT will fail. Verify by testing with real data.
 
-### Anti-Pattern 4: Mixing Admin and Team Layouts
+5. Admin Calendar View
+   ├── 5a. Extract shared calendar-utils (lib/calendar-utils.ts)
+   ├── 5b. Create ProjectCalendar component (components/admin/project-calendar.tsx)
+   └── 5c. Add 'calendar' tab to TaskViewToggle
+   └── Depends on: Nothing blocking (can build in parallel with 1-4)
+   └── Risk: LOW -- pure function extraction, existing portal calendar is proven
+   └── NOTE: calendar-utils.ts at lib/portal/calendar-utils.ts uses PortalTask type.
+       Extracting it requires creating overloads for TaskRow type.
 
-**What people do:** Use a single layout with conditional rendering based on user role (`if (user.role === 'admin') show admin nav`).
+6. Kanban Inline Editing
+   ├── 6a. Add onClick handler to KanbanCard (stop drag propagation)
+   ├── 6b. Create InlineTaskEditor component
+   └── 6c. Wire to existing updateTaskAction
+   └── Depends on: Nothing blocking (can build in parallel with 1-5)
+   └── Risk: LOW -- reuses existing Server Action, same optimistic pattern
 
-**Why it's wrong:** Layouts are cached in Next.js App Router. A team member visiting an admin URL might briefly see admin UI before the route guard catches it. Conditional layouts also make it harder to enforce route-level access control.
+7. Mobile Sidebar Polish
+   └── Visual theme updates to existing MobileNav components
+   └── Depends on: All visual changes (theme is cross-cutting)
+   └── Risk: LOW -- CSS-only changes to working components
 
-**Do this instead:** Use route groups (`(admin)/` and `(team)/`) with separate layouts. Each layout assumes the user has the correct role -- the middleware and server components in that group are responsible for verifying. No conditional rendering between role areas.
+8. Brand Redesign (CSS + component theme updates)
+   └── Apply cream/beige theme across all components
+   └── Depends on: All above (cross-cutting change, done last)
+   └── Risk: MEDIUM -- touches every component, merge conflicts likely if parallel dev
+```
 
-### Anti-Pattern 5: Forgetting to Revalidate After Mutations
+**Rationale for this order:**
+- Steps 1-3 are migrations + refactoring: run first, minimal risk, unblock others
+- Step 4 (Comments) needs usernames (Step 2) to display author names properly; the underlying table and RLS exist so no schema changes needed
+- Steps 5-6 (Calendar, Kanban Inline) are independent frontend features that can be built in parallel with each other but after the infrastructure is stable
+- Steps 7-8 are visual polish: done last because they touch every component and would cause constant merge conflicts if done earlier
 
-**What people do:** Server action mutates data but doesn't call `revalidatePath` or `revalidateTag`.
+**Parallel build options:**
+```
+Week 1: Steps 1, 2, 3 (infrastructure)
+Week 2: Steps 4, 5, 6 in parallel (feature work)
+Week 3: Steps 7, 8 (polish)
+```
 
-**Why it's wrong:** Next.js 15 caches aggressively. The mutated data will not appear on screen until the cache expires (which may never happen for static data). Users think the mutation failed.
+## Scalability Considerations
 
-**Do this instead:** Every server action that writes data calls `revalidatePath` for all affected routes immediately after the mutation succeeds.
+| Concern | At current scale (~50 tasks/project) | At 500 tasks/project | At 2000+ tasks/project |
+|---------|--------------------------------------|----------------------|------------------------|
+| Kanban render | Fine (existing pattern) | Minor lag on drag, acceptable | Needs windowing/virtualization |
+| Calendar render | Fine (existing pattern) | Fine with `overflow-hidden` | Server-rendered month pages |
+| Comments per task | Fine | Fine | "Load more" or cursor pagination |
+| Signed URL caching | Fine (Map cache, in-memory) | Fine | Consider CDN or public bucket |
+| Server Action latency | Negligible (<200ms) | Negligible | Consider edge runtimes |
 
-## Integration Points
+## Phase-Specific Warnings
 
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| **Supabase Database** | `@supabase/ssr` server client in server components/actions | One project, use `anon` key for all queries; RLS enforces access control |
-| **Supabase Auth** | Email/password for admin; email + invite token for team members | Store role in `raw_user_meta_data` or a `profiles` table linked to `auth.users` |
-| **Supabase Storage** | `@supabase/supabase-js` browser client for uploads, server client for reads | One bucket (`design-files`) with RLS-style bucket policies mirroring table policies |
-| **Vercel** | Deployment target; environment variables for Supabase credentials | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as project env vars |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| **Admin ↔ Database** | Server components (read) + Server actions (write) | RLS policies enforce admin role has full access |
-| **Team ↔ Database** | Server components (read assigned) + Server actions (write assigned) | RLS policies enforce `assigned_to = auth.uid()` |
-| **Client Portal ↔ Database** | Server components (read public view) | No server actions; slug validates access, no auth required |
-| **Client Component ↔ Server Action** | Form `action` prop or imperative `startTransition` call | All mutations flow through server actions, never direct DB calls from client |
-| **Storage ↔ Database** | Upload returns URL, stored in task `design_file_url` column | File upload happens in client component (browser client), URL stored via server action |
+| Feature Topic | Likely Pitfall | Mitigation |
+|--------------|----------------|------------|
+| Comments RLS | `team_insert_comments` policy has EXISTS subquery to `task_assignments` that may reject valid inserts | Test with real team_member_id that is assigned to the target task |
+| Calendar utils extraction | `PortalTask` type differs from `TaskRow` type -- field names and shape | Create type adapter or generic calendar-utils that accepts any shape with `id`, `postingDate`, `title`, `status` |
+| Signed URL cache | `Map` cache leaks memory in long-running client sessions | Add TTL-based eviction or clear on page unload |
+| Username migration | Existing `team_members` rows will have `username = NULL` after migration | Must include `/team/choose-username` redirect for existing members |
+| Client blocking | `is_active` defaults to TRUE -- existing clients all become active (correct) | Verify with manual check that no existing client should be pre-blocked |
+| Kanban inline editing | Click handler on sortable card fires both drag and click | Use `e.stopPropagation()` and separate clickable element within the card |
 
 ## Sources
 
-- [Supabase SSR Guide for Next.js](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs) -- HIGH confidence (official docs)
-- [Supabase Role-Based Access Control](https://supabase.com/docs/guides/auth/role-based-access-control) -- HIGH confidence (official docs)
-- [Next.js App Router Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components) -- HIGH confidence (official docs)
-- Supabase Storage documentation -- HIGH confidence (official docs)
-- Next.js Server Actions documentation -- MEDIUM confidence (training data + Next.js patterns, URL was not accessible via WebFetch)
+- Existing KanbanBoard: `/Users/MSIModern14/ocean-inc/components/admin/kanban-board.tsx` (optimistic update pattern, lines 95-117)
+- Existing KanbanCard: `/Users/MSIModern14/ocean-inc/components/admin/kanban-card.tsx` (drag listeners on wrapper, lines 21-30)
+- Existing PortalCalendarView: `/Users/MSIModern14/ocean-inc/components/portal/calendar-view.tsx` (grid rendering, lines 177-323)
+- Existing calendar-utils: `/Users/MSIModern14/ocean-inc/lib/portal/calendar-utils.ts` (pure functions, extractable)
+- Existing task actions: `/Users/MSIModern14/ocean-inc/app/admin/clients/[clientId]/projects/[projectId]/actions.ts` (all Server Actions)
+- Existing task edit form: `/Users/MSIModern14/ocean-inc/app/admin/clients/[clientId]/projects/[projectId]/tasks/[taskId]/task-edit-form.tsx` (useDesignImageUrl hook, lines 41-67)
+- Existing TaskViewToggle: `/Users/MSIModern14/ocean-inc/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle.tsx` (view switching pattern)
+- Existing portal query: `/Users/MSIModern14/ocean-inc/lib/portal/queries.ts` (getPortalDataBySlug, lines 30-113)
+- Existing portal task detail: `/Users/MSIModern14/ocean-inc/components/portal/task-detail-dialog.tsx` (signed URL logic, lines 44-72)
+- Portal types: `/Users/MSIModern14/ocean-inc/lib/portal/types.ts` (PortalTask, PortalProject, PortalClient)
+- Database schema: `/Users/MSIModern14/ocean-inc/supabase/migrations/001_initial_schema.sql` (all tables including comments)
+- RLS policies: `/Users/MSIModern14/ocean-inc/supabase/migrations/002_rls_policies.sql` (admin_all, team_select_comments, team_insert_comments)
+- RLS fixes: `/Users/MSIModern14/ocean-inc/supabase/migrations/011_fix_rls_cascade_delete.sql` (updated team policies with CASE expression)
+- Invite flow: `/Users/MSIModern14/ocean-inc/app/invite/[token]/page.tsx` (registration form with name + password)
+- Team layout: `/Users/MSIModern14/ocean-inc/app/team/layout.tsx` (role check + notification fetch)
+- Admin sidebar: `/Users/MSIModern14/ocean-inc/app/admin/sidebar.tsx` (nav array, lines 9-13)
+- Team sidebar: `/Users/MSIModern14/ocean-inc/app/team/sidebar.tsx` (nav array, lines 9-11)
+- Admin mobile nav: `/Users/MSIModern14/ocean-inc/app/admin/mobile-nav.tsx` (Sheet pattern, complete)
+- Team mobile nav: `/Users/MSIModern14/ocean-inc/app/team/mobile-nav.tsx` (Sheet pattern, complete)
+- QuickTaskDialog: `/Users/MSIModern14/ocean-inc/components/admin/quick-task-dialog.tsx` (two-step client/project select)
+- Portal shell: `/Users/MSIModern14/ocean-inc/components/portal/portal-shell.tsx` (task view toggle for portal)
+- Portal Kanban card: `/Users/MSIModern14/ocean-inc/components/portal/kanban-task-card.tsx` (portal-only task cards)
 
 ---
-*Architecture research for: Orca Digital project management & client portal*
-*Researched: 2026-04-04*
+*Architecture integration analysis for: Orca Digital v1.1 Frontend Redesign*
+*Researched: 2026-04-05*

@@ -4,6 +4,23 @@ import { notFound } from 'next/navigation'
 import { createProjectAction, deleteProjectAction } from './actions'
 import { LABELS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type ClientRecord = {
   id: string
@@ -30,22 +47,6 @@ function Badge({ children }: { children: React.ReactNode }) {
       {children}
     </span>
   )
-}
-
-function Dialog({ children }: { children: React.ReactNode }) {
-  return <details className="group rounded-lg border border-border bg-background">{children}</details>
-}
-
-function DialogTrigger({ children }: { children: React.ReactNode }) {
-  return (
-    <summary className="cursor-pointer list-none rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground marker:hidden">
-      {children}
-    </summary>
-  )
-}
-
-function DialogContent({ children }: { children: React.ReactNode }) {
-  return <div className="border-t border-border p-5">{children}</div>
 }
 
 function monthName(month: number) {
@@ -105,88 +106,84 @@ export default async function ClientProjectsPage({
             </p>
           </div>
 
-          <div className="w-full max-w-md">
-            <Dialog>
-              <DialogTrigger>{LABELS.project.create}</DialogTrigger>
-              <DialogContent>
-                <form action={createProjectAction.bind(null, clientId)} className="space-y-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="default">{LABELS.project.create}</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create project</DialogTitle>
+                <DialogDescription>Add a new monthly project cycle for {client.name}.</DialogDescription>
+              </DialogHeader>
+              <form action={createProjectAction.bind(null, clientId)} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium" htmlFor="name">
+                    {LABELS.common.name}
+                  </label>
+                  <Input
+                    id="name"
+                    minLength={2}
+                    name="name"
+                    placeholder={LABELS.common.monthPlaceholder}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium" htmlFor="name">
-                      {LABELS.common.name}
-                    </label>
-                    <input
-                      className="w-full rounded-lg border border-input px-3 py-2 text-sm"
-                      id="name"
-                      minLength={2}
-                      name="name"
-                      placeholder={LABELS.common.monthPlaceholder}
-                      required
-                      type="text"
-                    />
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium" htmlFor="month">
-                        {LABELS.common.month}
-                      </label>
-                      <select
-                        className="w-full rounded-lg border border-input px-3 py-2 text-sm"
-                        defaultValue={String(new Date().getMonth() + 1)}
-                        id="month"
-                        name="month"
-                      >
-                        {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
-                          <option key={month} value={month}>
-                            {monthName(month)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium" htmlFor="year">
-                        {LABELS.common.year}
-                      </label>
-                      <input
-                        className="w-full rounded-lg border border-input px-3 py-2 text-sm"
-                        defaultValue={new Date().getFullYear()}
-                        id="year"
-                        name="year"
-                        required
-                        type="number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium" htmlFor="status">
-                      Status
+                    <label className="text-sm font-medium" htmlFor="month">
+                      {LABELS.common.month}
                     </label>
                     <select
                       className="w-full rounded-lg border border-input px-3 py-2 text-sm"
-                      defaultValue="active"
-                      id="status"
-                      name="status"
+                      defaultValue={String(new Date().getMonth() + 1)}
+                      id="month"
+                      name="month"
                     >
-                      <option value="active">Active</option>
-                      <option value="paused">Paused</option>
-                      <option value="done">Done</option>
+                      {Array.from({ length: 12 }, (_, index) => index + 1).map((m) => (
+                        <option key={m} value={m}>
+                          {monthName(m)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  <div className="flex justify-end">
-                    <button
-                      className="min-w-[120px] rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                      type="submit"
-                    >
-                      Create Project
-                    </button>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium" htmlFor="year">
+                      {LABELS.common.year}
+                    </label>
+                    <Input
+                      defaultValue={new Date().getFullYear()}
+                      id="year"
+                      name="year"
+                      required
+                      type="number"
+                    />
                   </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium" htmlFor="status">
+                    Status
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-input px-3 py-2 text-sm"
+                    defaultValue="active"
+                    id="status"
+                    name="status"
+                  >
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button type="submit">Create Project</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

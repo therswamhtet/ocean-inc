@@ -202,7 +202,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   }
 
   return (
-    <section className="rounded-lg border border-border overflow-x-auto">
+    <section className="rounded-lg border border-border overflow-x-auto min-h-0">
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold">Calendar</h3>

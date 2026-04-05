@@ -51,7 +51,7 @@ export function ClientCard({ id, name, slug, activeProjectsCount, createdAt, col
 
   function handleCardClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement
-    if (target.closest('button, a[target]')) return
+    if (target.closest('button, a')) return
     router.push(`/admin/clients/${id}`)
   }
 

@@ -6,6 +6,7 @@ import { LABELS } from '@/lib/labels'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ContentCard } from '@/components/ui/content-card'
 import {
   Dialog,
   DialogContent,
@@ -244,10 +245,7 @@ export default async function ClientProjectsPage({
 
           <div className="space-y-3 md:hidden">
             {projects.map((project) => (
-              <div
-                key={project.id}
-                className="rounded-lg border border-border bg-white p-4 space-y-3"
-              >
+              <ContentCard key={project.id} variant="mobile" className="space-y-3 bg-white">
                 <div className="flex items-start justify-between gap-2">
                   <Link
                     href={`/admin/clients/${clientId}/projects/${project.id}`}
@@ -268,7 +266,7 @@ export default async function ClientProjectsPage({
                     Delete
                   </button>
                 </form>
-              </div>
+              </ContentCard>
             ))}
           </div>
         </>

@@ -9,6 +9,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
+import { ContentCard } from '@/components/ui/content-card'
 import { cn } from '@/lib/utils'
 
 type KanbanCardProps = {
@@ -35,13 +36,14 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
     <article
       ref={setNodeRef}
       style={style}
-      className={cn(
-        'rounded-lg border border-border bg-background p-3 cursor-grab transition hover:border-foreground/30 active:cursor-grabbing',
-      )}
-      data-dragging={isDragging ? 'true' : 'false'}
       {...attributes}
       {...listeners}
+      data-dragging={isDragging ? 'true' : 'false'}
     >
+      <ContentCard
+        variant="kanban"
+        className={cn('bg-background cursor-grab active:cursor-grabbing hover:border-foreground/30')}
+      >
       <div className="mb-3 flex items-center justify-between gap-3">
         <StatusDot status={isOverdue ? 'overdue' : task.status} />
         <span className="text-xs text-muted-foreground">
@@ -55,6 +57,7 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
       >
         {task.title}
       </Link>
+      </ContentCard>
     </article>
   )
 }

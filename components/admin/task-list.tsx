@@ -11,6 +11,7 @@ import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId
 import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Button } from '@/components/ui/button'
+import { ContentCard } from '@/components/ui/content-card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,10 +141,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
           )
 
           return (
-            <div
-              key={task.id}
-              className="rounded-lg border border-border bg-white p-4 space-y-3"
-            >
+            <ContentCard key={task.id} variant="mobile" className="space-y-3 bg-white">
               <div className="flex items-start justify-between gap-3">
                 <Link
                   href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
@@ -194,7 +192,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                   Delete
                 </button>
               </div>
-            </div>
+            </ContentCard>
           )
         })}
       </div>

@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 
 import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
+import { ContentCard } from '@/components/ui/content-card'
 import type { PortalTask } from '@/lib/portal/types'
 
 type PortalKanbanTaskCardProps = {
@@ -28,14 +29,16 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
     <button
       type="button"
       onClick={() => onSelect(task)}
-      className="w-full rounded-lg border border-border bg-background p-3 text-left transition hover:bg-muted/30"
+      className="w-full text-left bg-background"
     >
+      <ContentCard variant="kanban" className="hover:bg-muted/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <StatusDot status={isOverdue ? 'overdue' : task.status} />
         <span className="text-xs text-muted-foreground">{formatPostingDate(task.postingDate)}</span>
       </div>
 
       <p className="truncate text-sm font-medium text-foreground">{task.title}</p>
+      </ContentCard>
     </button>
   )
 }

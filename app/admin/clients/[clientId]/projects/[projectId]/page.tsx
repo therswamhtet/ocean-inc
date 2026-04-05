@@ -21,6 +21,7 @@ type TaskRecord = {
   caption: string | null
   design_file_path: string | null
   posting_date: string | null
+  posting_time: string | null
   due_date: string | null
   deadline: string | null
   status: 'todo' | 'in_progress' | 'done'
@@ -58,7 +59,7 @@ export default async function ProjectTasksPage({
   const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
     .select(
-      'id, title, briefing, caption, design_file_path, posting_date, due_date, deadline, status, created_at, task_assignments(team_members(name, username))'
+      'id, title, briefing, caption, design_file_path, posting_date, posting_time, due_date, deadline, status, created_at, task_assignments(team_members(name, username))'
     )
     .eq('project_id', projectId)
     .order('created_at', { ascending: false })
@@ -72,6 +73,7 @@ export default async function ProjectTasksPage({
     ...task,
     assigned_to_username: task.task_assignments?.[0]?.team_members?.username ?? null,
     assigned_to_name: task.task_assignments?.[0]?.team_members?.name ?? null,
+    posting_time: task.posting_time,
   }))
 
   return (

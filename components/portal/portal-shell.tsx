@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { PortalCalendarView } from '@/components/portal/calendar-view'
 import { PortalKanbanView } from '@/components/portal/kanban-view'
 import { PortalTaskDetailDialog } from '@/components/portal/task-detail-dialog'
-import { PortalTimelineView } from '@/components/portal/timeline-view'
 import type { PortalTask } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
@@ -13,7 +12,7 @@ type PortalShellProps = {
   tasks: PortalTask[]
 }
 
-const tabLabels = ['Kanban', 'Calendar', 'Timeline'] as const
+const tabLabels = ['Kanban', 'Calendar'] as const
 type PortalTab = (typeof tabLabels)[number]
 
 export function PortalShell({ tasks }: PortalShellProps) {
@@ -58,10 +57,8 @@ export function PortalShell({ tasks }: PortalShellProps) {
 
       {activeTab === 'Kanban' ? (
         <PortalKanbanView tasks={tasks} onTaskSelect={handleTaskSelect} />
-      ) : activeTab === 'Calendar' ? (
-        <PortalCalendarView tasks={tasks} onTaskSelect={handleTaskSelect} />
       ) : (
-        <PortalTimelineView tasks={tasks} onTaskSelect={handleTaskSelect} />
+        <PortalCalendarView tasks={tasks} onTaskSelect={handleTaskSelect} />
       )}
 
       <PortalTaskDetailDialog open={isDialogOpen} onOpenChange={handleDialogOpenChange} task={selectedTask} />

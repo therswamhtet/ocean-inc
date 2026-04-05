@@ -99,7 +99,7 @@
 | 9. Task Management & Kanban | v1.1 | 0/TBD | Not started | - |
 | 10. Calendar Redesign & My Tasks | v1.1 | 2/2 | Complete    | 2026-04-05 |
 | 11. Client Portal Upgrade | v1.1 | 1/1 | Complete    | 2026-04-05 |
-| 12. Brand Redesign & Mobile Polish | v1.1 | 0/TBD | Not started | - |
+| 12. Brand Redesign & Mobile Polish | v1.1 | 1/1 | Complete   | 2026-04-05 |
 
 ## Coverage
 

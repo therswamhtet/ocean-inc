@@ -2,14 +2,15 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FolderKanban, LayoutDashboard, UserCircle2 } from "lucide-react"
+import { FolderKanban, LayoutDashboard, ListTodo, Users } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/tasks", label: "Tasks", icon: ListTodo },
   { href: "/admin/clients", label: "Clients", icon: FolderKanban },
-  { href: "/admin/team", label: "Team Members", icon: UserCircle2 },
+  { href: "/admin/team", label: "Team Members", icon: Users },
 ]
 
 function isActive(pathname: string, href: string) {

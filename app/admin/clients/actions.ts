@@ -147,3 +147,44 @@ export async function getTeamMembersAction(): Promise<
 
   return { success: true, teamMembers: data ?? [] }
 }
+
+export async function getAdminDataAction(): Promise<{
+  success: true
+  clients: Client[]
+  projects: Project[]
+  teamMembers: TeamMember[]
+} | { success: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const { data: clientsData, error: clientsError } = await supabase
+    .from('clients')
+    .select('id, name, color')
+    .order('name', { ascending: true })
+
+  const { data: teamMembersData, error: teamMembersError } = await supabase
+    .from('team_members')
+    .select('id, name, email')
+    .order('name', { ascending: true })
+
+  if (clientsError) {
+    return { success: false, error: clientsError.message }
+  }
+
+  if (teamMembersError) {
+    return { success: false, error: teamMembersError.message }
+  }
+
+  return {
+    success: true,
+    clients: clientsData ?? [],
+    teamMembers: teamMembersData ?? [],
+    projects: [],
+  }
+}

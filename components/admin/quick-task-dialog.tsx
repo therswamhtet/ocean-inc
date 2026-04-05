@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { createTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
-import { getClientsAction, getProjectsAction, getTeamMembersAction } from '@/app/admin/clients/actions'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
 import {
@@ -101,15 +101,25 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
   useEffect(() => {
     if (!open) return
 
+    const supabase = createSupabaseClient()
+
     const fetchData = async () => {
-      const result = await getClientsAction()
-      if (result.success) {
-        setClients(result.clients)
+      const { data: clientsData } = await supabase
+        .from('clients')
+        .select('id, name, color')
+        .order('name', { ascending: true })
+
+      if (clientsData) {
+        setClients(clientsData)
       }
 
-      const membersResult = await getTeamMembersAction()
-      if (membersResult.success) {
-        setTeamMembers(membersResult.teamMembers)
+      const { data: membersData } = await supabase
+        .from('team_members')
+        .select('id, name, email')
+        .order('name', { ascending: true })
+
+      if (membersData) {
+        setTeamMembers(membersData)
       }
     }
 
@@ -123,10 +133,19 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       return
     }
 
+    const supabase = createSupabaseClient()
+
     const fetchProjects = async () => {
-      const result = await getProjectsAction(selectedClientId)
-      if (result.success) {
-        setProjects(result.projects)
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, month, year')
+        .eq('client_id', selectedClientId)
+        .eq('status', 'active')
+        .order('year', { ascending: false })
+        .order('month', { ascending: false })
+
+      if (data) {
+        setProjects(data)
       }
     }
 

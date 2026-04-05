@@ -45,7 +45,7 @@ export function NotificationBell({ notifications, unreadCount }: { notifications
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h3 className="text-sm font-semibold">Notifications</h3>
           {unreadCount > 0 && (
-            <form action={async () => { 'use server'; await markAllNotificationsAsRead(); }}>
+            <form action={markAllNotificationsAsRead}>
               <button type="submit" className="flex items-center gap-1 text-xs text-muted-foreground underline underline-offset-4 transition hover:text-foreground">
                 <Check className="h-3 w-3" /> Mark all read
               </button>

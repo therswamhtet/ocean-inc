@@ -148,11 +148,13 @@ None currently.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260405-khv | Refine Client UI/UX: rename "Client directory" heading, clean up client cards, remove portal placeholder text, unify Kanban/Calendar view headers | 2026-04-05 | [22aa970](./quick/260405-khv-refine-client-ui-ux-rename-client-direct/) | [260405-khv-refine-client-ui-ux-rename-client-direct](./quick/260405-khv-refine-client-ui-ux-rename-client-direct/) |
 | 260405-k9m | Refactor TaskDetailPanel with improved UI/UX: compact 2-column layout, inline status badge, consistent label/value alignment | 2026-04-05 | [0c3094e](./quick/260405-k9m-fix-task-view-dropdown-ui-ux-improve-lay/) | [260405-k9m-fix-task-view-dropdown-ui-ux-improve-lay](./quick/260405-k9m-fix-task-view-dropdown-ui-ux-improve-lay/) |
 | 260405-kio | Fix task dropdown: remove Due Date column from list view and Due Date/Deadline section from expanded panel, widen Assignment column | 2026-04-05 | [fc76e64](./quick/260405-kio-fix-task-dropdown-remove-due-date-single/) | [260405-kio-fix-task-dropdown-remove-due-date-single](./quick/260405-kio-fix-task-dropdown-remove-due-date-single/) |
 | 060405-fs1 | Enhance All Tasks sidebar view with task name, client/project names, content plan, due dates, assignee, expandable detail panel with parent task link; fix RLS recursion bugs in clients page (removed projects join) and dashboard-inner null-safety | 2026-04-06 | | [060405-fs1-enhance-all-tasks-sidebar-view](./quick/060405-fs1-enhance-all-tasks-sidebar-view/) |
 | 260405-fs9 | Fix client section alignment, add color coding, add status icons, remove timeline, set Kanban as default | 2026-04-05 | [f763bb9](./quick/260405-fs9-fix-client-section-alignment-add-color-c/) | [260405-fs9-fix-client-section-alignment-add-color-c](./quick/260405-fs9-fix-client-section-alignment-add-color-c/) |
 | 260405-klm | Compact task dropdown: single-line layout, remove duplicate month from detail panel, align icons consistently | 2026-04-05 | [22aa970](./quick/260405-klm-fix-task-dropdown-single-line-compact-la/) | [260405-klm-fix-task-dropdown-single-line-compact-la](./quick/260405-klm-fix-task-dropdown-single-line-compact-la/) |
+| 260405-kb0 | Fix mobile hamburger (team sheet opens from left), add notification bell to header (mobile + desktop, admin + team), add My Tasks section to admin dashboard, remove notifications section from dashboard | 2026-04-05 | b7f17ee | [260405-kb0-fix-mobile-hamburger-menu-add-notificati](./quick/260405-kb0-fix-mobile-hamburger-menu-add-notificati/) |
 
 ### Roadmap Evolution
 
@@ -161,6 +163,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-04-05T08:20:00.000Z
-Stopped at: Completed quick task 260405-klm: Compact task dropdown - single-line layout, remove duplicate month
+Last session: 2026-04-05T08:26:00.000Z
+Stopped at: Completed quick task 260405-kb0: Fix mobile hamburger, add notification bells, add My Tasks section
 Resume file: None

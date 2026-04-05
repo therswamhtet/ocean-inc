@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Calendar, ListChecks } from 'lucide-react'
 
-import { format, formatDistanceToNow, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns'
+import { format, formatDistanceToNow, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns'
 
 import { markNotificationAsRead } from '@/app/admin/notifications/actions'
 import { cn } from '@/lib/utils'
@@ -438,14 +438,37 @@ type TaskForMyTasks = {
   assignee_username: string | null
 }
 
-export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
-  const today = format(new Date(), 'yyyy-MM-dd')
+type FilterType = 'today' | 'week' | 'month'
 
-  const overdue = tasks.filter(
+export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
+  const [filter, setFilter] = useState<FilterType>('week')
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const todayDate = new Date()
+
+  const weekStart = format(startOfWeek(todayDate), 'yyyy-MM-dd')
+  const weekEnd = format(endOfWeek(todayDate), 'yyyy-MM-dd')
+  const monthStart = format(startOfMonth(todayDate), 'yyyy-MM-dd')
+  const monthEnd = format(endOfMonth(todayDate), 'yyyy-MM-dd')
+
+  const filteredTasks = tasks.filter((t) => {
+    if (!t.posting_date) return false
+    switch (filter) {
+      case 'today':
+        return t.posting_date === today
+      case 'week':
+        return t.posting_date >= weekStart && t.posting_date <= weekEnd
+      case 'month':
+        return t.posting_date >= monthStart && t.posting_date <= monthEnd
+      default:
+        return true
+    }
+  })
+
+  const overdue = filteredTasks.filter(
     (t) => t.posting_date && t.posting_date < today && t.status !== 'done'
   )
-  const inProgress = tasks.filter((t) => t.status === 'in_progress')
-  const todo = tasks.filter((t) => t.status === 'todo')
+  const inProgress = filteredTasks.filter((t) => t.status === 'in_progress')
+  const todo = filteredTasks.filter((t) => t.status === 'todo')
 
   function getTaskHref(task: TaskForMyTasks) {
     return task.project_id && task.client_id
@@ -502,6 +525,23 @@ export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
           <ListChecks className="h-5 w-5 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">Tasks assigned to your team that need attention.</p>
+      </div>
+      <div className="flex gap-2 border-b border-border px-4 py-3">
+        {(['today', 'week', 'month'] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFilter(f)}
+            className={cn(
+              'min-h-[36px] rounded-md px-3 py-1.5 text-sm font-medium transition',
+              filter === f
+                ? 'bg-[#222222] text-white'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            )}
+          >
+            {f === 'today' ? 'Today' : f === 'week' ? 'This week' : 'This month'}
+          </button>
+        ))}
       </div>
       <div className="space-y-4 p-4">
         {overdue.length === 0 && inProgress.length === 0 && todo.length === 0 ? (

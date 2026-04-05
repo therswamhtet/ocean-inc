@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createClient } from '@/lib/supabase/client'
+import { getClientsAction, getProjectsAction } from '@/app/admin/clients/actions'
 import { LABELS } from '@/lib/labels'
 
 type Client = {
@@ -54,21 +54,17 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Fetch clients on mount
+  // Fetch clients on mount using server action
   useEffect(() => {
-    const supabase = createClient()
-    supabase
-      .from('clients')
-      .select('id, name, color')
-      .order('name', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setClients(data)
-        }
-      })
+    startTransition(async () => {
+      const result = await getClientsAction()
+      if (result.success) {
+        setClients(result.clients)
+      }
+    })
   }, [])
 
-  // Fetch projects when client is selected
+  // Fetch projects when client is selected using server action
   useEffect(() => {
     if (!selectedClientId) {
       setProjects([])
@@ -76,19 +72,12 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       return
     }
 
-    const supabase = createClient()
-    supabase
-      .from('projects')
-      .select('id, name, month, year')
-      .eq('client_id', selectedClientId)
-      .eq('status', 'active')
-      .order('year', { ascending: false })
-      .order('month', { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setProjects(data)
-        }
-      })
+    startTransition(async () => {
+      const result = await getProjectsAction(selectedClientId)
+      if (result.success) {
+        setProjects(result.projects)
+      }
+    })
   }, [selectedClientId])
 
   const handleSubmit = () => {

@@ -101,19 +101,19 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
   useEffect(() => {
     if (!open) return
 
-    startTransition(async () => {
+    const fetchData = async () => {
       const result = await getClientsAction()
       if (result.success) {
         setClients(result.clients)
       }
-    })
 
-    startTransition(async () => {
       const membersResult = await getTeamMembersAction()
       if (membersResult.success) {
         setTeamMembers(membersResult.teamMembers)
       }
-    })
+    }
+
+    fetchData()
   }, [open])
 
   useEffect(() => {
@@ -123,12 +123,14 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       return
     }
 
-    startTransition(async () => {
+    const fetchProjects = async () => {
       const result = await getProjectsAction(selectedClientId)
       if (result.success) {
         setProjects(result.projects)
       }
-    })
+    }
+
+    fetchProjects()
   }, [selectedClientId])
 
   const handleProjectSelect = (projectId: string) => {

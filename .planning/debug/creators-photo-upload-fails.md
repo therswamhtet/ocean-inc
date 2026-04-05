@@ -1,16 +1,16 @@
 ---
-status: investigating
+status: awaiting_human_verify
 trigger: Photo uploads in the Creators section fail with "Upload failed. Please try again." error. The photo record is created successfully in the database, but the actual file upload to storage fails.
 created: 2026-04-05T00:00:00Z
-updated: 2026-04-05T14:00:00Z
+updated: 2026-04-05T14:02:00Z
 ---
 
 ## Current Focus
 
-hypothesis: The new storage policy migration has a syntax error causing PostgreSQL error 42P17 (invalid object definition) - likely circular reference or invalid policy syntax
-test: Review migration 010_fix_team_storage_temp_uploads.sql for syntax errors
-expecting: Find syntax issue in the policy definition that causes 42P17 error
-next_action: Read the migration file and check for circular references or invalid syntax
+hypothesis: Fixed - The storage policy was referencing `storage.objects.name` within a policy ON storage.objects, causing circular reference error 42P17. Changed to use just `name` column.
+test: User needs to re-apply the corrected migration
+expecting: Migration will apply successfully without 42P17 error
+next_action: Ask user to re-apply the corrected migration
 
 ## Symptoms
 
@@ -69,18 +69,15 @@ timeline: Upload feature exists but never worked properly - failing during file 
 
 ## Resolution
 
-root_cause: Two issues found: (1) The storage policy `team_storage_insert` only allowed uploads to paths matching `{project_id}/{task_id}/{filename}` for assigned tasks, but the DesignFileUploader creates temp paths like `{project_id}/temp/{uuid}/{filename}` when no taskId is provided (e.g., during task creation). This caused uploads to fail for team members. (2) The uploader did not log or display actual error messages from Supabase, making debugging difficult.
+root_cause: The migration 010_fix_team_storage_temp_uploads.sql had a circular reference bug. The policy was referencing `storage.objects.name` within a WITH CHECK clause on the storage.objects table, causing PostgreSQL error 42P17 (invalid object definition). Storage policies cannot reference their own table in the check expression.
 
 fix: |
-  1. Added better error logging and user-facing error messages in design-file-uploader.tsx to capture actual Supabase error responses
-  2. Created migration 010_fix_team_storage_temp_uploads.sql to update the team_storage_insert policy to allow temp path uploads using regex pattern matching
+  Changed `storage.objects.name` to just `name` in the policy definition (lines 20 and 24 of migration 010_fix_team_storage_temp_uploads.sql).
 
 verification: |
-  1. Run `git diff` to verify changes
-  2. Apply the migration: `supabase db push` or run the SQL in Supabase dashboard
-  3. Test uploading a file in task creation form
-  4. Check browser console for detailed error messages if issues persist
+  1. Re-apply the corrected migration: `supabase db push` or run the corrected SQL in Supabase dashboard
+  2. Test uploading a file in task creation form
+  3. Verify no 42P17 error appears
 
 files_changed:
-  - components/admin/design-file-uploader.tsx: Added error logging and descriptive error messages
-  - supabase/migrations/010_fix_team_storage_temp_uploads.sql: Updated storage policy to allow temp uploads
+  - supabase/migrations/010_fix_team_storage_temp_uploads.sql: Fixed circular reference by changing `storage.objects.name` to `name`

@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: active
-stopped_at: Completed quick task 260405-kio: Fix task dropdown - remove Due Date
+stopped_at: Completed quick task 260405-klm: Compact task dropdown - single-line layout, remove duplicate month
 last_updated: "2026-04-05T08:17:00.000Z"
 last_activity: 2026-04-05
 progress:
@@ -152,6 +152,7 @@ None currently.
 | 260405-kio | Fix task dropdown: remove Due Date column from list view and Due Date/Deadline section from expanded panel, widen Assignment column | 2026-04-05 | [fc76e64](./quick/260405-kio-fix-task-dropdown-remove-due-date-single/) | [260405-kio-fix-task-dropdown-remove-due-date-single](./quick/260405-kio-fix-task-dropdown-remove-due-date-single/) |
 | 060405-fs1 | Enhance All Tasks sidebar view with task name, client/project names, content plan, due dates, assignee, expandable detail panel with parent task link; fix RLS recursion bugs in clients page (removed projects join) and dashboard-inner null-safety | 2026-04-06 | | [060405-fs1-enhance-all-tasks-sidebar-view](./quick/060405-fs1-enhance-all-tasks-sidebar-view/) |
 | 260405-fs9 | Fix client section alignment, add color coding, add status icons, remove timeline, set Kanban as default | 2026-04-05 | [f763bb9](./quick/260405-fs9-fix-client-section-alignment-add-color-c/) | [260405-fs9-fix-client-section-alignment-add-color-c](./quick/260405-fs9-fix-client-section-alignment-add-color-c/) |
+| 260405-klm | Compact task dropdown: single-line layout, remove duplicate month from detail panel, align icons consistently | 2026-04-05 | [22aa970](./quick/260405-klm-fix-task-dropdown-single-line-compact-la/) | [260405-klm-fix-task-dropdown-single-line-compact-la](./quick/260405-klm-fix-task-dropdown-single-line-compact-la/) |
 
 ### Roadmap Evolution
 
@@ -160,6 +161,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-04-05T08:11:00.000Z
-Stopped at: Completed quick task 260405-k9m: Fix Task View Dropdown UI/UX - Layout Improvements
+Last session: 2026-04-05T08:20:00.000Z
+Stopped at: Completed quick task 260405-klm: Compact task dropdown - single-line layout, remove duplicate month
 Resume file: None

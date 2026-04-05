@@ -13,6 +13,9 @@ export default async function AdminDashboard() {
   const todayStart = format(startOfDay(new Date()), 'yyyy-MM-dd')
   const todayEnd = format(endOfDay(new Date()), 'yyyy-MM-dd')
 
+  // Get the current user's identity
+  const { data: { user } } = await supabase.auth.getUser()
+
   const [
     { count: activeProjects },
     { count: inProgress },
@@ -21,7 +24,6 @@ export default async function AdminDashboard() {
     { data: calendarTasks },
     { data: overdueTasks },
     { data: todayTasks },
-    { data: myTasksAssigned },
   ] = await Promise.all([
     serviceRoleClient.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     serviceRoleClient.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
@@ -53,30 +55,45 @@ export default async function AdminDashboard() {
       .gte('posting_date', todayStart)
       .lte('posting_date', todayEnd)
       .limit(5),
-    // Fetch task assignments with assignee + project info for "My Tasks" section
-    supabase
-      .from('task_assignments')
-      .select('task_id, team_member_id, team_members(name), tasks(id, title, status, posting_date, due_date, project_id, projects(name, client_id))')
-      .limit(50),
   ])
 
-  // Normalize task assignments into the DashboardMyTasks type
-  const myTasks = (myTasksAssigned ?? []).map((raw: any) => {
-    const task = raw.tasks
-    const projects = task?.projects
-    return {
-      id: task?.id ?? '',
-      title: task?.title ?? '',
-      status: task?.status ?? 'todo',
-      posting_date: task?.posting_date ?? null,
-      due_date: task?.due_date ?? null,
-      project_id: task?.project_id ?? null,
-      client_id: projects?.client_id ?? null,
-      project_name: projects?.name ?? null,
-      client_name: null,
-      assignee_name: raw.team_members?.name ?? null,
+  // Fetch "My Tasks" — tasks assigned to the current user via team_members
+  let myTasks: Parameters<typeof DashboardMyTasks>[0]['tasks'] = []
+  const userEmail = user?.email || user?.user_metadata?.email || null
+  if (userEmail) {
+    // Find the team_members record for the current user
+    const { data: teamMember } = await serviceRoleClient
+      .from('team_members')
+      .select('id')
+      .eq('email', userEmail)
+      .maybeSingle()
+
+    if (teamMember) {
+      const { data: myTasksAssigned } = await serviceRoleClient
+        .from('task_assignments')
+        .select('task_id, team_member_id, team_members(name), tasks(id, title, status, posting_date, due_date, project_id, projects(name, client_id))')
+        .eq('team_member_id', teamMember.id)
+        .limit(50)
+
+      // Normalize task assignments into the DashboardMyTasks type
+      myTasks = (myTasksAssigned ?? []).map((raw: any) => {
+        const task = raw.tasks
+        const projects = task?.projects
+        return {
+          id: task?.id ?? '',
+          title: task?.title ?? '',
+          status: task?.status ?? 'todo',
+          posting_date: task?.posting_date ?? null,
+          due_date: task?.due_date ?? null,
+          project_id: task?.project_id ?? null,
+          client_id: projects?.client_id ?? null,
+          project_name: projects?.name ?? null,
+          client_name: null,
+          assignee_name: raw.team_members?.name ?? null,
+        }
+      })
     }
-  })
+  }
 
   const metrics = [
     { label: LABELS.dashboard.totalProjects, value: activeProjects ?? 0 },
@@ -102,12 +119,14 @@ export default async function AdminDashboard() {
 
       <DashboardMyTasks tasks={myTasks} />
 
-      <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
+      <section className="grid gap-6 lg:grid-cols-2">
+        <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
 
-      <DashboardTaskSections
-        overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
-        todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
-      />
+        <DashboardTaskSections
+          overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
+          todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
+        />
+      </section>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const currentYear = new Date().getFullYear()
 
@@ -60,9 +60,10 @@ export async function createProjectAction(clientId: string, formData: FormData) 
 }
 
 export async function deleteProjectAction(projectId: string, clientId: string) {
-  const supabase = await requireAdmin()
+  await requireAdmin()
+  const serviceRoleClient = createServiceRoleClient()
 
-  const { error } = await supabase.from('projects').delete().eq('id', projectId)
+  const { error } = await serviceRoleClient.from('projects').delete().eq('id', projectId)
 
   if (error) {
     redirect(`/admin/clients/${clientId}?error=${encodeURIComponent(error.message)}`)

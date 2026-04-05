@@ -28,6 +28,6 @@ export type PortalClient = {
 
 export type PortalData = {
   client: PortalClient
-  activeProject: PortalProject | null
+  activeProjects: PortalProject[]
   tasks: PortalTask[]
 }

@@ -27,15 +27,21 @@ export default async function ClientPortalPage({
         </div>
       </header>
 
-      {portalData.activeProject ? (
-        <>
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-foreground">{portalData.activeProject.name}</h2>
-            <p className="text-sm text-muted-foreground">Read-only project timeline and task progress.</p>
-          </div>
-
-          <PortalShell tasks={portalData.tasks} />
-        </>
+      {portalData.activeProjects && portalData.activeProjects.length > 0 ? (
+        portalData.activeProjects.map((project) => {
+          const projectTasks = portalData.tasks.filter(
+            (task) => task.projectId === project.id
+          )
+          return (
+            <div key={project.id} className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-xl font-semibold text-foreground">{project.name}</h2>
+                <p className="text-sm text-muted-foreground">Read-only project timeline and task progress.</p>
+              </div>
+              <PortalShell key={project.id} tasks={projectTasks} />
+            </div>
+          )
+        })
       ) : (
         <section className="rounded-lg border border-border p-6">
           <p className="text-sm text-muted-foreground">

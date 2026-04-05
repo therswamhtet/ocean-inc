@@ -59,35 +59,34 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     .eq('client_id', client.id)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
-    .limit(1)
 
   if (projectError) {
     throw new Error(projectError.message)
   }
 
-  const project = projects?.[0]
-
-  if (!project) {
+  if (!projects || projects.length === 0) {
     return {
       client: portalClient,
-      activeProject: null,
+      activeProjects: [],
       tasks: [],
     }
   }
 
-  const portalProject: PortalProject = {
+  const portalProjects: PortalProject[] = projects.map((project) => ({
     id: project.id,
     clientId: project.client_id,
     name: project.name,
     month: project.month,
     year: project.year,
     status: project.status,
-  }
+  }))
+
+  const projectIds = projects.map((p) => p.id)
 
   const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
     .select('id, project_id, title, caption, design_file_path, posting_date, status')
-    .eq('project_id', project.id)
+    .in('project_id', projectIds)
     .order('posting_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true })
     .returns<TaskRow[]>()
@@ -108,7 +107,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
 
   return {
     client: portalClient,
-    activeProject: portalProject,
+    activeProjects: portalProjects,
     tasks: portalTasks,
   }
 }

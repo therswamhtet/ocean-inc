@@ -38,7 +38,7 @@ type TaskViewToggleProps = {
 }
 
 export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewToggleProps) {
-  const [view, setView] = useState<'list' | 'kanban'>('list')
+  const [view, setView] = useState<'list' | 'kanban'>('kanban')
   const [open, setOpen] = useState(false)
 
   return (

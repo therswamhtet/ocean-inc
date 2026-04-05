@@ -1,4 +1,4 @@
-import { format, startOfMonth, addDays, startOfDay, endOfDay } from 'date-fns'
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'
 
 import { DashboardMetrics, DashboardNotifications, DashboardCalendar, DashboardTaskSections } from '@/components/admin/dashboard-inner'
 import { LABELS } from '@/lib/labels'
@@ -8,10 +8,9 @@ export default async function AdminDashboard() {
   const supabase = await createClient()
   const today = format(new Date(), 'yyyy-MM-dd')
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-  const monthEnd = format(startOfMonth(addDays(new Date(), 31)), 'yyyy-MM-dd')
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
   const todayStart = format(startOfDay(new Date()), 'yyyy-MM-dd')
   const todayEnd = format(endOfDay(new Date()), 'yyyy-MM-dd')
-  const nextWeek = format(addDays(new Date(), 7), 'yyyy-MM-dd')
 
   const [
     { count: activeProjects },
@@ -21,7 +20,6 @@ export default async function AdminDashboard() {
     { data: calendarTasks },
     { data: overdueTasks },
     { data: todayTasks },
-    { data: upcomingTasks },
   ] = await Promise.all([
     supabase.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
@@ -52,12 +50,6 @@ export default async function AdminDashboard() {
       .select('id, title, posting_date, status, projects(name)')
       .gte('posting_date', todayStart)
       .lte('posting_date', todayEnd)
-      .limit(5),
-    supabase
-      .from('tasks')
-      .select('id, title, posting_date, status, projects(name)')
-      .gt('posting_date', today)
-      .lte('posting_date', nextWeek)
       .limit(5),
   ])
 
@@ -96,7 +88,6 @@ export default async function AdminDashboard() {
         <DashboardTaskSections 
           overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']} 
           todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']} 
-          upcomingTasks={upcomingTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['upcomingTasks']} 
         />
       </section>
 

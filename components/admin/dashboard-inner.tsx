@@ -137,6 +137,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const [expandedDay, setExpandedDay] = useState<string | null>(null)
   
   const tasksByDate = tasks.reduce((acc, task) => {
     if (task.posting_date) {
@@ -152,46 +153,66 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
         <h3 className="text-base font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
         <Calendar className="h-5 w-5 text-muted-foreground" />
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="font-medium text-muted-foreground">{d}</div>
-        ))}
-        {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
-        {days.map((day) => {
-          const dateKey = format(day, 'yyyy-MM-dd')
-          const dayTasks = tasksByDate[dateKey] ?? []
-          const isToday = isSameDay(day, new Date())
-          
-          return (
-            <div
-              key={dateKey}
-              className={cn(
-                'relative min-h-[32px] rounded border border-border p-1 text-xs',
-                !isSameMonth(day, currentMonth) && 'text-muted-foreground',
-                isToday && 'border-foreground'
-              )}
-            >
-              <span>{format(day, 'd')}</span>
-              {dayTasks.length > 0 && (
-                <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5">
-                  {dayTasks.slice(0, 3).map((task, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        'h-1.5 w-1.5 rounded-full',
-                        task.status === 'done' ? 'bg-green-500' :
-                        task.status === 'in_progress' ? 'bg-yellow-500' :
-                        'bg-gray-400'
-                      )}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        })}
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px] grid grid-cols-7 gap-px text-center text-xs">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+            <div key={i} className="py-1 text-xs sm:text-sm font-medium text-muted-foreground">{d}</div>
+          ))}
+          {Array.from({ length: monthStart.getDay() }).map((_, i) => (
+            <div key={`empty-${i}`} />
+          ))}
+          {days.map((day) => {
+            const dateKey = format(day, 'yyyy-MM-dd')
+            const dayTasks = tasksByDate[dateKey] ?? []
+            const isToday = isSameDay(day, new Date())
+            const isExpanded = expandedDay === dateKey
+            
+            return (
+              <div
+                key={dateKey}
+                onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
+                className={cn(
+                  'relative rounded border border-border p-1 text-xs',
+                  dayTasks.length > 0 && 'cursor-pointer hover:border-muted-foreground',
+                  !isSameMonth(day, currentMonth) && 'text-muted-foreground',
+                  isToday && 'border-foreground',
+                  isExpanded && 'z-10 bg-muted/60 sm:min-h-[120px]'
+                )}
+              >
+                <span className="text-xs sm:text-sm">{format(day, 'd')}</span>
+                {dayTasks.length > 0 && (
+                  <>
+                    <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5">
+                      {dayTasks.slice(0, 3).map((task, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            'h-2 w-2 rounded-full',
+                            task.status === 'done' ? 'bg-green-500' :
+                            task.status === 'in_progress' ? 'bg-yellow-500' :
+                            'bg-gray-400'
+                          )}
+                        />
+                      ))}
+                    </div>
+                    {isExpanded && (
+                      <div className="absolute top-full left-0 z-20 w-44 rounded-md border border-border bg-white p-2 shadow-lg sm:absolute">
+                        {dayTasks.map((task, i) => (
+                          <div key={task.id} className={cn(i > 0 && 'mt-1 pt-1 border-t border-border')}>
+                            <p className="text-xs font-medium truncate">{task.title}</p>
+                            {task.projects?.name && (
+                              <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
@@ -208,7 +229,7 @@ type TaskForSections = {
 type DashboardTaskSectionsProps = {
   overdueTasks: TaskForSections[]
   todayTasks: TaskForSections[]
-  upcomingTasks: TaskForSections[]
+  upcomingTasks?: TaskForSections[]
 }
 
 export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks }: DashboardTaskSectionsProps) {
@@ -254,7 +275,7 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
         </section>
       )}
       
-      {upcomingTasks.length > 0 && (
+      {upcomingTasks && upcomingTasks.length > 0 && (
         <section className="rounded-lg border border-l-4 border-l-gray-300 border-border p-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-600">Upcoming</h3>
           <ul className="space-y-2">

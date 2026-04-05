@@ -7,6 +7,7 @@ type ClientRow = {
   slug: string
   color: string
   is_active: boolean
+  description: string | null
 }
 
 type ProjectRow = {

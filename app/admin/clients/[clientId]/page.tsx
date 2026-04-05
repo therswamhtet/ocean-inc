@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { createProjectAction, deleteProjectAction, updateClientDescriptionAction } from './actions'
-import { toggleClientStatusAction } from '../actions'
+import { toggleClientStatusActionWrapper } from '../actions'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
@@ -156,7 +156,8 @@ export default async function ClientProjectsPage({
           {client.is_active === false && (
             <div className="flex items-center gap-2 rounded-md border border-border p-3 text-sm">
               <span className="text-muted-foreground">Client is currently blocked.</span>
-              <form action={toggleClientStatusAction}>
+              <form action={toggleClientStatusActionWrapper}>
+                <input type="hidden" name="clientId" value={client.id} />
                 <Button type="submit" variant="default" size="sm">Unblock client</Button>
               </form>
             </div>

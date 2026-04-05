@@ -227,3 +227,11 @@ export async function toggleClientStatusAction(clientId: string): Promise<{ succ
   revalidatePath('/admin/clients')
   return { success: true }
 }
+
+export async function toggleClientStatusActionWrapper(formData: FormData) {
+  const clientId = formData.get('clientId') as string
+  if (!clientId) {
+    return
+  }
+  await toggleClientStatusAction(clientId)
+}

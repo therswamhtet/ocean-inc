@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { TaskEditForm } from './task-edit-form'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 type TaskRecord = {
   id: string
@@ -48,27 +48,28 @@ export default async function TaskDetailPage({
 }) {
   const { clientId, projectId, taskId } = await params
   const supabase = await createClient()
+  const serviceRoleClient = createServiceRoleClient()
 
   const [{ data: task, error: taskError }, { data: project, error: projectError }, { data: teamMembers, error: teamMembersError }, { data: assignment, error: assignmentError }] =
     await Promise.all([
-      supabase
+      serviceRoleClient
         .from('tasks')
         .select('id, project_id, title, briefing, caption, design_file_path, posting_date, due_date, deadline, status')
         .eq('id', taskId)
         .eq('project_id', projectId)
         .single<TaskRecord>(),
-      supabase
+      serviceRoleClient
         .from('projects')
         .select('id, name, client_id, clients(id, name)')
         .eq('id', projectId)
         .eq('client_id', clientId)
         .single<ProjectRecord>(),
-      supabase
+      serviceRoleClient
         .from('team_members')
         .select('id, name, email')
         .order('name', { ascending: true })
         .returns<TeamMemberRecord[]>(),
-      supabase
+      serviceRoleClient
         .from('task_assignments')
         .select('team_member_id, team_members(name, email)')
         .eq('task_id', taskId)

@@ -1,125 +1,105 @@
 import { format } from 'date-fns'
 
-import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
+import AllTasks from './all-tasks'
 
-const statusColors: Record<string, string> = {
-  done: 'bg-green-500',
-  in_progress: 'bg-yellow-500',
-  todo: 'bg-gray-400',
-}
+async function fetchTasks(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  filter: 'today' | 'upcoming' | 'overdue',
+) {
+  const today = format(new Date(), 'yyyy-MM-dd')
 
-type TaskRecord = {
-  id: string
-  title: string
-  posting_date: string | null
-  due_date: string | null
-  status: string
-  projects: { name: string } | null
-}
+  let builder = supabase
+    .from('tasks')
+    .select(
+      `
+      id,
+      created_at,
+      title,
+      posting_date,
+      due_date,
+      deadline,
+      status,
+      project_id,
+      projects (
+        id,
+        name,
+        client_id,
+        clients (
+          id,
+          name,
+          color
+        )
+      ),
+      task_assignments (
+        team_members (
+          name
+        )
+      )
+    `,
+    )
 
-function CompactTaskList({ tasks, sectionLabel }: { tasks: TaskRecord[]; sectionLabel: string }) {
-  if (tasks.length === 0) return null
+  switch (filter) {
+    case 'today':
+      builder = builder.eq('posting_date', today).limit(50)
+      break
+    case 'upcoming':
+      builder = builder
+        .gt('posting_date', today)
+        .neq('status', 'done')
+        .order('posting_date', { ascending: true })
+        .limit(50)
+      break
+    case 'overdue':
+      builder = builder
+        .lt('posting_date', today)
+        .neq('status', 'done')
+        .order('posting_date', { ascending: true })
+        .limit(50)
+      break
+  }
 
-  return (
-    <section className="rounded-lg border border-border p-4">
-      <h3 className="mb-3 text-sm font-semibold text-foreground">{sectionLabel}</h3>
-      <ul className="space-y-2">
-        {tasks.map((task) => {
-          const projectName = task.projects?.name
-          return (
-            <li key={task.id} className="flex items-start gap-3 text-sm">
-              <span
-                className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${statusColors[task.status] ?? 'bg-gray-400'}`}
-              />
-              <div className="min-w-0 flex-1">
-                <span className="font-medium text-foreground">{task.title}</span>
-                {projectName && (
-                  <span className="text-muted-foreground"> — {projectName}</span>
-                )}
-              </div>
-              <Badge className="flex-shrink-0 capitalize">
-                {task.status.replace('_', ' ')}
-              </Badge>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
-  )
+  const { data, error } = await builder.returns<any[]>()
+  if (error) throw new Error(error.message)
+
+  return (data ?? []).map((row: any) => {
+    const projects = row.projects as Record<string, unknown> | null
+    const clients = (projects?.clients ?? {}) as Record<string, unknown> | null
+    const assignments = row.task_assignments as any[] | null
+    const assignee = assignments?.[0]?.team_members?.name ?? null
+
+    return {
+      id: row.id,
+      created_at: row.created_at,
+      title: row.title,
+      posting_date: row.posting_date as string | null,
+      due_date: row.due_date as string | null,
+      deadline: row.deadline as string | null,
+      status: row.status,
+      assigned_to_name: assignee,
+      client_id: (clients?.id as string) ?? '',
+      client_name: (clients?.name as string) ?? 'Unknown',
+      client_color: (clients?.color as string | null) ?? null,
+      project_id: (projects?.id as string) ?? '',
+      project_name: (projects?.name as string) ?? 'Unknown',
+    }
+  })
 }
 
 export default async function TasksPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const serviceRoleClient = createServiceRoleClient()
 
-  if (!user) {
-    return null
-  }
-
-  const today = format(new Date(), 'yyyy-MM-dd')
-
-  const [{ data: todayTasks }, { data: upcomingTasks }, { data: dueTasks }] = await Promise.all([
-    supabase
-      .from('tasks')
-      .select('id, title, posting_date, due_date, status, projects(name)')
-      .eq('posting_date', today)
-      .limit(20)
-      .returns<TaskRecord[]>(),
-    supabase
-      .from('tasks')
-      .select('id, title, posting_date, due_date, status, projects(name)')
-      .gt('posting_date', today)
-      .neq('status', 'done')
-      .order('posting_date', { ascending: true })
-      .limit(20)
-      .returns<TaskRecord[]>(),
-    supabase
-      .from('tasks')
-      .select('id, title, posting_date, due_date, status, projects(name)')
-      .lt('due_date', today)
-      .neq('status', 'done')
-      .order('due_date', { ascending: true })
-      .limit(20)
-      .returns<TaskRecord[]>(),
+  const [todayTasks, upcomingTasks, overdueTasks] = await Promise.all([
+    fetchTasks(serviceRoleClient, 'today'),
+    fetchTasks(serviceRoleClient, 'upcoming'),
+    fetchTasks(serviceRoleClient, 'overdue'),
   ])
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Tasks</p>
-        <div>
-          <h2 className="text-2xl font-semibold">All Tasks</h2>
-          <p className="text-sm text-muted-foreground">
-            View tasks organized by urgency — today, upcoming, and overdue.
-          </p>
-        </div>
-      </div>
-
-      {todayTasks && todayTasks.length > 0 && (
-        <CompactTaskList tasks={todayTasks} sectionLabel={`Today's Tasks (${todayTasks.length})`} />
-      )}
-
-      {upcomingTasks && upcomingTasks.length > 0 && (
-        <CompactTaskList tasks={upcomingTasks} sectionLabel={`Upcoming (${upcomingTasks.length})`} />
-      )}
-
-      {dueTasks && dueTasks.length > 0 && (
-        <CompactTaskList tasks={dueTasks} sectionLabel={`Overdue (${dueTasks.length})`} />
-      )}
-
-      {(!todayTasks || todayTasks.length === 0) &&
-        (!upcomingTasks || upcomingTasks.length === 0) &&
-        (!dueTasks || dueTasks.length === 0) && (
-          <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center">
-            <p className="text-lg font-medium">No tasks found.</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tasks will appear here when they are created in a project.
-            </p>
-          </div>
-        )}
-    </div>
+    <AllTasks
+      today={{ label: "Today's Tasks", tasks: todayTasks }}
+      upcoming={{ label: 'Upcoming', tasks: upcomingTasks }}
+      overdue={{ label: 'Overdue', tasks: overdueTasks }}
+    />
   )
 }

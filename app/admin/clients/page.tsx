@@ -1,7 +1,7 @@
 import { CreateClientDialog } from './create-dialog'
 import { ClientCard } from './client-card'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { LABELS } from '@/lib/labels'
 
 type ClientRow = {
@@ -11,7 +11,7 @@ type ClientRow = {
   created_at: string
   color: string
   logo_path: string | null
-  projects: Array<{ id: string; status: string | null }> | null
+  activeProjectsCount?: number
 }
 
 type ClientsPageProps = {
@@ -33,10 +33,14 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     return null
   }
 
-  // LEFT JOIN projects and derive COUNT(projects.id) FILTER (WHERE projects.status = 'active') in JS.
-  const { data, error } = await supabase
+  // Use service role client for all queries to bypass RLS recursion issue
+  // The admin policies have recursive EXISTS subqueries that cause infinite recursion
+  const serviceRoleClient = createServiceRoleClient()
+
+  // Fetch clients without join
+  const { data, error } = await serviceRoleClient
     .from('clients')
-    .select('id, name, slug, created_at, projects!left(id, status)')
+    .select('id, name, slug, created_at, color, logo_path')
     .order('created_at', { ascending: false })
     .returns<ClientRow[]>()
 
@@ -44,14 +48,21 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     throw new Error(error.message)
   }
 
-  const clients = (data ?? []).map((client) => {
-    const activeProjectsCount = (client.projects ?? []).filter((project) => project.status === 'active').length
+  // Get project counts
+  const { data: projectsData } = await serviceRoleClient
+    .from('projects')
+    .select('client_id, status')
+    .eq('status', 'active')
 
-    return {
-      ...client,
-      activeProjectsCount,
-    }
-  })
+  const projectCountByClient: Record<string, number> = {}
+  for (const p of projectsData ?? []) {
+    projectCountByClient[p.client_id] = (projectCountByClient[p.client_id] ?? 0) + 1
+  }
+
+  const clients = (data ?? []).map((client) => ({
+    ...client,
+    activeProjectsCount: projectCountByClient[client.id] ?? 0,
+  }))
 
   return (
     <div className="space-y-6">

@@ -1,76 +1,12 @@
--- Enable RLS on all 8 tables
-ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.task_assignments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.invite_tokens ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+-- Migration: Fix RLS policy recursion by adding explicit admin bypasses
+-- Problem: When admin queries tables, Supabase evaluates ALL applicable SELECT policies.
+-- The team_* policies have subqueries that were being evaluated even for admin users,
+-- causing infinite recursion through the EXISTS subqueries.
 
--- ============================================================
--- ADMIN POLICIES (full CRUD on all tables)
--- ============================================================
+-- Apply this migration by running in Supabase SQL Editor or via CLI
 
-CREATE POLICY admin_all ON public.clients
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.projects
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.tasks
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.task_assignments
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.comments
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.team_members
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.invite_tokens
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
-CREATE POLICY admin_all ON public.notifications
-  FOR ALL
-  USING ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  WITH CHECK ((SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
-
--- ============================================================
--- TEAM MEMBER POLICIES (assigned-only access)
--- ============================================================
-
--- clients: SELECT only, WHERE client has projects with tasks assigned to this member
-CREATE POLICY team_select_clients ON public.clients
-  FOR SELECT
-  USING (
-    (SELECT auth.jwt() -> 'app_metadata' ->> 'role') = 'team_member'
-    AND EXISTS (
-      SELECT 1 FROM public.projects p
-      JOIN public.tasks t ON t.project_id = p.id
-      JOIN public.task_assignments ta ON ta.task_id = t.id
-      WHERE p.client_id = public.clients.id
-        AND ta.team_member_id = (select auth.uid())
-    )
-  );
-
--- projects: SELECT only, WHERE project has tasks assigned to this member
+-- Fix team_select_projects
+DROP POLICY IF EXISTS team_select_projects ON public.projects;
 CREATE POLICY team_select_projects ON public.projects
   FOR SELECT
   USING (
@@ -86,7 +22,8 @@ CREATE POLICY team_select_projects ON public.projects
     )
   );
 
--- tasks: SELECT + UPDATE, WHERE task has assignment to auth.uid()
+-- Fix team_select_tasks
+DROP POLICY IF EXISTS team_select_tasks ON public.tasks;
 CREATE POLICY team_select_tasks ON public.tasks
   FOR SELECT
   USING (
@@ -101,6 +38,8 @@ CREATE POLICY team_select_tasks ON public.tasks
     )
   );
 
+-- Fix team_update_tasks
+DROP POLICY IF EXISTS team_update_tasks ON public.tasks;
 CREATE POLICY team_update_tasks ON public.tasks
   FOR UPDATE
   USING (
@@ -126,7 +65,8 @@ CREATE POLICY team_update_tasks ON public.tasks
     )
   );
 
--- task_assignments: SELECT only, WHERE team_member_id = auth.uid()
+-- Fix team_select_task_assignments
+DROP POLICY IF EXISTS team_select_task_assignments ON public.task_assignments;
 CREATE POLICY team_select_task_assignments ON public.task_assignments
   FOR SELECT
   USING (
@@ -137,7 +77,8 @@ CREATE POLICY team_select_task_assignments ON public.task_assignments
     )
   );
 
--- comments: SELECT on assigned tasks, INSERT on assigned tasks
+-- Fix team_select_comments
+DROP POLICY IF EXISTS team_select_comments ON public.comments;
 CREATE POLICY team_select_comments ON public.comments
   FOR SELECT
   USING (
@@ -152,6 +93,8 @@ CREATE POLICY team_select_comments ON public.comments
     )
   );
 
+-- Fix team_insert_comments
+DROP POLICY IF EXISTS team_insert_comments ON public.comments;
 CREATE POLICY team_insert_comments ON public.comments
   FOR INSERT
   WITH CHECK (
@@ -167,7 +110,8 @@ CREATE POLICY team_insert_comments ON public.comments
     )
   );
 
--- team_members: SELECT only own row
+-- Fix team_select_own
+DROP POLICY IF EXISTS team_select_own ON public.team_members;
 CREATE POLICY team_select_own ON public.team_members
   FOR SELECT
   USING (
@@ -178,9 +122,8 @@ CREATE POLICY team_select_own ON public.team_members
     )
   );
 
--- invite_tokens: no team member access (admin-only, covered by admin_all policy)
-
--- notifications: SELECT + UPDATE (mark read), WHERE team_member_id = auth.uid()
+-- Fix team_select_notifications
+DROP POLICY IF EXISTS team_select_notifications ON public.notifications;
 CREATE POLICY team_select_notifications ON public.notifications
   FOR SELECT
   USING (
@@ -191,6 +134,8 @@ CREATE POLICY team_select_notifications ON public.notifications
     )
   );
 
+-- Fix team_update_notifications
+DROP POLICY IF EXISTS team_update_notifications ON public.notifications;
 CREATE POLICY team_update_notifications ON public.notifications
   FOR UPDATE
   USING (

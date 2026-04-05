@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { LABELS } from '@/lib/labels'
@@ -25,6 +26,7 @@ export function MobileNav({ email, unreadCount }: { email: string; unreadCount?:
         </button>
       </SheetTrigger>
       <SheetContent side="left" className="w-60 bg-white p-0">
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         <div className="border-b border-border px-6 py-5">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
         </div>

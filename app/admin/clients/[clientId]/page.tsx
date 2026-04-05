@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { createProjectAction, deleteProjectAction } from './actions'
 import { LABELS } from '@/lib/labels'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ContentCard } from '@/components/ui/content-card'
@@ -94,8 +94,9 @@ export default async function ClientProjectsPage({
   const { error: pageError } = await searchParams
 
   const supabase = await createClient()
+  const serviceRoleClient = createServiceRoleClient()
 
-  const { data: client, error: clientError } = await supabase
+  const { data: client, error: clientError } = await serviceRoleClient
     .from('clients')
     .select('id, name, color')
     .eq('id', clientId)
@@ -105,7 +106,7 @@ export default async function ClientProjectsPage({
     notFound()
   }
 
-  const { data: projects, error: projectsError } = await supabase
+  const { data: projects, error: projectsError } = await serviceRoleClient
     .from('projects')
     .select('id, name, month, year, status')
     .eq('client_id', clientId)

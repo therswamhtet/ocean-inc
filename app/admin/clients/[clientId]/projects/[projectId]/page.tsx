@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { TaskViewToggle, type TaskRow } from './task-view-toggle'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 type ProjectRecord = {
   id: string
@@ -41,8 +41,9 @@ export default async function ProjectTasksPage({
 }) {
   const { clientId, projectId } = await params
   const supabase = await createClient()
+  const serviceRoleClient = createServiceRoleClient()
 
-  const { data: project, error: projectError } = await supabase
+  const { data: project, error: projectError } = await serviceRoleClient
     .from('projects')
     .select('id, name, client_id, clients(id, name)')
     .eq('id', projectId)
@@ -53,7 +54,7 @@ export default async function ProjectTasksPage({
     notFound()
   }
 
-  const { data: tasks, error: tasksError } = await supabase
+  const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
     .select(
       'id, title, briefing, caption, design_file_path, posting_date, due_date, deadline, status, created_at, task_assignments(team_members(name))'

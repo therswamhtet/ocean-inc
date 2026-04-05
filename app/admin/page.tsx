@@ -2,10 +2,11 @@ import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns
 
 import { DashboardMetrics, DashboardNotifications, DashboardCalendar, DashboardTaskSections } from '@/components/admin/dashboard-inner'
 import { LABELS } from '@/lib/labels'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
+  const serviceRoleClient = createServiceRoleClient()
   const today = format(new Date(), 'yyyy-MM-dd')
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
@@ -21,31 +22,31 @@ export default async function AdminDashboard() {
     { data: overdueTasks },
     { data: todayTasks },
   ] = await Promise.all([
-    supabase.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
-    supabase
+    serviceRoleClient.from('projects').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    serviceRoleClient.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+    serviceRoleClient
       .from('tasks')
       .select('*', { count: 'exact', head: true })
       .lt('posting_date', today)
       .neq('status', 'done'),
-    supabase
+    serviceRoleClient
       .from('tasks')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'done')
       .gte('updated_at', monthStart),
-    supabase
+    serviceRoleClient
       .from('tasks')
-      .select('id, title, posting_date, status, projects(name)')
+      .select('id, project_id, title, posting_date, status, projects(id, name, client_id)')
       .not('posting_date', 'is', null)
       .gte('posting_date', monthStart)
       .lt('posting_date', monthEnd),
-    supabase
+    serviceRoleClient
       .from('tasks')
       .select('id, project_id, title, posting_date, status, projects(client_id, name)')
       .lt('posting_date', today)
       .neq('status', 'done')
       .limit(5),
-    supabase
+    serviceRoleClient
       .from('tasks')
       .select('id, project_id, title, posting_date, status, projects(client_id, name)')
       .gte('posting_date', todayStart)
@@ -83,13 +84,12 @@ export default async function AdminDashboard() {
         <DashboardMetrics metrics={metrics} />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
-        <DashboardTaskSections 
-          overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']} 
-          todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']} 
-        />
-      </section>
+      <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
+
+      <DashboardTaskSections
+        overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
+        todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
+      />
 
       <DashboardNotifications notifications={notifications} unreadCount={unreadCount} />
     </div>

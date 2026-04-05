@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import type { PortalClient, PortalData, PortalProject, PortalTask, PortalTaskStatus } from '@/lib/portal/types'
 
 type ClientRow = {
@@ -34,11 +34,11 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     return null
   }
 
-  const supabase = await createClient()
+  const serviceRoleClient = createServiceRoleClient()
 
-  const { data: client, error: clientError } = await supabase
+  const { data: client, error: clientError } = await serviceRoleClient
     .from('clients')
-    .select('id, name, slug')
+    .select('id, name, slug, color')
     .eq('slug', normalizedSlug)
     .maybeSingle<ClientRow>()
 
@@ -53,16 +53,19 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     color: client.color,
   }
 
-  const { data: project, error: projectError } = await supabase
+  const { data: projects, error: projectError } = await serviceRoleClient
     .from('projects')
     .select('id, client_id, name, month, year, status')
     .eq('client_id', client.id)
     .eq('status', 'active')
-    .maybeSingle<ProjectRow>()
+    .order('created_at', { ascending: false })
+    .limit(1)
 
   if (projectError) {
     throw new Error(projectError.message)
   }
+
+  const project = projects?.[0]
 
   if (!project) {
     return {
@@ -81,7 +84,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     status: project.status,
   }
 
-  const { data: tasks, error: tasksError } = await supabase
+  const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
     .select('id, project_id, title, caption, design_file_path, posting_date, status')
     .eq('project_id', project.id)

@@ -38,6 +38,7 @@ function NotificationsSection({ notifications, unreadCount }: { notifications: N
         aria-expanded={isExpanded}
       >
         <div className="flex items-center gap-3">
+          <h3 className="text-base font-semibold">Notifications</h3>
           {unreadCount > 0 && (
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#222222] px-1.5 text-[10px] font-medium text-white">
               {unreadCount} new
@@ -122,10 +123,11 @@ export function DashboardNotifications({ notifications, unreadCount }: { notific
 
 type TaskForCalendar = {
   id: string
+  project_id: string | null
   title: string
   posting_date: string | null
   status: string
-  projects: { name: string } | null
+  projects: { id: string; name: string; client_id: string } | null
 }
 
 type DashboardCalendarProps = {
@@ -139,7 +141,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   
-  const tasksByDate = tasks.reduce((acc, task) => {
+  const tasksByDate = (tasks ?? []).reduce((acc, task) => {
     if (task.posting_date) {
       if (!acc[task.posting_date]) acc[task.posting_date] = []
       acc[task.posting_date].push(task)
@@ -148,17 +150,16 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   }, {} as Record<string, TaskForCalendar[]>)
 
   return (
-    <section className="rounded-lg border border-border p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
-        <Calendar className="h-5 w-5 text-muted-foreground" />
-      </div>
-      <div className="min-w-0 rounded-lg border border-border p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
+    <section className="rounded-lg border border-border overflow-x-auto">
+      <div className="border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold">Calendar</h3>
           <Calendar className="h-5 w-5 text-muted-foreground" />
         </div>
-        <div className="w-full grid grid-cols-7 gap-px text-center text-xs">
+        <p className="text-sm text-muted-foreground">{format(currentMonth, 'MMMM yyyy')}</p>
+      </div>
+      <div className="overflow-visible p-4">
+        <div className="grid grid-cols-7 gap-px text-center text-xs">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
             <div key={i} className="py-1 text-xs sm:text-sm font-medium text-muted-foreground">{d}</div>
           ))}
@@ -176,54 +177,66 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
                 key={dateKey}
                 className={cn(
                   'relative rounded border border-border p-1 text-xs',
-                  !isSameMonth(day, currentMonth) && 'text-muted-foreground',
+                  dayTasks.length > 0 && 'cursor-pointer hover:border-muted-foreground',
                   isToday && 'border-foreground',
-                  isExpanded && 'z-10 bg-muted/60 sm:min-h-[120px]'
+                  isExpanded && 'z-10 bg-muted/60'
                 )}
                 style={{ minHeight: '48px' }}
               >
-                <span className="text-xs sm:text-sm">{format(day, 'd')}</span>
+                <button
+                  type="button"
+                  className="w-full text-left"
+                  onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
+                  aria-label={dayTasks.length > 0 ? `${format(day, 'd')} – ${dayTasks.length} task(s)` : format(day, 'd')}
+                >
+                  <span className="text-xs sm:text-sm">{format(day, 'd')}</span>
+                </button>
                 {dayTasks.length > 0 && (
                   <>
-                    <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5">
-                      {dayTasks.map((task, i) => (
-                        <a
-                          key={task.id}
-                          href={`/admin/tasks/${task.id}`}
+                    <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5 pointer-events-none">
+                      {dayTasks.slice(0, 3).map((task, i) => (
+                        <div
+                          key={i}
                           className={cn(
-                            'h-2 w-2 rounded-full transition hover:opacity-70 hover:ring-1 hover:ring-white hover:ring-offset-1 hover:ring-offset-transparent block',
-                            i > 1 && isExpanded ? 'top-full left-0 z-20 rounded-md border border-border bg-white p-2 shadow-lg block w-full hover:bg-muted/30' : '',
+                            'h-2 w-2 rounded-full',
                             task.status === 'done' ? 'bg-green-500' :
                             task.status === 'in_progress' ? 'bg-yellow-500' :
                             'bg-gray-400'
                           )}
-                          title={task.title}
-                        >
-                          {i > 1 && isExpanded && (
-                            <>
-                              <p className="text-xs font-medium truncate">{task.title}</p>
-                              {task.projects?.name && (
-                                <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
-                              )}
-                            </>
-                          )}
-                        </a>
+                        />
                       ))}
                     </div>
                     {isExpanded && (
-                      <div className="absolute top-full left-0 z-20 w-56 rounded-md border border-border bg-white p-2 shadow-lg">
-                        {dayTasks.map((task, i) => (
-                          <a
-                            key={task.id}
-                            href={`/admin/tasks/${task.id}`}
-                            className={cn(i > 0 && 'mt-1 pt-1 border-t border-border block', 'rounded-sm px-1.5 py-1 hover:bg-muted/30')}
-                          >
-                            <p className="text-xs font-medium truncate">{task.title}</p>
-                            {task.projects?.name && (
-                              <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
-                            )}
-                          </a>
-                        ))}
+                      <div className="absolute top-full left-0 z-20 mt-1 w-56 rounded-md border border-border bg-background p-2 shadow-lg">
+                        {dayTasks.map((task, i) => {
+                          const taskHref = task.project_id && task.projects?.client_id
+                            ? `/admin/clients/${task.projects.client_id}/projects/${task.project_id}/tasks/${task.id}`
+                            : undefined
+
+                          const linkClasses = cn(
+                            'block rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                            i > 0 && 'mt-1 border-t border-border pt-1'
+                          )
+
+                          return (
+                            <div key={task.id} className={linkClasses}>
+                              {taskHref ? (
+                                <Link
+                                  href={taskHref}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-xs font-medium truncate hover:underline"
+                                >
+                                  {task.title}
+                                </Link>
+                              ) : (
+                                <p className="text-xs font-medium truncate">{task.title}</p>
+                              )}
+                              {task.projects?.name && (
+                                <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </>
@@ -284,11 +297,11 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
 
   return (
     <div className="space-y-4">
-      {overdueTasks.length > 0 && (
+      {(overdueTasks ?? []).length > 0 && (
         <section className="rounded-lg border border-l-4 border-l-red-500 border-border p-4">
           <h3 className="mb-2 text-sm font-semibold text-red-600">Overdue</h3>
           <ul className="space-y-2">
-            {overdueTasks.slice(0, 5).map((task) => {
+            {(overdueTasks ?? []).slice(0, 5).map((task) => {
               return (
                 <li key={task.id} className="text-sm">
                   {renderTaskLink(task)}
@@ -299,11 +312,11 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
         </section>
       )}
       
-      {todayTasks.length > 0 && (
+      {(todayTasks ?? []).length > 0 && (
         <section className="rounded-lg border border-l-4 border-l-yellow-500 border-border p-4">
           <h3 className="mb-2 text-sm font-semibold text-yellow-600">Today</h3>
           <ul className="space-y-2">
-            {todayTasks.slice(0, 5).map((task) => {
+            {(todayTasks ?? []).slice(0, 5).map((task) => {
               return (
                 <li key={task.id} className="text-sm">
                   {renderTaskLink(task)}

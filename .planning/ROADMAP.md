@@ -60,7 +60,7 @@
   3. Calendar page has no horizontal overflow or layout issues at both 375px mobile and desktop widths
   4. Team member "My Tasks" view shows filter buttons for "Today", "This week", and "This month"
   5. Selecting a time filter correctly updates the displayed task list to show only matching tasks
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 ### Phase 11: Client Portal Upgrade
@@ -97,7 +97,7 @@
 |-------|-----------|----------------|--------|-----------|
 | 8. Infrastructure & DB Migrations | v1.1 | 4/5 | Complete    | 2026-04-05 |
 | 9. Task Management & Kanban | v1.1 | 0/TBD | Not started | - |
-| 10. Calendar Redesign & My Tasks | v1.1 | 0/TBD | Not started | - |
+| 10. Calendar Redesign & My Tasks | v1.1 | 2/2 | Planned | - |
 | 11. Client Portal Upgrade | v1.1 | 0/TBD | Not started | - |
 | 12. Brand Redesign & Mobile Polish | v1.1 | 0/TBD | Not started | - |
 

@@ -26,13 +26,22 @@ Admins can create and manage social media content tasks, assign them to team mem
 - [x] Supabase RLS enforces role-based data access — Phase 03
 - [x] Admin authentication via email + password — Phase 01
 - [x] Client portal is accessible via unique slug URL (no login) — Phase 04
-- [x] Client portal shows active project with Kanban, Calendar, and Timeline views — Phase 04
+- [x] Client portal shows active project with Kanban, Calendar views — Phase 04
 - [x] Client can view task details (caption, design file, posting date, status) — Phase 04
 - [x] UI/UX polish across admin, team, and portal surfaces — Phase 05/06
+- [x] New brand theme: cream/beige backgrounds, warm gradients, colorful accent cards — Phase 12
+- [x] Username support for team members on invite registration — Phase 08
+- [x] Client description field and blocked (is_active) clients — Phase 08/11
+- [x] Inline Kanban card editing via dialog overlay — Phase 09
+- [x] Task detail dialog with image preview fixes — Phase 09
+- [x] Calendar redesigned with square day blocks — Phase 10
+- [x] My Tasks filters (Today, This week, This month) — Phase 10
+- [x] Mobile optimization: hamburger on left, responsive layouts — Phase 12
 
 ### Active
 
 - [ ] Team members can comment on tasks
+- [ ] Review/approval workflow (client can request revisions)
 
 ### Out of Scope
 
@@ -49,16 +58,17 @@ Admins can create and manage social media content tasks, assign them to team mem
 
 - Monthly social media content projects — each project = one month for one client
 - Tasks = individual social media posts with caption, design file, posting date
-- Clients have three viewing modes: Kanban, Calendar (week + month), Timeline
+- Clients have viewing modes: Kanban, Calendar (week + month)
 - Status indicators: todo, in_progress, done, overdue (with animated pulsing dots)
 - Briefing text supports clickable links
 - Caption field always has a "Copy" button
 - Design file always has a "Download" button
+- **v1.1 shipped:** New cream/beige brand aesthetic, inline Kanban editing, username support, blocked clients, calendar redesign, My Tasks filters
 
 ## Constraints
 
 - **Tech stack**: Next.js 15 (App Router + API Routes + Server Actions), Tailwind CSS, shadcn/ui, Supabase (DB + Auth + Storage), Vercel hosting — mandated for consistency
-- **Design**: Black and white only, Poppins font, no shadows, no gradients, no decorative elements, minimal rounded corners (max 8px) — strict brand guideline
+- **Design**: Cream/beige (#FAF8F0) backgrounds, warm gradients, colorful accent cards, bold modern typography — premium brand aesthetic
 - **Mobile**: Must work on 375px width screens — agency clients access via phone
 - **Auth**: Supabase Auth with RLS — security requirement for team member data isolation
 - **Budget**: No paid third-party services beyond Supabase and Vercel — keep costs minimal
@@ -66,85 +76,22 @@ Admins can create and manage social media content tasks, assign them to team mem
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
-|----------|-----------|--------|
+|----------|-----------|---------|
 | Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | ✓ Validated — fully operational |
-| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | ✓ Validated in Phase 04 — portal working |
-| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | ✓ Validated in Phase 02 — implemented |
-| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | ✓ Validated in Phase 03 — in-app only |
-| Tailwind CSS 4 + shadcn/ui | Design system with black/white brand, Poppins font | ✓ Validated in Phase 05/06 — consistent UI |
+| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | ✓ Validated — portal working |
+| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | ✓ Validated — implemented |
+| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | ✓ Validated — in-app only |
+| Tailwind CSS 4 + shadcn/ui | Design system — cream/beige premium aesthetic | ✓ Validated — v1.1 shipped |
 | Kanban as default project view | More actionable than timeline for monthly content | ✓ Validated — team uses Kanban daily |
-| Client color/logo branding | Per-client visual identity in portal | ✓ Validated in Phase 06 — enhances client experience |
+| Client color/logo branding | Per-client visual identity in portal | ✓ Validated — enhances client experience |
+| Username @handle system | Social-media style usernames for task assignments | ✓ Validated in Phase 08 |
+| Inline Kanban editing via dialog | Click card to edit without navigation | ✓ Validated in Phase 09 |
+| Cream/beige brand aesthetic | Premium warm design replacing black-and-white | ✓ Validated in Phase 12 |
 
-## Evolution
+## Current Milestone: v1.2 (Planned)
 
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd:transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd:complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
-
-## Current Milestone: v1.1 Frontend Redesign & New Features
-
-**Goal:** Complete frontend redesign with premium brand aesthetic, improved task workflow, and new features including usernames, task comments, calendar overhaul, and mobile optimization.
-
-**Target features:**
-- New brand theme: cream/beige backgrounds, colorful gradient cards, warm typography (replaces black-and-white)
-- Dashboard redesign: consistent card alignment, proper copy sizing, improved metric cards
-- Kanban board for tasks (admin-editable inline) with proper card editing
-- Calendar overhaul: square day blocks, no overflow, mobile-friendly
-- My Tasks filters: Today, This week, This month
-- Task comments for team interaction
-- Username selection on first login (display name for assignments)
-- Client portal upgrade: block elements, client description field
-- Mobile optimization: hamburger left, no overlaps, responsive sidebar
-- Image previewer fix: proper preview mode, reload stability
-- Sidebar redesign: remove large square blocks, modern navigation
-
-## Constraints
-
-- **Tech stack**: Next.js 15 (App Router + API Routes + Server Actions), Tailwind CSS, shadcn/ui, Supabase (DB + Auth + Storage), Vercel hosting — mandated for consistency
-- **Design**: New brand direction — cream/beige (#FAF8F0), warm gradients, colorful accent cards, bold modern typography — see design reference screenshots
-- **Mobile**: Must work on 375px width screens — agency clients access via phone
-- **Auth**: Supabase Auth with RLS — security requirement for team member data isolation
-- **Budget**: No paid third-party services beyond Supabase and Vercel — keep costs minimal
-
-## Key Decisions
-
-| Decision | Rationale | Outcome |
-|----------|-----------|--------|
-| Supabase for DB + Auth + Storage | Single service covers all backend needs, generous free tier, excellent Next.js integration | ✓ Validated — fully operational |
-| Client portal via slug (no auth) | Reduces friction for clients, no password management needed | ✓ Validated in Phase 04 — portal working |
-| Team member invite tokens | One-time use tokens prevent unauthorized access without email service | ✓ Validated in Phase 02 — implemented |
-| No email notifications | Avoids email service dependency for MVP; in-app notifications sufficient | ✓ Validated in Phase 03 — in-app only |
-| Tailwind CSS 4 + shadcn/ui | Design system — migrated from black/white to warm premium aesthetic | ✓ Validated in Phase 05/06 — consistent UI |
-| Kanban as default project view | More actionable than timeline for monthly content | ✓ Validated — team uses Kanban daily |
-| Client color/logo branding | Per-client visual identity in portal | ✓ Validated in Phase 06 — enhances client experience |
-
-## Evolution
-
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd:transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd:complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
+**Status:** Planning next milestone
 
 ---
-*Last updated: 2026-04-05 after v1.1 Frontend Redesign milestone*
+
+*Last updated: 2026-04-06 after v1.1 milestone completion*

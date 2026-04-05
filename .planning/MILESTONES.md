@@ -1,5 +1,19 @@
 # Milestones
 
+## v1.1 Frontend Redesign & New Features (Shipped: 2026-04-05)
+
+**Phases completed:** 5 phases, 11 plans, 25 tasks
+
+**Key accomplishments:**
+
+- Inline Kanban card editing via Dialog overlay, expanded task row dropdown hit area, and posting_time support with database column and form pickers
+- TaskDetailDialog component with all task fields, image preview fixed with proper sizing, and Kanban card integration with view-then-edit flow
+- Plan:
+- Plan:
+- Cream/beige (#FAF8F0) brand aesthetic applied application-wide with warm gradient metric cards and modern sidebar navigation
+
+---
+
 ## v1.0 MVP (Shipped: 2026-04-05)
 
 **Phases completed:** 7 phases, 40 plans, 72 tasks

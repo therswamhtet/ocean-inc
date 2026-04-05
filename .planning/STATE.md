@@ -1,64 +1,44 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Frontend Redesign & New Features
-status: verifying
-stopped_at: Phase 12 context gathered — auto-selected decisions for brand redesign & mobile polish
-last_updated: "2026-04-05T17:47:33.149Z"
-last_activity: 2026-04-05
+milestone: v1.2
+milestone_name: Planned
+status: planning
+last_updated: "2026-04-06T00:00:00Z"
+last_activity: 2026-04-06
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-05)
+See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Admins can create and manage social media content tasks, assign them to team members, and give clients a clean read-only view of their project progress — all in one place.
-**Current focus:** Phase 12 — brand-redesign-mobile-polish
+**Current focus:** Planning next milestone (v1.2)
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-05
-
-Progress: [░░░░░░░░░░] 0%
+Milestone: v1.1 complete
+Status: Ready for next milestone planning
+Last activity: 2026-04-06
 
 ## Performance Metrics
 
-**Velocity (v1.0 historical):**
+**Velocity (cumulative):**
 
-- Total plans completed: 52
-- Average duration: 5.7 min
-- Total execution time: 2.2 hours
-
-**By Phase:**
-
-| Phase | Plans | Status |
-|-------|-------|--------|
-| 1-7 (v1.0) | 40 | Complete |
-| 8 | TBD | Not started |
-| 9 | TBD | Not started |
-| 10 | 2/2 | Complete |
-| 11 | TBD | Not started |
-| 12 | TBD | Not started |
-
-*Updated after each plan completion*
+- Total plans completed (v1.0 + v1.1): 63
+- v1.0: 40 plans
+- v1.1: 23 plans
 
 ## Accumulated Context
 
 ### Decisions
-
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
 
 - [v1.1]: Phase 8 first — database migrations (username, client description, client active flag) unblock all subsequent feature work
 - [v1.1]: Brand redesign (Phase 12) deferred to last to avoid merge conflicts with feature work in Phases 9-11
@@ -66,15 +46,14 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Plan v1.2 milestone
 
 ### Blockers/Concerns
 
-- Comments RLS policy (migration 002) was designed but never tested with application code. Verify if comments features are touched during v1.1.
-- Calendar type boundary: extracting calendar-utils from `lib/portal/` to shared `lib/` requires type adaptation between `PortalTask` and `TaskRow`. Address during Phase 10 planning.
+- Phase 10 missing VERIFICATION.md — 6 requirements (CAL-01, CAL-02, CAL-03, CAL-04, TASKS-01, TASKS-02) were not formally verified — tech debt
 
 ## Session Continuity
 
-Last session: 2026-04-05T17:12:47.156Z
-Stopped at: Phase 12 context gathered — auto-selected decisions for brand redesign & mobile polish
-Resume file: .planning/phases/12-brand-redesign-mobile-polish/12-CONTEXT.md
+Last session: 2026-04-06T00:00:00.000Z
+Stopped at: Milestone v1.1 completed
+Next: Start v1.2 with /gsd-new-milestone

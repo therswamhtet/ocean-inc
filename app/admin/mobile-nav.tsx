@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Link from 'next/link'
 
 import { AdminSidebar } from '@/app/admin/sidebar'

@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { Mail, Calendar, UserPlus, User } from 'lucide-react'
 
 import { InviteSection } from './invite-section'
 import { createClient } from '@/lib/supabase/server'
@@ -40,7 +41,8 @@ export default async function TeamPage() {
     <div className="space-y-6">
       <section className="space-y-2 rounded-lg border border-border bg-white p-5">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Team Members</p>
-        <div>
+        <div className="flex items-center gap-2">
+          <UserPlus className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-2xl font-semibold">Team Members</h2>
           <p className="text-sm text-muted-foreground">
             Review who is on the team, when they joined, and how many tasks are currently assigned.

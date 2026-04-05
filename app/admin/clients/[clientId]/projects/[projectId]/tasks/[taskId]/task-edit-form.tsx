@@ -36,7 +36,6 @@ const taskSchema = z.object({
   briefing: z.string().optional(),
   caption: z.string().optional(),
   postingDate: z.string().optional(),
-  dueDate: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
   designFilePath: z.string().optional(),
@@ -53,7 +52,7 @@ type TaskEditFormProps = {
     briefing: string | null
     caption: string | null
     postingDate: string | null
-    dueDate: string | null
+    dueDate?: string | null
     deadline: string | null
     status: 'todo' | 'in_progress' | 'done'
     designFilePath: string | null
@@ -102,7 +101,6 @@ export function TaskEditForm({
       briefing: task.briefing ?? '',
       caption: task.caption ?? '',
       postingDate: task.postingDate ?? '',
-      dueDate: task.dueDate ?? '',
       deadline: task.deadline ?? '',
       status: task.status,
       designFilePath: task.designFilePath ?? '',
@@ -176,12 +174,6 @@ export function TaskEditForm({
             <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
             <Input id="postingDate" type="date" {...register('postingDate')} />
             {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="dueDate">{LABELS.task.dueDate}</FieldLabel>
-            <Input id="dueDate" type="date" {...register('dueDate')} />
-            {errors.dueDate ? <FieldError>{errors.dueDate.message}</FieldError> : null}
           </Field>
 
           <Field>
@@ -314,7 +306,7 @@ export function TaskEditForm({
         </div>
       </form>
 
-      <aside className="space-y-5 rounded-lg border border-border p-5">
+      <aside className="self-start space-y-5 rounded-lg border border-border p-5">
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Assignment</p>
           <h2 className="text-lg font-semibold text-foreground">Team member</h2>

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { List, LayoutGrid } from 'lucide-react'
+
 import { KanbanBoard } from '@/components/admin/kanban-board'
 import { TaskCreateForm } from '@/components/admin/task-create-form'
 import { TaskList } from '@/components/admin/task-list'
@@ -57,7 +59,17 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
                   : 'border border-transparent text-foreground hover:bg-muted/40'
               )}
             >
-              {nextView === 'list' ? 'List' : 'Kanban'}
+              {nextView === 'list' ? (
+                <span className="flex items-center gap-1.5">
+                  <List className="h-4 w-4" />
+                  List
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <LayoutGrid className="h-4 w-4" />
+                  Kanban
+                </span>
+              )}
             </button>
           ))}
         </div>

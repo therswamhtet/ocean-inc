@@ -68,3 +68,57 @@ export async function deleteClientAction(clientId: string) {
   revalidatePath('/admin/clients')
   redirect('/admin/clients?deleted=1')
 }
+
+type Client = { id: string; name: string; color: string }
+type Project = { id: string; name: string; month: string; year: number }
+
+export async function getClientsAction(): Promise<
+  { success: true; clients: Client[] } | { success: false; error: string }
+> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data, error } = await supabase
+    .from('clients')
+    .select('id, name, color')
+    .order('name', { ascending: true })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, clients: data ?? [] }
+}
+
+export async function getProjectsAction(
+  clientId: string,
+): Promise<{ success: true; projects: Project[] } | { success: false; error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, name, month, year')
+    .eq('client_id', clientId)
+    .eq('status', 'active')
+    .order('year', { ascending: false })
+    .order('month', { ascending: false })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, projects: data ?? [] }
+}

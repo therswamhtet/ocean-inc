@@ -23,6 +23,7 @@ export type PortalClient = {
   id: string
   name: string
   slug: string
+  color: string
 }
 
 export type PortalData = {

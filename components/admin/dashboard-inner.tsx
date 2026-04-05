@@ -289,9 +289,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
                     {isExpanded && dayTasks.length > 0 && (
                       <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border bg-background p-2 shadow-lg">
                         {dayTasks.map((task, i) => {
-                          const taskHref = task.project_id && task.projects?.client_id
-                            ? `/admin/clients/${task.projects.client_id}/projects/${task.project_id}/tasks/${task.id}`
-                            : undefined
+                          const taskHref = `/admin/tasks/${task.id}`
 
                           return (
                             <div key={task.id} className={cn(

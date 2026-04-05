@@ -86,6 +86,54 @@
 - [x] **UI-05**: Mobile responsive — all pages functional at 375px width
 - [x] **UI-06**: Overdue detection: `posting_date < today AND status != 'done'`
 
+### UI/UX Refinement (Phase 6)
+
+**Dashboard Calendar View:**
+- [x] **UI-07**: Dashboard calendar displays properly on mobile with readable sizing
+- [x] **UI-08**: Dashboard calendar "upcoming" section removed
+- [x] **UI-09**: Dashboard calendar tasks are clickable to view details
+- [x] **UI-10**: Dashboard calendar responsiveness bug fixed
+
+**Sidebar:**
+- [x] **UI-11**: New "Tasks" tab added to sidebar alongside Dashboard, Client, Team Member
+- [x] **UI-12**: Tasks tab shows today's tasks, upcoming tasks, and due tasks (categorized)
+- [x] **UI-13**: Mobile sidebar moved from right to left side
+- [x] **UI-14**: Notification icon removed from "Orca Digital Management Panel" header
+
+**Client Section:**
+- [x] **UI-15**: Client color differentiation system implemented
+- [x] **UI-16**: Client logo upload functionality enabled
+- [x] **UI-17**: Color markers display next to client logos in client view
+
+**Views:**
+- [x] **UI-18**: Timeline view removed entirely (only Kanban and Calendar remain)
+- [x] **UI-19**: Kanban set as default view when entering a project
+
+**Icons:**
+- [x] **UI-20**: Appropriate icons added throughout interface (less text-heavy)
+- [x] **UI-21**: Icons added for project names, sections, and navigation
+- [x] **UI-22**: Consistent icon usage across all surfaces
+
+**Create Project:**
+- [x] **UI-23**: Create Project button visual bug fixed (proportions corrected)
+- [x] **UI-24**: Create Project changed from dropdown to modal
+
+**Task Creation:**
+- [x] **UI-25**: Task creation date fields simplified: remove "due date", keep only "posting date" and "deadline"
+- [x] **UI-26**: Task creation modal styling refined
+
+**Task Detail:**
+- [x] **UI-27**: Task detail sidebar empty space below assigned team members fixed
+
+**Team Members:**
+- [x] **UI-28**: Team member UI/UX enhanced for edit and invite functions
+- [x] **UI-29**: "Generate" and "Generate Invite Link" buttons consolidated into single "Generate" button with icon
+
+**Branding:**
+- [x] **UI-30**: "Orca Digital Admin" changed to "Orca Digital"
+- [x] **UI-31**: Poppins bold font applied to branding
+- [x] **UI-32**: "Management Panel" text removed from header
+
 ## v2 Requirements
 
 ### Content Review/Approval
@@ -179,12 +227,38 @@
 | UI-04 | Phase 1 | Complete |
 | UI-05 | Phase 1 | Complete |
 | UI-06 | Phase 2 | Complete |
+| UI-07 | Phase 6 | Complete |
+| UI-08 | Phase 6 | Complete |
+| UI-09 | Phase 6 | Complete |
+| UI-10 | Phase 6 | Complete |
+| UI-11 | Phase 6 | Complete |
+| UI-12 | Phase 6 | Complete |
+| UI-13 | Phase 6 | Complete |
+| UI-14 | Phase 6 | Complete |
+| UI-15 | Phase 6 | Complete |
+| UI-16 | Phase 6 | Complete |
+| UI-17 | Phase 6 | Complete |
+| UI-18 | Phase 6 | Complete |
+| UI-19 | Phase 6 | Complete |
+| UI-20 | Phase 6 | Complete |
+| UI-21 | Phase 6 | Complete |
+| UI-22 | Phase 6 | Complete |
+| UI-23 | Phase 6 | Complete |
+| UI-24 | Phase 6 | Complete |
+| UI-25 | Phase 6 | Complete |
+| UI-26 | Phase 6 | Complete |
+| UI-27 | Phase 6 | Complete |
+| UI-28 | Phase 6 | Complete |
+| UI-29 | Phase 6 | Complete |
+| UI-30 | Phase 6 | Complete |
+| UI-31 | Phase 6 | Complete |
+| UI-32 | Phase 6 | Complete |
 
 **Coverage:**
-- v1 requirements: 58 total
-- Mapped to phases: 58
+- v1 requirements: 90 total
+- Mapped to phases: 90
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-04 after research synthesis*
+*Last updated: 2026-04-05 after Phase 6 addition*

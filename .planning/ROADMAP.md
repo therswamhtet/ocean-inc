@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Team Workflow — Task Dashboard and Editing** - Team member task dashboard, caption/file editing, status management, and in-app notifications
 - [x] **Phase 4: Client Portal — Public Read-Only Views** - Slug-based portal with Kanban, Calendar, and Timeline views, task detail modal, and secure file downloads
 - [x] **Phase 5: UI/UX Polish and Refinement** - Modal sizing, share link fixes, terminology changes, mobile nav, calendar view polish, task dashboard redesign, card redesign, and bug fixes (completed 2026-04-04)
+- [x] **Phase 6: Comprehensive UI/UX Refinement** - Dashboard calendar improvements, sidebar Tasks tab, client color branding, view simplification, icon integration, modal redesigns, task field updates, and team management UI polish (completed 2026-04-05)
 
 ## Phase Details
 
@@ -150,3 +151,37 @@ Plans:
 - [x] 05.1-03: Task modal/form polish (sizing, assignee field, button sizing) (wave 2)
 - [x] 05.1-04: Share/invite functionality fixes (wave 2)
 - [x] 05.1-05: Dashboard enhancements (calendar widget, task sections, notification cleanup) (wave 2)
+
+### Phase 6: Comprehensive UI/UX Refinement
+
+**Goal:** Deliver comprehensive UI/UX improvements across dashboard, sidebar, client branding, views, icons, modals, task fields, and team management — making the interface more intuitive, visually consistent, and mobile-friendly
+**Requirements:** UI-07 through UI-26 (user-provided comprehensive refinements)
+**Depends on:** Phase 05.1
+**Success Criteria** (what must be TRUE):
+  1. Dashboard calendar view displays properly on mobile with clickable tasks, no "upcoming" section, and fixed responsiveness
+  2. Sidebar includes new "Tasks" tab with categorized task lists (today, upcoming, due) and mobile sidebar positioned on left
+  3. Clients display with color differentiation and logo uploads; color markers visible next to logos in client view
+  4. Project views reduced to Kanban and Calendar only; Kanban is default view when entering a project
+  5. Interface uses consistent icons throughout navigation, projects, and sections (less text-heavy)
+  6. Create Project uses modal (not dropdown) with fixed visual proportions
+  7. Task creation shows only "posting date" and "deadline" fields; modal styling refined
+  8. Task detail sidebar displays properly without empty space below assigned team members
+  9. Team member management has enhanced UI/UX for edit/invite with consolidated "Generate" button
+  10. Branding updated to "Orca Digital" with Poppins bold font; "Management Panel" text removed
+**Plans:** 5/5 plans complete
+**UI hint**: yes
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 05.1 → 6
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Foundation — Database, Auth, and Security | 5/5 | Complete | 2006-04-04 |
+| 2. Admin Core — Client, Project, and Task Management | 8/8 | Complete | 2006-04-04 |
+| 3. Team Workflow — Task Dashboard and Editing | 5/5 | Complete | 2006-04-04 |
+| 4. Client Portal — Public Read-Only Views | 5/5 | Complete | 2006-04-04 |
+| 5. UI/UX Polish and Refinement | 4/5 | In Progress |  |
+| 05.1. UI/UX Polish phase for urgent refinement | 5/5 | Complete |  |
+| 6. Comprehensive UI/UX Refinement | 5/5 | Complete   | 2026-04-05 |

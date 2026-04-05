@@ -147,7 +147,7 @@ export default async function ClientProjectsPage({
                   className="min-h-[60px] text-sm"
                 />
                 <div className="mt-1 flex justify-end">
-                  <Button type="submit" variant="secondary" size="sm">Save description</Button>
+                  <Button type="submit" variant="outline" size="sm">Save description</Button>
                 </div>
               </form>
             </div>

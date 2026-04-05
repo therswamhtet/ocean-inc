@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format } from 'date-fns'
-import { Download, LoaderCircle, Copy, Link as LinkIcon } from 'lucide-react'
+import { Download, LoaderCircle, Copy, Pencil } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { LABELS } from '@/lib/labels'
@@ -21,6 +21,7 @@ type TaskDetailDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   task: TaskRow | null
+  onEdit?: () => void
 }
 
 function isImageFile(path: string | null) {
@@ -46,7 +47,7 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
-export function TaskDetailDialog({ open, onOpenChange, task }: TaskDetailDialogProps) {
+export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetailDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
@@ -113,8 +114,14 @@ export function TaskDetailDialog({ open, onOpenChange, task }: TaskDetailDialogP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl">{task.title}</DialogTitle>
+          {onEdit && (
+            <Button type="button" variant="outline" size="sm" onClick={onEdit}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">

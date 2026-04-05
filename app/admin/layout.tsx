@@ -1,13 +1,9 @@
-import { Bell } from 'lucide-react'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { logout } from '@/app/login/actions'
 import { MobileNav } from '@/app/admin/mobile-nav'
 import { AdminSidebar } from '@/app/admin/sidebar'
-import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
-import { LABELS } from '@/lib/labels'
 
 export default async function AdminLayout({
   children,
@@ -21,37 +17,11 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
-  // Query unread notification count for the bell badge
-  const { count: unreadCount } = await supabase
-    .from('notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('read', false)
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-white lg:flex lg:flex-col">
         <div className="border-b border-border px-6 py-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-              <h1 className="mt-2 text-lg font-semibold">{LABELS.common.adminPanel}</h1>
-            </div>
-            <Link
-              href="/admin/notifications"
-              className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-foreground transition hover:bg-muted/30"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-              {(unreadCount ?? 0) > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center px-1 text-[10px]"
-                >
-                  {unreadCount}
-                </Badge>
-              )}
-            </Link>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
         </div>
 
         <div className="flex-1 px-4 py-5">
@@ -71,12 +41,9 @@ export default async function AdminLayout({
       <div className="lg:pl-60">
         <header className="sticky top-0 z-30 border-b border-border bg-white lg:hidden">
           <div className="flex items-center justify-between px-4 py-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-              <h1 className="text-base font-semibold">Admin</h1>
-            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
 
-            <MobileNav email={user.email ?? ''} unreadCount={unreadCount ?? 0} />
+            <MobileNav email={user.email ?? ''} />
           </div>
         </header>
 

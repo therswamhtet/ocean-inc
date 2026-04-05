@@ -15,7 +15,19 @@ export function ShareLinkButton({ slug }: { slug: string }) {
 
   function handleCopy() {
     if (url) {
-      void navigator.clipboard.writeText(url)
+      try {
+        void navigator.clipboard.writeText(url)
+      } catch {
+        // Fallback for environments where clipboard API is restricted
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
       setCopied(true)
     }
   }

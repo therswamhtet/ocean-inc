@@ -10,6 +10,7 @@ import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { QuickTaskDialog } from '@/components/admin/quick-task-dialog'
 
 type TaskRecord = {
   id: string
@@ -255,6 +256,7 @@ export default function AllTasks({ today, upcoming, overdue }: AllTasksProps) {
         <p className="text-sm text-muted-foreground">
           View tasks organized by urgency — today, upcoming, and overdue.
         </p>
+        <QuickTaskDialog />
       </div>
 
       {/* Compact Task Sections */}

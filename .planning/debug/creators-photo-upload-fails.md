@@ -1,16 +1,16 @@
 ---
-status: awaiting_human_verify
+status: investigating
 trigger: Photo uploads in the Creators section fail with "Upload failed. Please try again." error. The photo record is created successfully in the database, but the actual file upload to storage fails.
 created: 2026-04-05T00:00:00Z
-updated: 2026-04-05T00:12:00Z
+updated: 2026-04-05T14:00:00Z
 ---
 
 ## Current Focus
 
-hypothesis: Root cause identified - Storage policy path mismatch for temp uploads AND missing error logging
-test: Fix design-file-uploader.tsx to add proper error logging and handle policy constraints
-expecting: Uploads will show actual error messages; fix will address the policy path issue
-next_action: Update design-file-uploader.tsx with better error handling
+hypothesis: The new storage policy migration has a syntax error causing PostgreSQL error 42P17 (invalid object definition) - likely circular reference or invalid policy syntax
+test: Review migration 010_fix_team_storage_temp_uploads.sql for syntax errors
+expecting: Find syntax issue in the policy definition that causes 42P17 error
+next_action: Read the migration file and check for circular references or invalid syntax
 
 ## Symptoms
 
@@ -25,6 +25,10 @@ reproduction:
 timeline: Upload feature exists but never worked properly - failing during file upload to storage
 
 ## Eliminated
+
+- hypothesis: The storage policy syntax is correct
+  evidence: PostgreSQL error 42P17 indicates invalid object definition - the policy references `storage.objects.name` within a policy ON storage.objects, creating circular reference
+  timestamp: 2026-04-05T14:01:00Z
 
 ## Evidence
 
@@ -57,6 +61,11 @@ timeline: Upload feature exists but never worked properly - failing during file 
   checked: No "Creators" section or photo table exists in codebase
   found: The issue description mentions "Creators" section but no such section exists. Only design-file-uploader.tsx has matching error message.
   implication: User may be referring to design-file-uploader, OR this is a feature request for a new Creators photo upload feature
+
+- timestamp: 2026-04-05T14:01:00Z
+  checked: Migration file 010_fix_team_storage_temp_uploads.sql
+  found: Line 20 references `storage.objects.name` within a policy ON storage.objects, and line 24 uses `storage.objects.name` in regex check. This creates a circular reference causing PostgreSQL error 42P17 (invalid object definition).
+  implication: The policy cannot reference its own table in the WITH CHECK clause. Need to use column name directly without table qualification.
 
 ## Resolution
 

@@ -196,7 +196,7 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => !newOpen && handleClose()}>
+    <Dialog open={open} onOpenChange={(newOpen) => setOpen(newOpen)}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />

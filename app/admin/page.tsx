@@ -41,13 +41,13 @@ export default async function AdminDashboard() {
       .lt('posting_date', monthEnd),
     supabase
       .from('tasks')
-      .select('id, title, posting_date, status, projects(name)')
+      .select('id, project_id, title, posting_date, status, projects(client_id, name)')
       .lt('posting_date', today)
       .neq('status', 'done')
       .limit(5),
     supabase
       .from('tasks')
-      .select('id, title, posting_date, status, projects(name)')
+      .select('id, project_id, title, posting_date, status, projects(client_id, name)')
       .gte('posting_date', todayStart)
       .lte('posting_date', todayEnd)
       .limit(5),

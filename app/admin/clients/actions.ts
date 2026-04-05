@@ -71,6 +71,7 @@ export async function deleteClientAction(clientId: string) {
 
 type Client = { id: string; name: string; color: string }
 type Project = { id: string; name: string; month: string; year: number }
+type TeamMember = { id: string; name: string; email: string }
 
 export async function getClientsAction(): Promise<
   { success: true; clients: Client[] } | { success: false; error: string }
@@ -81,7 +82,7 @@ export async function getClientsAction(): Promise<
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    return { success: false, error: 'Not authenticated' }
   }
 
   const { data, error } = await supabase
@@ -105,7 +106,7 @@ export async function getProjectsAction(
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    return { success: false, error: 'Not authenticated' }
   }
 
   const { data, error } = await supabase
@@ -121,4 +122,28 @@ export async function getProjectsAction(
   }
 
   return { success: true, projects: data ?? [] }
+}
+
+export async function getTeamMembersAction(): Promise<
+  { success: true; teamMembers: TeamMember[] } | { success: false; error: string }
+> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('id, name, email')
+    .order('name', { ascending: true })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, teamMembers: data ?? [] }
 }

@@ -247,20 +247,14 @@ export default function AllTasks({ today, upcoming, overdue }: AllTasksProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="space-y-1">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          {LABELS.task.plural}
-        </p>
-        <h2 className="text-2xl font-semibold text-foreground">All Tasks</h2>
-        <p className="text-sm text-muted-foreground">
-          View tasks organized by urgency — today, upcoming, and overdue.
-        </p>
-      </div>
-
-      {/* Action Bar */}
-      <div className="flex items-center justify-between">
-        <div />
+      {/* Header Bar - matches clients page pattern */}
+      <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold text-foreground">All Tasks</h2>
+          <p className="text-sm text-muted-foreground">
+            View tasks organized by urgency — today, upcoming, and overdue.
+          </p>
+        </div>
         <QuickTaskDialog />
       </div>
 

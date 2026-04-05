@@ -78,7 +78,30 @@ export function DesignFileUploader({ projectId, onUploadComplete, taskId }: Desi
           setFilePath(path)
           onUploadComplete(path)
         } else {
-          setError('Upload failed. Please try again.')
+          // Log the actual error response for debugging
+          let errorMessage = 'Upload failed. Please try again.'
+          try {
+            const response = JSON.parse(xhr.responseText)
+            console.error('[DesignFileUploader] Upload failed:', {
+              status: xhr.status,
+              statusText: xhr.statusText,
+              response: response,
+              path: path,
+            })
+            if (response.message) {
+              errorMessage = `Upload failed: ${response.message}`
+            } else if (response.error) {
+              errorMessage = `Upload failed: ${response.error}`
+            }
+          } catch {
+            console.error('[DesignFileUploader] Upload failed:', {
+              status: xhr.status,
+              statusText: xhr.statusText,
+              response: xhr.responseText,
+              path: path,
+            })
+          }
+          setError(errorMessage)
         }
 
         resolve()

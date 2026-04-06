@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { ImageUp, LoaderCircle, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 type DesignFileUploaderProps = {
@@ -35,86 +34,49 @@ export function DesignFileUploader({ projectId, onUploadComplete, taskId }: Desi
       return
     }
 
-    const supabase = createClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    const token = session?.access_token
-
-    if (!token) {
-      setError('You must be signed in to upload files.')
-      return
-    }
-
-    const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
-    const tempId = crypto.randomUUID()
-    const path = taskId ? `${projectId}/${taskId}/${safeName}` : `${projectId}/temp/${tempId}/${safeName}`
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/design-files/${path}`
+    const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
+    const fileName = `${crypto.randomUUID()}.${ext}`
+    const path = taskId ? `${projectId}/${taskId}/${fileName}` : `${projectId}/temp/${crypto.randomUUID()}/${fileName}`
 
     setUploading(true)
     setProgress(0)
     setError(null)
     setFileName(file.name)
 
-    await new Promise<void>((resolve) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', url)
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-      xhr.setRequestHeader('apikey', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '')
-      xhr.setRequestHeader('x-upsert', 'true')
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('path', path)
 
-      xhr.upload.onprogress = (event) => {
-        if (!event.lengthComputable) {
-          return
-        }
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      })
 
-        setProgress(Math.round((event.loaded / event.total) * 100))
+      setUploading(false)
+      setProgress(100)
+
+      if (res.ok) {
+        const data = await res.json()
+        setFilePath(path)
+        onUploadComplete(data.path)
+      } else {
+        const body = await res.json().catch(() => ({}))
+        console.error('[DesignFileUploader] Upload failed:', {
+          status: res.status,
+          error: body,
+          path,
+        })
+        setError(`Upload failed: ${body.error ?? 'Unknown error'}`)
       }
-
-      xhr.onload = () => {
-        setUploading(false)
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setFilePath(path)
-          onUploadComplete(path)
-        } else {
-          // Log the actual error response for debugging
-          let errorMessage = 'Upload failed. Please try again.'
-          try {
-            const response = JSON.parse(xhr.responseText)
-            console.error('[DesignFileUploader] Upload failed:', {
-              status: xhr.status,
-              statusText: xhr.statusText,
-              response: response,
-              path: path,
-            })
-            if (response.message) {
-              errorMessage = `Upload failed: ${response.message}`
-            } else if (response.error) {
-              errorMessage = `Upload failed: ${response.error}`
-            }
-          } catch {
-            console.error('[DesignFileUploader] Upload failed:', {
-              status: xhr.status,
-              statusText: xhr.statusText,
-              response: xhr.responseText,
-              path: path,
-            })
-          }
-          setError(errorMessage)
-        }
-
-        resolve()
-      }
-
-      xhr.onerror = () => {
-        setUploading(false)
-        setError('Upload failed. Please check your connection and try again.')
-        resolve()
-      }
-
-      xhr.send(file)
-    })
+    } catch (error) {
+      setUploading(false)
+      console.error('[DesignFileUploader] Upload failed:', {
+        error,
+        path,
+      })
+      setError(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   async function handleFile(file: File | null) {

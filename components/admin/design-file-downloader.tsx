@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { Download, LoaderCircle } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 
 type DesignFileDownloaderProps = {
@@ -32,23 +31,21 @@ export default function DesignFileDownloader({ filePath, fileName }: DesignFileD
   }
 
   return (
-    <div className="overflow-hidden">
-      <Button
+    <div className="w-full overflow-hidden">
+      <button
         type="button"
-        variant="outline"
-        size="sm"
         onClick={download}
         disabled={isPending}
-        className="w-full justify-start gap-2 overflow-hidden"
+        className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground transition hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0"
         title={fileName}
       >
         {isPending ? (
-          <LoaderCircle className="h-4 w-4 animate-spin shrink-0" />
+          <LoaderCircle className="h-4 w-4 shrink-0 animate-spin" />
         ) : (
           <Download className="h-4 w-4 shrink-0" />
         )}
-        <span className="min-w-0 truncate">{fileName}</span>
-      </Button>
+        <span className="truncate min-w-0 text-left leading-tight">{fileName}</span>
+      </button>
       {error && <p className="text-sm text-destructive mt-2">{error}</p>}
     </div>
   )

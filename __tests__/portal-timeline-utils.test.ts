@@ -13,6 +13,7 @@ describe('portal timeline utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: '2026-04-04',
+        postingTime: null,
         status: 'todo',
       },
       {
@@ -22,6 +23,7 @@ describe('portal timeline utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: '2026-05-03',
+        postingTime: null,
         status: 'in_progress',
       },
       {
@@ -31,6 +33,7 @@ describe('portal timeline utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: null,
+        postingTime: null,
         status: 'done',
       },
     ]

@@ -12,6 +12,7 @@ const tasks: PortalTask[] = [
     caption: 'First pass',
     designFilePath: null,
     postingDate: '2099-04-12',
+        postingTime: null,
     status: 'todo',
   },
   {
@@ -21,6 +22,7 @@ const tasks: PortalTask[] = [
     caption: null,
     designFilePath: null,
     postingDate: '2000-04-01',
+        postingTime: null,
     status: 'in_progress',
   },
   {
@@ -30,6 +32,7 @@ const tasks: PortalTask[] = [
     caption: null,
     designFilePath: null,
     postingDate: '2000-04-03',
+        postingTime: null,
     status: 'done',
   },
 ]

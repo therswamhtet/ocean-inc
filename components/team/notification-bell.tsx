@@ -34,7 +34,7 @@ export function TeamNotificationBell({ notifications, unreadCount }: { notificat
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#222222] px-1 text-[9px] font-medium text-white">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-medium text-white">
               {unreadCount > 0 ? unreadCount : ''}
             </span>
           )}

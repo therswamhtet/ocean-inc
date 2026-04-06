@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useParams } from 'next/navigation'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Pencil } from 'lucide-react'
+import { GripVertical } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
-import { LABELS } from '@/lib/labels'
 import { StatusDot } from '@/components/ui/status-dot'
 import { ContentCard } from '@/components/ui/content-card'
 import { Button } from '@/components/ui/button'
@@ -47,8 +45,30 @@ const editTaskSchema = z.object({
 
 type EditTaskFormValues = z.infer<typeof editTaskSchema>
 
+/** Derive a task category tag from task fields */
+function getTaskTags(task: TaskRow): string[] {
+  const tags: string[] = []
+  if (task.caption) tags.push('Content')
+  if (task.design_file_path) tags.push('Design')
+  if (task.briefing) tags.push('Briefed')
+  if (!task.caption && !task.design_file_path && !task.briefing) tags.push('Todo')
+  return tags
+}
+
+function formatCardDate(task: TaskRow) {
+  const date = task.due_date || task.posting_date
+  if (!date) return null
+  return format(new Date(date), 'MMM d')
+}
+
+function isTaskOverdue(task: TaskRow) {
+  const date = task.due_date || task.posting_date
+  return Boolean(
+    date && isBefore(startOfDay(new Date(date)), startOfDay(new Date())) && task.status !== 'done'
+  )
+}
+
 export function KanbanCard({ task, projectId }: KanbanCardProps) {
-  const params = useParams<{ clientId: string }>()
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -60,9 +80,9 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
     transition,
   }
 
-  const isOverdue = Boolean(
-    task.posting_date && isBefore(startOfDay(new Date(task.posting_date)), startOfDay(new Date())) && task.status !== 'done'
-  )
+  const overdue = isTaskOverdue(task)
+  const cardDate = formatCardDate(task)
+  const tags = getTaskTags(task)
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -79,44 +99,91 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
       <article
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
         data-dragging={isDragging ? 'true' : 'false'}
         onClick={handleCardClick}
       >
         <ContentCard
           variant="kanban"
-          className={cn('bg-background cursor-grab active:cursor-grabbing hover:border-foreground/30')}
+          className={cn(
+            'group bg-background transition hover:shadow-sm relative',
+            overdue ? 'border-destructive/40 hover:border-destructive/60' : 'hover:border-foreground/30 cursor-pointer'
+          )}
         >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <StatusDot status={isOverdue ? 'overdue' : task.status} />
-          <span className="text-xs text-muted-foreground">
-            {task.posting_date 
-              ? format(new Date(task.posting_date), 'MMM d') + (task.posting_time ? `, ${task.posting_time.substring(0, 5)}` : '')
-              : LABELS.task.noDate}
-          </span>
-        </div>
+          {/* Drag handle */}
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            {...attributes}
+            {...listeners}
+            className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
+            aria-label="Drag to reorder"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          {/* Tags row at top */}
+          {tags.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={cn(
+                    'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em]',
+                    tag === 'Content' ? 'bg-blue-100 text-blue-700' :
+                    tag === 'Design' ? 'bg-purple-100 text-purple-700' :
+                    tag === 'Briefed' ? 'bg-emerald-100 text-emerald-700' :
+                    'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
-        {task.assigned_to_username && (
-          <span className="mb-1 block text-[11px] font-mono text-muted-foreground">
-            @ {task.assigned_to_username}
+          {/* Title */}
+          <span className="mb-3 block text-sm font-medium leading-snug text-foreground">
+            {task.title}
           </span>
-        )}
 
-        <span className="block truncate text-sm font-medium text-foreground">
-          {task.title}
-        </span>
+          {/* Bottom row: status dot + assignee + date + overdue */}
+          <div className="flex items-center justify-between">
+            {/* Left: status + assignee */}
+            <div className="flex items-center gap-2">
+              <StatusDot status={overdue ? 'overdue' : task.status} />
+              {task.assigned_to_username && (
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  @ {task.assigned_to_username}
+                </span>
+              )}
+            </div>
+
+            {/* Right: date + overdue badge */}
+            {cardDate && (
+              <span className={cn(
+                'text-[11px] font-medium',
+                overdue ? 'text-destructive' : 'text-muted-foreground'
+              )}>
+                {cardDate}
+              </span>
+            )}
+          </div>
+
+          {overdue && (
+            <div className="mt-2 inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive">
+              Overdue
+            </div>
+          )}
         </ContentCard>
       </article>
 
-      <TaskDetailDialog 
-        open={detailDialogOpen} 
+      <TaskDetailDialog
+        open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         task={task}
       />
 
-      <EditTaskDialog 
-        open={editDialogOpen} 
+      <EditTaskDialog
+        open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         task={task}
         onEdit={handleEditClick}

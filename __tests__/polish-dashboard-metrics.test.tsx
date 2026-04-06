@@ -10,7 +10,7 @@ import { join } from 'path'
  * 1. Admin dashboard metric grid: grid-cols-1 sm:grid-cols-2 lg:grid-cols-4
  * 2. Team dashboard metric grid: grid-cols-1 sm:grid-cols-2 lg:grid-cols-4
  * 3. Metric values use text-3xl for large numbers
- * 4. Metric labels use text-[#888888] for muted label color
+ * 4. Metric labels use text-muted-foreground for muted label color
  * 5. Metric cards use consistent sizing (rounded-lg border border-border p-5)
  * 6. Admin dashboard uses LABELS for metric labels
  * 7. Admin dashboard has 4 metrics
@@ -32,8 +32,8 @@ describe('Phase 05: Dashboard Responsive Metric Cards', () => {
       expect(content).toContain('text-3xl')
     })
 
-    it('metric labels use text-[#888888] for muted color', () => {
-      expect(content).toContain('text-[#888888]')
+    it('metric labels use text-muted-foreground for muted color', () => {
+      expect(content).toContain('text-muted-foreground')
     })
 
     it('metric cards use consistent sizing (rounded-lg border border-border p-5)', () => {
@@ -60,8 +60,8 @@ describe('Phase 05: Dashboard Responsive Metric Cards', () => {
       expect(content).toContain('text-3xl')
     })
 
-    it('metric labels use text-[#888888] for muted color', () => {
-      expect(content).toContain('text-[#888888]')
+    it('metric labels use text-muted-foreground for muted color', () => {
+      expect(content).toContain('text-muted-foreground')
     })
 
     it('metric cards use consistent sizing (rounded-lg border border-border p-5)', () => {

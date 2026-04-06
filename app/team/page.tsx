@@ -114,7 +114,7 @@ export default async function TeamDashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric) => (
             <article key={metric.label} className={metricCardClassName}>
-              <p className="text-sm text-[#888888]">{metric.label}</p>
+              <p className="text-sm text-muted-foreground">{metric.label}</p>
               <p className="mt-1 text-3xl font-bold text-foreground">{metric.value}</p>
             </article>
           ))}

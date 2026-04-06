@@ -30,6 +30,7 @@ describe('portal calendar utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: '2026-04-15',
+        postingTime: null,
         status: 'todo',
       },
       {
@@ -39,6 +40,7 @@ describe('portal calendar utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: '2026-04-15',
+        postingTime: null,
         status: 'in_progress',
       },
       {
@@ -48,6 +50,7 @@ describe('portal calendar utils', () => {
         caption: null,
         designFilePath: null,
         postingDate: null,
+        postingTime: null,
         status: 'done',
       },
     ]

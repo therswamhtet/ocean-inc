@@ -32,12 +32,24 @@ export default function DesignFileDownloader({ filePath, fileName }: DesignFileD
   }
 
   return (
-    <div className="space-y-2">
-      <Button type="button" variant="outline" size="sm" onClick={download} disabled={isPending}>
-        {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-        {fileName}
+    <div className="overflow-hidden">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={download}
+        disabled={isPending}
+        className="w-full justify-start gap-2 overflow-hidden"
+        title={fileName}
+      >
+        {isPending ? (
+          <LoaderCircle className="h-4 w-4 animate-spin shrink-0" />
+        ) : (
+          <Download className="h-4 w-4 shrink-0" />
+        )}
+        <span className="min-w-0 truncate">{fileName}</span>
       </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error && <p className="text-sm text-destructive mt-2">{error}</p>}
     </div>
   )
 }

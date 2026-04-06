@@ -1,8 +1,18 @@
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'
 
-import { DashboardMetrics, DashboardCalendar, DashboardTaskSections, DashboardMyTasks } from '@/components/admin/dashboard-inner'
+import { DashboardMetrics, DashboardTaskSections, DashboardMyTasks } from '@/components/admin/dashboard-inner'
+import { AdminCalendar } from '@/app/admin/calendar-wrapper'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
+
+type TaskForCalendar = {
+  id: string
+  project_id: string | null
+  title: string
+  posting_date: string | null
+  status: string
+  projects: { id: string; name: string; client_id: string } | null
+}
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -120,14 +130,15 @@ export default async function AdminDashboard() {
 
       <DashboardMyTasks tasks={myTasks} />
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <DashboardCalendar tasks={calendarTasks as unknown as Parameters<typeof DashboardCalendar>[0]['tasks']} currentMonth={new Date()} />
+      <AdminCalendar
+        tasks={calendarTasks as unknown as TaskForCalendar[]}
+        currentMonth={new Date()}
+      />
 
-        <DashboardTaskSections
-          overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
-          todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
-        />
-      </section>
+      <DashboardTaskSections
+        overdueTasks={overdueTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['overdueTasks']}
+        todayTasks={todayTasks as unknown as Parameters<typeof DashboardTaskSections>[0]['todayTasks']}
+      />
     </div>
   )
 }

@@ -26,6 +26,7 @@ type TaskRow = {
   caption: string | null
   design_file_path: string | null
   posting_date: string | null
+  posting_time: string | null
   status: PortalTaskStatus
 }
 
@@ -89,7 +90,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
 
   const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
-    .select('id, project_id, title, caption, design_file_path, posting_date, status')
+    .select('id, project_id, title, caption, design_file_path, posting_date, posting_time, status')
     .in('project_id', projectIds)
     .order('posting_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true })
@@ -106,6 +107,7 @@ export async function getPortalDataBySlug(slug: string): Promise<PortalData | nu
     caption: task.caption,
     designFilePath: task.design_file_path,
     postingDate: task.posting_date,
+    postingTime: task.posting_time,
     status: task.status,
   }))
 

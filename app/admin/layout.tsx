@@ -28,7 +28,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-[#FAF8F0] lg:flex lg:flex-col">
+      <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-background lg:flex lg:flex-col">
         <div className="flex items-center justify-between border-b border-border px-6 py-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
@@ -51,7 +51,7 @@ export default async function AdminLayout({
       </aside>
 
       <div className="lg:pl-60">
-        <header className="sticky top-0 z-30 border-b border-border bg-[#FAF8F0] lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-border bg-background lg:hidden">
           <div className="flex items-center justify-between px-4 py-4">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
             <div className="flex items-center gap-2">

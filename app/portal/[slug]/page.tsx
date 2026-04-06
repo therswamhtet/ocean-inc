@@ -18,7 +18,7 @@ export default async function ClientPortalPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 bg-[#FAF8F0]">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 bg-background">
       <header className="flex items-center gap-3 space-y-2 rounded-lg border border-border p-5 bg-white">
         <div className="h-5 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: portalData.client.color }} />
         <div>

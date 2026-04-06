@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Clock } from 'lucide-react'
+
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { createClient } from '@/lib/supabase/client'
@@ -28,6 +30,15 @@ function isImageFile(path: string | null) {
   if (!path) return false
   const ext = path.split('.').pop()?.toLowerCase() ?? ''
   return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext)
+}
+
+/** Format SQL TIME value (HH:mm:ss) into readable 12h */
+function formatTime(time: string) {
+  if (!time) return ''
+  const [h, m] = time.split(':').map(Number)
+  const hour12 = h % 12 || 12
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
 export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskDetailDialogProps) {
@@ -84,19 +95,21 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{task.title}</DialogTitle>
+          <DialogTitle className="truncate pr-8" title={task.title}>
+            {task.title}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <section className="space-y-2 rounded-sm border border-border px-3 py-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-foreground">Caption</p>
-              <CopyButton text={task.caption ?? ''} label="Copy caption" />
+              <p className="text-sm font-medium text-foreground shrink-0">Caption</p>
+              <CopyButton text={task.caption ?? ''} label="Copy caption" className="shrink-0" />
             </div>
             <p className="whitespace-pre-wrap break-words text-sm text-foreground">{caption}</p>
           </section>
 
-          <section className="space-y-2 rounded-sm border border-border px-3 py-3">
+          <section className="space-y-2 overflow-hidden rounded-sm border border-border px-3 py-3">
             <p className="text-sm font-medium text-foreground">Design file</p>
             {task.designFilePath && fileName ? (
               isDesignImage ? (
@@ -110,7 +123,7 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
                           className="h-auto w-full object-contain"
                         />
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 min-w-0">
                         <DesignFileDownloader fileName={fileName} filePath={task.designFilePath} />
                       </div>
                     </div>
@@ -128,10 +141,18 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
             )}
           </section>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <section className="space-y-2 rounded-sm border border-border px-3 py-3">
               <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{LABELS.task.postingDate}</p>
               <p className="text-sm text-foreground">{postingDate}</p>
+            </section>
+
+            <section className="space-y-2 rounded-sm border border-border px-3 py-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Posting Time</p>
+              <p className="flex items-center gap-1 text-sm text-foreground">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                {task.postingTime ? formatTime(task.postingTime) : '10:00 AM'}
+              </p>
             </section>
 
             <section className="space-y-2 rounded-sm border border-border px-3 py-3">

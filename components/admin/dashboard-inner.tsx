@@ -40,7 +40,7 @@ function NotificationsSection({ notifications, unreadCount }: { notifications: N
         <div className="flex items-center gap-3">
           <h3 className="text-base font-semibold">Notifications</h3>
           {unreadCount > 0 && (
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#222222] px-1.5 text-[10px] font-medium text-white">
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-white">
               {unreadCount} new
             </span>
           )}
@@ -109,7 +109,7 @@ export function DashboardMetrics({ metrics }: { metrics: Metric[] }) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {metrics.map((metric) => (
         <article key={metric.label} className={cn(metricCardClassName, metric.className)}>
-          <p className="text-sm text-[#888888]">{metric.label}</p>
+          <p className="text-sm text-muted-foreground">{metric.label}</p>
           <p className="mt-1 text-3xl font-bold text-foreground">{metric.value}</p>
         </article>
       ))}
@@ -248,7 +248,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
                     className={cn(
                       'relative cursor-pointer rounded-lg border p-2 text-left transition',
                       isToday
-                        ? 'border-black/30 bg-[#222222]/[0.04]'
+                        ? 'border-primary/30 bg-primary/[0.04]'
                         : isCurrentMonth
                           ? 'border-border bg-white hover:bg-muted/40'
                           : 'border-border/50 bg-muted/20 hover:bg-muted/30'
@@ -258,7 +258,7 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
                     {/* Day number */}
                     <div className="mb-1">
                       {isToday ? (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#222222] text-xs font-semibold text-white">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                           {format(day, 'd')}
                         </span>
                       ) : (
@@ -535,7 +535,7 @@ export function DashboardMyTasks({ tasks }: { tasks: TaskForMyTasks[] }) {
             className={cn(
               'min-h-[36px] rounded-md px-3 py-1.5 text-sm font-medium transition',
               filter === f
-                ? 'bg-[#222222] text-white'
+                ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
             )}
           >

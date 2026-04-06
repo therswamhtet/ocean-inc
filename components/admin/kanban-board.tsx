@@ -11,43 +11,51 @@ import { cn } from '@/lib/utils'
 
 type TaskStatus = 'todo' | 'in_progress' | 'done'
 
+type KanbanColumn = {
+  status: TaskStatus
+  label: string
+  dotColor: string
+  count: number
+}
+
 type KanbanBoardProps = {
   tasks: TaskRow[]
   projectId: string
 }
 
-const columnOrder: TaskStatus[] = ['todo', 'in_progress', 'done']
-
-const columnLabels: Record<TaskStatus, string> = {
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  done: 'Done',
-}
+const columns: KanbanColumn[] = [
+  { status: 'todo', label: 'To Do', dotColor: 'bg-status-todo', count: 0 },
+  { status: 'in_progress', label: 'In Progress', dotColor: 'bg-status-in-progress', count: 0 },
+  { status: 'done', label: 'Done', dotColor: 'bg-status-done', count: 0 },
+]
 
 function KanbanColumn({
-  status,
+  column,
   tasks,
   projectId,
 }: {
-  status: TaskStatus
+  column: KanbanColumn
   tasks: TaskRow[]
   projectId: string
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: `column:${status}` })
+  const { setNodeRef, isOver } = useDroppable({ id: `column:${column.status}` })
 
   return (
-    <section className="rounded-lg border border-border bg-muted/20 p-3">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-foreground">{columnLabels[status]}</h3>
-        <span className="text-xs text-muted-foreground">{tasks.length}</span>
+    <section className="flex flex-col rounded-lg border border-border bg-muted/20">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <span className={`h-2 w-2 rounded-full ${column.dotColor}`} />
+        <h3 className="text-sm font-semibold text-foreground">{column.label}</h3>
+        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {tasks.length}
+        </span>
       </div>
 
       <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
         <div
           ref={setNodeRef}
           className={cn(
-            'flex min-h-40 flex-col gap-3 rounded-md border border-dashed border-transparent p-1 transition',
-            isOver && 'border-border bg-background/70'
+            'flex min-h-40 flex-col gap-3 p-3 transition',
+            isOver && 'bg-accent'
           )}
         >
           {tasks.map((task) => (
@@ -55,8 +63,8 @@ function KanbanColumn({
           ))}
 
           {tasks.length === 0 ? (
-            <div className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-muted-foreground">
-              Drop a task here.
+            <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-border">
+              <p className="text-sm text-muted-foreground">No tasks</p>
             </div>
           ) : null}
         </div>
@@ -121,8 +129,13 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
     <div className="space-y-3">
       <DndContext collisionDetection={closestCorners} sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="grid gap-4 lg:grid-cols-3">
-          {columnOrder.map((status) => (
-            <KanbanColumn key={status} status={status} tasks={tasksByStatus[status]} projectId={projectId} />
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.status}
+              column={column}
+              tasks={tasksByStatus[column.status]}
+              projectId={projectId}
+            />
           ))}
         </div>
       </DndContext>

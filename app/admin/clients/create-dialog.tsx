@@ -21,18 +21,26 @@ import { Textarea } from '@/components/ui/textarea'
 
 type CreateClientDialogProps = {
   errorMessage?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const CLIENT_PALETTE = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316']
 
-export function CreateClientDialog({ errorMessage }: CreateClientDialogProps) {
-  const [open, setOpen] = useState(Boolean(errorMessage))
+export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenChange }: CreateClientDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(Boolean(errorMessage))
   const [selectedColor, setSelectedColor] = useState(() =>
     CLIENT_PALETTE[Math.floor(Math.random() * CLIENT_PALETTE.length)]
   )
 
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = (next: boolean) => {
+    if (onOpenChange) onOpenChange(next)
+    else setUncontrolledOpen(next)
+  }
+
   useEffect(() => {
-    setOpen(Boolean(errorMessage))
+    if (errorMessage) setOpen(true)
   }, [errorMessage])
 
   return (

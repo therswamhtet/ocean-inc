@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { PortalCalendarView } from '@/components/portal/calendar-view'
+import { PortalRichCalendarView } from '@/components/portal/rich-calendar-view'
 import { PortalKanbanView } from '@/components/portal/kanban-view'
 import { PortalTaskDetailDialog } from '@/components/portal/task-detail-dialog'
 import type { PortalTask } from '@/lib/portal/types'
@@ -46,7 +46,7 @@ export function PortalShell({ tasks }: PortalShellProps) {
             className={cn(
               'flex-1 min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
               activeTab === tab
-                ? 'bg-[#b45309] text-white'
+                ? 'bg-primary text-primary-foreground'
                 : 'border border-transparent text-foreground hover:bg-muted/40'
             )}
           >
@@ -58,7 +58,7 @@ export function PortalShell({ tasks }: PortalShellProps) {
       {activeTab === 'Kanban' ? (
         <PortalKanbanView tasks={tasks} onTaskSelect={handleTaskSelect} />
       ) : (
-        <PortalCalendarView tasks={tasks} onTaskSelect={handleTaskSelect} />
+        <PortalRichCalendarView tasks={tasks} onTaskSelect={handleTaskSelect} />
       )}
 
       <PortalTaskDetailDialog open={isDialogOpen} onOpenChange={handleDialogOpenChange} task={selectedTask} />

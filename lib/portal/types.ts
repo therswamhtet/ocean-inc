@@ -7,6 +7,7 @@ export type PortalTask = {
   caption: string | null
   designFilePath: string | null
   postingDate: string | null
+  postingTime: string | null
   status: PortalTaskStatus
 }
 

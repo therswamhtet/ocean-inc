@@ -11,6 +11,7 @@ const task: PortalTask = {
   caption: 'Final launch caption copy',
   designFilePath: 'project-1/task-1/launch.png',
   postingDate: '2026-04-18',
+        postingTime: null,
   status: 'in_progress',
 }
 

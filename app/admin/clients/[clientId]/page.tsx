@@ -8,7 +8,6 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { ContentCard } from '@/components/ui/content-card'
 import {
   Dialog,
   DialogContent,
@@ -17,13 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 type ClientRecord = {
   id: string
@@ -51,40 +43,24 @@ function getColorForClient(name: string): string {
   return CLIENT_PALETTE[Math.abs(hash) % CLIENT_PALETTE.length]
 }
 
-const projectStatuses = {
-  active: 'Active',
-  paused: 'Paused',
-  done: 'Done',
-} as const
-
-const projectStatusColors = {
-  active: 'bg-green-500',
-  paused: 'bg-yellow-500',
-  done: 'bg-gray-400',
-} as const
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex rounded-md border border-border px-2 py-1 text-xs font-medium uppercase tracking-[0.12em] text-foreground">
-      {children}
-    </span>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colorClass = projectStatusColors[status as keyof typeof projectStatusColors] ?? 'bg-gray-400'
-  const label = projectStatuses[status as keyof typeof projectStatuses] ?? status
-
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className={`h-2 w-2 rounded-full ${colorClass}`} />
-      <span className="text-sm text-foreground">{label}</span>
-    </span>
-  )
-}
-
 function monthName(month: number) {
   return new Date(0, month - 1).toLocaleString('default', { month: 'long' })
+}
+
+const statusConfig: Record<string, { label: string; dot: string }> = {
+  active: { label: 'Active', dot: 'bg-green-500' },
+  paused: { label: 'Paused', dot: 'bg-yellow-500' },
+  done: { label: 'Done', dot: 'bg-gray-400' },
+}
+
+function StatusDot({ status }: { status: string }) {
+  const config = statusConfig[status] ?? statusConfig.active
+  return (
+    <span className="inline-flex items-center gap-2 text-sm text-foreground">
+      <span className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
+      {config.label}
+    </span>
+  )
 }
 
 export default async function ClientProjectsPage({
@@ -122,50 +98,72 @@ export default async function ClientProjectsPage({
     notFound()
   }
 
+  const displayColor = client.color || getColorForClient(client.name)
+  const activeCount = projects.filter((p) => p.status === 'active').length
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link className="underline underline-offset-4" href="/admin/clients">
-            Clients
-          </Link>
-          <span>{'>'}</span>
-          <span className="text-foreground">{client.name}</span>
-        </nav>
-        <div className="flex flex-col gap-4 rounded-lg border border-border p-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-5 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: client.color || getColorForClient(client.name) }} />
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link className="underline underline-offset-4" href="/admin/clients">
+          Clients
+        </Link>
+        <span>›</span>
+        <span className="text-foreground">{client.name}</span>
+      </nav>
+
+      {/* Client header card */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        {/* Top section: color bar + name */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div
+              className="mt-1.5 h-6 w-1.5 flex-shrink-0 rounded-full"
+              style={{ backgroundColor: displayColor }}
+            />
             <div>
-              <p className="text-sm text-muted-foreground">{LABELS.common.projectList}</p>
-              <h2 className="text-2xl font-semibold text-foreground">{client.name}</h2>
-              <form action={updateClientDescriptionAction.bind(null, clientId)} className="mt-1">
-                <Textarea
-                  name="description"
-                  defaultValue={client.description ?? ''}
-                  placeholder="Add a client description…"
-                  maxLength={200}
-                  className="min-h-[60px] text-sm"
-                />
-                <div className="mt-1 flex justify-end">
-                  <Button type="submit" variant="outline" size="sm">Save description</Button>
-                </div>
-              </form>
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                Client projects
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-foreground">{client.name}</h2>
             </div>
           </div>
+          <span className="inline-flex shrink-0 rounded-md border border-border bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-foreground">
+            {activeCount} active project{activeCount !== 1 ? 's' : ''}
+          </span>
+        </div>
 
-          {client.is_active === false && (
-            <div className="flex items-center gap-2 rounded-md border border-border p-3 text-sm">
-              <span className="text-muted-foreground">Client is currently blocked.</span>
-              <form action={toggleClientStatusActionWrapper}>
-                <input type="hidden" name="clientId" value={client.id} />
-                <Button type="submit" variant="default" size="sm">Unblock client</Button>
-              </form>
-            </div>
-          )}
+        {/* Description */}
+        <form action={updateClientDescriptionAction.bind(null, clientId)} className="mt-4">
+          <Textarea
+            name="description"
+            defaultValue={client.description ?? ''}
+            placeholder="Add a client description..."
+            maxLength={200}
+            className="min-h-[56px] w-full max-w-xs resize-none text-sm"
+          />
+          <div className="mt-3">
+            <Button type="submit" variant="outline" size="default">
+              Save description
+            </Button>
+          </div>
+        </form>
+      </div>
 
+      {/* Error banner */}
+      {pageError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {pageError}
+        </div>
+      )}
+
+      {/* Projects table card */}
+      <div className="rounded-xl border border-border bg-card">
+        {/* Toolbar: Create Project button */}
+        <div className="border-b border-border p-5">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="default">{LABELS.project.create}</Button>
+              <Button>Create Project</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -242,91 +240,89 @@ export default async function ClientProjectsPage({
             </DialogContent>
           </Dialog>
         </div>
-      </div>
 
-      {pageError ? (
-        <div className="rounded-lg border border-destructive px-4 py-3 text-sm text-destructive">
-          {pageError}
-        </div>
-      ) : null}
-
-      {projects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center">
-          <p className="text-lg font-medium">{LABELS.emptyStates.noProjects}</p>
-        </div>
-      ) : (
-        <>
-          {/* Desktop table / mobile cards */}
-          <div className="hidden md:block">
-            <div className="overflow-hidden rounded-lg border border-border">
-              <table className="min-w-full divide-y divide-border text-left text-sm">
-                <thead className="bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Name</th>
-                    <th className="px-4 py-3 font-medium">Month</th>
-                    <th className="px-4 py-3 font-medium">Year</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {projects.map((project) => (
-                    <tr key={project.id}>
-                      <td className="px-4 py-3 font-medium">
-                        <Link
-                          href={`/admin/clients/${clientId}/projects/${project.id}`}
-                          className="text-foreground underline-offset-4 hover:underline"
+        {/* Projects list */}
+        {projects.length === 0 ? (
+          <div className="flex min-h-36 items-center justify-center px-5 py-10 text-center">
+            <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noProjects}</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop: horizontal table */}
+            <div className="hidden md:block">
+              <div className="divide-y divide-border">
+                {/* Header row */}
+                <div className="flex items-center px-5 py-3 text-sm text-muted-foreground">
+                  <div className="flex-1 font-medium">Name</div>
+                  <div className="w-24 font-medium">Month</div>
+                  <div className="w-20 font-medium">Year</div>
+                  <div className="w-28 font-medium">Status</div>
+                  <div className="w-20 font-medium text-right">Actions</div>
+                </div>
+                {/* Data rows */}
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center px-5 py-4 text-sm transition-colors hover:bg-muted/30"
+                  >
+                    <div className="flex-1">
+                      <Link
+                        href={`/admin/clients/${clientId}/projects/${project.id}`}
+                        className="font-medium text-foreground underline-offset-4 hover:underline"
+                      >
+                        {project.name}
+                      </Link>
+                    </div>
+                    <div className="w-24 text-muted-foreground">{monthName(project.month)}</div>
+                    <div className="w-20 text-muted-foreground">{project.year}</div>
+                    <div className="w-28">
+                      <StatusDot status={project.status} />
+                    </div>
+                    <div className="w-20 text-right">
+                      <form action={deleteProjectAction.bind(null, project.id, clientId)}>
+                        <button
+                          type="submit"
+                          className="inline-block border-b border-foreground/30 text-sm text-foreground hover:border-destructive hover:text-destructive transition-colors"
                         >
-                          {project.name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{monthName(project.month)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{project.year}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={project.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <form action={deleteProjectAction.bind(null, project.id, clientId)}>
-                          <button className="text-sm underline underline-offset-4" type="submit">
-                            Delete
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-3 md:hidden">
-            {projects.map((project) => (
-              <ContentCard key={project.id} variant="mobile" className="space-y-3 bg-white">
-                <div className="flex items-start justify-between gap-2">
-                  <Link
-                    href={`/admin/clients/${clientId}/projects/${project.id}`}
-                    className="text-base font-medium text-foreground underline-offset-4 hover:underline"
-                  >
-                    {project.name}
-                  </Link>
-                      <StatusBadge status={project.status} />
+            {/* Mobile: stacked cards */}
+            <div className="divide-y divide-border md:hidden">
+              {projects.map((project) => (
+                <div key={project.id} className="p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <Link
+                      href={`/admin/clients/${clientId}/projects/${project.id}`}
+                      className="text-base font-medium text-foreground underline-offset-4 hover:underline"
+                    >
+                      {project.name}
+                    </Link>
+                    <StatusDot status={project.status} />
+                  </div>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    {monthName(project.month)} {project.year}
+                  </p>
+                  <form action={deleteProjectAction.bind(null, project.id, clientId)}>
+                    <button
+                      type="submit"
+                      className="min-h-[44px] w-full rounded-lg border border-border px-3 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/5"
+                    >
+                      Delete
+                    </button>
+                  </form>
                 </div>
-                <div className="flex gap-3 text-sm text-muted-foreground">
-                  <span>{monthName(project.month)} {project.year}</span>
-                </div>
-                <form action={deleteProjectAction.bind(null, project.id, clientId)}>
-                  <button
-                    className="min-h-[44px] w-full rounded-md border border-destructive px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/5"
-                    type="submit"
-                  >
-                    Delete
-                  </button>
-                </form>
-              </ContentCard>
-            ))}
-          </div>
-        </>
-      )}
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

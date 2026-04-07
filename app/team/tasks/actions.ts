@@ -123,6 +123,54 @@ export async function updateTeamTaskFilePathAction(taskId: string, filePath: str
 }
 
 /**
+ * Post a comment on a team member's assigned task.
+ * Team members can leave regular comments or flag a comment as a revision request.
+ */
+export async function postCommentAction(
+  taskId: string,
+  content: string,
+  isRevision: boolean = false
+): Promise<ActionResult> {
+  try {
+    const trimmed = content.trim()
+    if (trimmed.length < 1) {
+      return { success: false, error: 'Comment must not be empty' }
+    }
+
+    const { supabase, task } = await getOwnedTask(taskId)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    // Insert comment
+    const { error: insertError } = await supabase
+      .from('comments')
+      .insert({
+        task_id: taskId,
+        team_member_id: user.id,
+        content: trimmed,
+        is_revision: isRevision,
+      })
+
+    if (insertError) {
+      return { success: false, error: insertError.message }
+    }
+
+    revalidateTeamTaskViews(taskId)
+    // Also revalidate admin views so revision comments appear to admins
+    revalidateAdminNotificationViews()
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to post comment' }
+  }
+}
+
+/**
  * Notify assigner action (D-05, D-06)
  * Creates an admin notification and marks the task as done.
  * Must be a separate explicit action, not bundled with status changes.

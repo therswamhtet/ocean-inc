@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import { format } from 'date-fns'
 
-import { notifyAssignerAction, updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
+import { notifyAssignerAction, postCommentAction, updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
@@ -25,7 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { createClient } from '@/lib/supabase/client'
 import { linkify } from '@/lib/utils'
 
 type TaskDetailFormProps = {
@@ -73,6 +76,60 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
   const [isNotifyDialogOpen, setIsNotifyDialogOpen] = useState(false)
 
   const currentFileName = useMemo(() => designFilePath?.split('/').pop() ?? null, [designFilePath])
+
+  const [commentText, setCommentText] = useState('')
+  const [commentIsRevision, setCommentIsRevision] = useState(false)
+  const [isPostingComment, startPostingComment] = useTransition()
+  const [comments, setComments] = useState<Array<{
+    id: string
+    content: string
+    is_revision: boolean
+    created_at: string
+    team_members: { name: string } | null
+  }>>([])
+
+  useEffect(() => {
+    const fetchComments = () => {
+      createClient()
+        .from('comments')
+        .select('id, content, is_revision, created_at, team_members(name)')
+        .eq('task_id', task.id)
+        .order('created_at', { ascending: true })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setComments(data as any)
+          }
+        })
+    }
+    fetchComments()
+  }, [task.id])
+
+  function handlePostComment() {
+    if (!commentText.trim()) return
+    setFeedback(null)
+
+    startPostingComment(async () => {
+      const result = await postCommentAction(task.id, commentText, commentIsRevision)
+      if (result.success) {
+        setCommentText('')
+        setCommentIsRevision(false)
+        setFeedback('Comment posted.')
+        // Refresh comments
+        createClient()
+          .from('comments')
+          .select('id, content, is_revision, created_at, team_members(name)')
+          .eq('task_id', task.id)
+          .order('created_at', { ascending: true })
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setComments(data as any)
+            }
+          })
+      } else {
+        setFeedback(result.error)
+      }
+    })
+  }
 
   function saveContent(nextValues: { caption: string; status: 'todo' | 'in_progress' | 'done' }, successMessage: string) {
     setFeedback(null)
@@ -297,6 +354,73 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </section>
+
+        <section className="space-y-4 rounded-lg border border-border p-5">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Comments</h3>
+            <p className="text-sm text-muted-foreground">Discuss this task or flag a revision request.</p>
+          </div>
+
+          {comments.length > 0 && (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className={`rounded-md border px-3 py-2 text-sm ${
+                    comment.is_revision
+                      ? 'border-amber-300 bg-amber-50/50'
+                      : 'border-border bg-muted/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {comment.is_revision && (
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                        Revision Requested
+                      </span>
+                    )}
+                    <span className="font-medium text-foreground">
+                      {comment.team_members?.name ?? 'Unknown'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(comment.created_at), 'MMM d, HH:mm')}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                    {comment.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a comment..."
+              rows={3}
+            />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={commentIsRevision}
+                  onCheckedChange={setCommentIsRevision}
+                  id="comment-revision-flag"
+                />
+                <label htmlFor="comment-revision-flag" className="text-sm text-muted-foreground cursor-pointer">
+                  Request revision
+                </label>
+              </div>
+              <Button
+                type="button"
+                disabled={isPostingComment || !commentText.trim()}
+                onClick={handlePostComment}
+              >
+                {isPostingComment ? 'Posting...' : 'Post comment'}
+              </Button>
+            </div>
+          </div>
         </section>
 
         {feedback ? <div className="rounded-lg border border-border px-3 py-2 text-sm">{feedback}</div> : null}

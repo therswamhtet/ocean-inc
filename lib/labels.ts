@@ -113,4 +113,14 @@ export const LABELS = {
       done: 'Done',
     },
   },
+  comments: {
+    title: 'Comments',
+    placeholder: 'Add a comment...',
+    submit: 'Post comment',
+    submitting: 'Posting...',
+    revisionBadge: 'Revision Requested',
+    empty: 'No comments yet.',
+    posted: 'Comment posted.',
+    errorEmpty: 'Comment must not be empty',
+  },
 } as const

@@ -47,10 +47,20 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
+type CommentWithAuthor = {
+  id: string
+  content: string
+  is_revision: boolean
+  created_at: string
+  team_members: { name: string } | null
+}
+
 export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetailDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
+  const [comments, setComments] = useState<CommentWithAuthor[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
   const prevFilePath = useRef<string | null>(null)
 
   const filePathToLoad = task?.design_file_path && isImageFile(task.design_file_path)
@@ -86,6 +96,30 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
 
     return () => { cancelled = true }
   }, [filePathToLoad, previewUrl])
+
+  useEffect(() => {
+    if (!open || !task?.id) {
+      setComments([])
+      return
+    }
+
+    setCommentsLoading(true)
+    createClient()
+      .from('comments')
+      .select('id, content, is_revision, created_at, team_members(name)')
+      .eq('task_id', task.id)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setComments(data as unknown as CommentWithAuthor[])
+        }
+      })
+      .then(() => {
+        setCommentsLoading(false)
+      }, () => {
+        setCommentsLoading(false)
+      })
+  }, [open, task?.id])
 
   const handleCopyCaption = async () => {
     if (!task?.caption) return
@@ -203,6 +237,50 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
               <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noDesignFile}</p>
             )}
           </section>
+
+          {(commentsLoading || comments.length > 0) && (
+            <section className="space-y-2 rounded-sm border border-border px-3 py-3">
+              <p className="text-sm font-medium text-foreground">Comments</p>
+              {commentsLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <LoaderCircle className="h-3 w-3 animate-spin" />
+                  Loading comments...
+                </div>
+              ) : comments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className={`rounded-md border px-3 py-2 text-sm ${
+                        comment.is_revision
+                          ? 'border-amber-300 bg-amber-50/50'
+                          : 'border-border bg-muted/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {comment.is_revision && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                            Revision Requested
+                          </span>
+                        )}
+                        <span className="font-medium text-foreground">
+                          {comment.team_members?.name ?? 'Unknown'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(comment.created_at), 'MMM d, HH:mm')}
+                        </span>
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                        {comment.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <section className="space-y-2 rounded-sm border border-border px-3 py-3">

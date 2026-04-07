@@ -1,14 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { Clock } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { Clock, LoaderCircle } from 'lucide-react'
 
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { createClient } from '@/lib/supabase/client'
 import { LABELS } from '@/lib/labels'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { StatusDot } from '@/components/ui/status-dot'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import type { PortalTask } from '@/lib/portal/types'
 
 type PortalTaskDetailDialogProps = {
@@ -43,6 +47,69 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const prevFilePath = useRef<string | null>(null)
+
+  // Comments state
+  const [comments, setComments] = useState<Array<{
+    id: string
+    content: string
+    is_revision: boolean
+    created_at: string
+    team_members: { name: string } | null
+  }>>([])
+  const [commentText, setCommentText] = useState('')
+  const [isPostingComment, startPostingComment] = useTransition()
+  const [commentError, setCommentError] = useState<string | null>(null)
+  const [revisionRequested, setRevisionRequested] = useState(true)
+
+  // Fetch comments when dialog opens
+  useEffect(() => {
+    if (!open || !task?.id) {
+      setComments([])
+      return
+    }
+    createClient()
+      .from('comments')
+      .select('id, content, is_revision, created_at, team_members(name)')
+      .eq('task_id', task.id)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setComments(data as any)
+        }
+      })
+  }, [open, task?.id])
+
+  function handlePostComment() {
+    if (!commentText.trim() || !task) return
+    const taskId = task.id
+    setCommentError(null)
+    startPostingComment(async () => {
+      try {
+        const res = await fetch('/api/portal/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId, content: commentText.trim(), isRevision: revisionRequested }),
+        })
+        const result = await res.json()
+        if (result.success) {
+          setCommentText('')
+          setRevisionRequested(true)
+          createClient()
+            .from('comments')
+            .select('id, content, is_revision, created_at, team_members(name)')
+            .eq('task_id', taskId)
+            .order('created_at', { ascending: true })
+            .then(({ data, error }) => {
+              if (!error && data) setComments(data as any)
+            })
+        } else {
+          setCommentError(result.error ?? 'Failed to post comment')
+        }
+      } catch {
+        setCommentError('Network error, please try again')
+      }
+    })
+  }
 
   const filePathToLoad = task && isImageFile(task.designFilePath ?? null)
     ? task.designFilePath
@@ -151,6 +218,72 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
               <StatusDot status={task.status} showLabel />
             </section>
           </div>
+
+          {/* ── Comments / Revision Requests ── */}
+          <section className="space-y-3 rounded-lg border border-border px-4 py-4">
+            <p className="text-sm font-semibold text-foreground">Comments & Revision Requests</p>
+            {comments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No comments yet.</p>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className={`rounded-md border px-3 py-2 text-sm ${
+                      comment.is_revision
+                        ? 'border-amber-300 bg-amber-50/50'
+                        : 'border-border bg-muted/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {comment.is_revision && (
+                        <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
+                          Revision Requested
+                        </Badge>
+                      )}
+                      <span className="font-medium text-foreground">
+                        {comment.team_members?.name ?? 'Team'}
+                      </span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                      {comment.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Request a revision or leave a comment..."
+                rows={3}
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={revisionRequested}
+                    onCheckedChange={setRevisionRequested}
+                    id="portal-revision-flag"
+                  />
+                  <label htmlFor="portal-revision-flag" className="text-sm text-muted-foreground cursor-pointer">
+                    Request revision
+                  </label>
+                </div>
+                <Button
+                  type="button"
+                  disabled={isPostingComment || !commentText.trim()}
+                  onClick={handlePostComment}
+                  size="sm"
+                >
+                  {isPostingComment ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
+                  {isPostingComment ? 'Posting...' : 'Post comment'}
+                </Button>
+              </div>
+              {commentError && <p className="text-sm text-destructive">{commentError}</p>}
+            </div>
+          </section>
         </div>
       </DialogContent>
     </Dialog>

@@ -321,54 +321,60 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
             ) : comments.length === 0 ? (
               <p className="text-sm text-muted-foreground">No comments yet.</p>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-3 max-h-52 overflow-y-auto">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-2">
+                  <div key={comment.id} className="flex gap-3">
                     <Avatar name={comment.team_members?.name ?? 'Unknown'} size={28} />
                     <div className="min-w-0 flex-1">
                       {editingCommentId === comment.id ? (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           <Textarea
                             value={editCommentText}
                             onChange={(e) => setEditCommentText(e.target.value)}
                             rows={2}
                             className="text-sm"
                           />
-                          <div className="flex items-center gap-1">
-                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditComment(comment.id)}>
-                              <Check className="h-3.5 w-3.5" />
+                          <div className="flex items-center gap-2">
+                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditComment(comment.id)}>
+                              <Check className="h-4 w-4" />
                             </Button>
-                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2" onClick={() => setEditingCommentId(null)}>
-                              <X className="h-3.5 w-3.5" />
+                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2" onClick={() => setEditingCommentId(null)}>
+                              <X className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
                       ) : (
-                        <div className={`rounded-md border px-3 py-2 text-sm ${
-                          comment.is_revision ? 'border-amber-300 bg-amber-50/50' : 'border-border bg-muted/30'
+                        <div className={`relative rounded-xl border px-3.5 py-3 ${
+                          comment.is_revision
+                            ? 'border-l-2 border-l-amber-400 border-y-amber-200 border-r-amber-200 bg-amber-50/20'
+                            : 'border-border bg-card'
                         }`}>
-                          <div className="flex items-center gap-2">
-                            {comment.is_revision && (
-                              <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
-                                Revision Requested
-                              </Badge>
-                            )}
-                            <span className="font-medium text-foreground">
+                          {/* Edit/Delete buttons - top right */}
+                          <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteComment(comment.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          {/* Author, badge, timestamp */}
+                          <div className="flex items-center gap-1.5 pr-12">
+                            <span className="text-sm font-medium text-foreground truncate">
                               {comment.team_members?.name ?? 'Unknown'}
                             </span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(comment.created_at), 'MMM d, HH:mm')}
+                            {comment.is_revision && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 shrink-0">
+                                <span className="h-1 w-1 rounded-full bg-amber-500" />
+                                Revision
+                              </span>
+                            )}
+                            <span className="text-[11px] text-muted-foreground shrink-0">
+                              {format(new Date(comment.created_at), 'MMM d · HH:mm')}
                             </span>
-                            <div className="ml-auto flex items-center gap-0.5">
-                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteComment(comment.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
                           </div>
-                          <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                          {/* Comment text */}
+                          <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words pr-12">
                             {comment.content}
                           </p>
                         </div>

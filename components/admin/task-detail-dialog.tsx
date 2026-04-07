@@ -5,11 +5,14 @@ import { format } from 'date-fns'
 import { Download, LoaderCircle, Copy, Pencil } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
+import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -150,6 +153,9 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl">{task.title}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Task details and comments for {task.title}
+          </DialogDescription>
           {onEdit && (
             <Button type="button" variant="outline" size="sm" onClick={onEdit}>
               <Pencil className="h-4 w-4 mr-1" />
@@ -251,30 +257,32 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
               ) : (
                 <div className="space-y-2">
                   {comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className={`rounded-md border px-3 py-2 text-sm ${
-                        comment.is_revision
-                          ? 'border-amber-300 bg-amber-50/50'
-                          : 'border-border bg-muted/30'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {comment.is_revision && (
-                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
-                            Revision Requested
-                          </span>
-                        )}
-                        <span className="font-medium text-foreground">
-                          {comment.team_members?.name ?? 'Unknown'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(comment.created_at), 'MMM d, HH:mm')}
-                        </span>
+                    <div key={comment.id} className="flex gap-2">
+                      <Avatar name={comment.team_members?.name ?? 'Unknown'} size={28} />
+                      <div className="min-w-0 flex-1">
+                        <div className={`rounded-md border px-3 py-2 text-sm ${
+                          comment.is_revision
+                            ? 'border-amber-300 bg-amber-50/50'
+                            : 'border-border bg-muted/30'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            {comment.is_revision && (
+                              <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
+                                Revision Requested
+                              </Badge>
+                            )}
+                            <span className="font-medium text-foreground">
+                              {comment.team_members?.name ?? 'Unknown'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(comment.created_at), 'MMM d, HH:mm')}
+                            </span>
+                          </div>
+                          <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                            {comment.content}
+                          </p>
+                        </div>
                       </div>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
-                        {comment.content}
-                      </p>
                     </div>
                   ))}
                 </div>

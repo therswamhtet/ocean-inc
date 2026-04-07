@@ -160,6 +160,22 @@ export async function postCommentAction(
       return { success: false, error: insertError.message }
     }
 
+    // Create admin notification for every comment
+    // Fetch team member name for display
+    const { data: memberData } = await supabase
+      .from('team_members')
+      .select('name')
+      .eq('id', user.id)
+      .maybeSingle<{ name: string }>()
+
+    await supabase.from('notifications').insert({
+      team_member_id: null,
+      message: isRevision
+        ? `🔴 ${memberData?.name ?? 'Team member'} requested revision on task ${task.id.slice(0, 8)}...`
+        : `💬 ${memberData?.name ?? 'Team member'} commented on task ${task.id.slice(0, 8)}...`,
+      read: false,
+    })
+
     revalidateTeamTaskViews(taskId)
     // Also revalidate admin views so revision comments appear to admins
     revalidateAdminNotificationViews()
@@ -167,6 +183,105 @@ export async function postCommentAction(
     return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unable to post comment' }
+  }
+}
+
+export async function editCommentAction(
+  commentId: string,
+  content: string
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    if (user.app_metadata.role !== 'team_member') {
+      return { success: false, error: 'Forbidden' }
+    }
+
+    // Verify ownership
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('task_id, team_member_id')
+      .eq('id', commentId)
+      .maybeSingle<{ task_id: string; team_member_id: string }>()
+
+    if (fetchError || !comment) {
+      return { success: false, error: 'Comment not found' }
+    }
+
+    if (comment.team_member_id !== user.id) {
+      return { success: false, error: 'You can only edit your own comments' }
+    }
+
+    const { error: updateError } = await supabase
+      .from('comments')
+      .update({ content: content.trim() })
+      .eq('id', commentId)
+
+    if (updateError) {
+      return { success: false, error: updateError.message }
+    }
+
+    revalidateTeamTaskViews(comment.task_id)
+    revalidateAdminNotificationViews()
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to edit comment' }
+  }
+}
+
+export async function deleteCommentAction(commentId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    if (user.app_metadata.role !== 'team_member') {
+      return { success: false, error: 'Forbidden' }
+    }
+
+    // Verify ownership
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('task_id, team_member_id')
+      .eq('id', commentId)
+      .maybeSingle<{ task_id: string; team_member_id: string }>()
+
+    if (fetchError || !comment) {
+      return { success: false, error: 'Comment not found' }
+    }
+
+    if (comment.team_member_id !== user.id) {
+      return { success: false, error: 'You can only delete your own comments' }
+    }
+
+    const { error: deleteError } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId)
+
+    if (deleteError) {
+      return { success: false, error: deleteError.message }
+    }
+
+    revalidateTeamTaskViews(comment.task_id)
+    revalidateAdminNotificationViews()
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unable to delete comment' }
   }
 }
 

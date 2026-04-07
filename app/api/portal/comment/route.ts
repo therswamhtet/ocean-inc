@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
     }
 
+    // Insert comment
     const { error: insertError } = await supabase
       .from('comments')
       .insert({
@@ -46,6 +47,15 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       return NextResponse.json({ success: false, error: insertError.message }, { status: 500 })
     }
+
+    // Create admin notification for every comment
+    await supabase.from('notifications').insert({
+      team_member_id: null,
+      message: isRevision
+        ? `🔴 Client requested revision: ${content.slice(0, 80)}...`
+        : `💬 Client commented: ${content.slice(0, 80)}...`,
+      read: false,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

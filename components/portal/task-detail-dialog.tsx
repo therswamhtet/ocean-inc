@@ -7,9 +7,10 @@ import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { createClient } from '@/lib/supabase/client'
 import { LABELS } from '@/lib/labels'
+import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -59,7 +60,7 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
   const [commentText, setCommentText] = useState('')
   const [isPostingComment, startPostingComment] = useTransition()
   const [commentError, setCommentError] = useState<string | null>(null)
-  const [revisionRequested, setRevisionRequested] = useState(true)
+  const [revisionRequested, setRevisionRequested] = useState(false)
 
   // Fetch comments when dialog opens
   useEffect(() => {
@@ -157,6 +158,9 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
           <DialogTitle className="truncate leading-snug pr-10 text-base" title={task.title}>
             {task.title}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Task details and revision request form for {task.title}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 min-w-0">
@@ -227,27 +231,29 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className={`rounded-md border px-3 py-2 text-sm ${
-                      comment.is_revision
-                        ? 'border-amber-300 bg-amber-50/50'
-                        : 'border-border bg-muted/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {comment.is_revision && (
-                        <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
-                          Revision Requested
-                        </Badge>
-                      )}
-                      <span className="font-medium text-foreground">
-                        {comment.team_members?.name ?? 'Team'}
-                      </span>
+                  <div key={comment.id} className="flex gap-2">
+                    <Avatar name={comment.team_members?.name ?? 'Client'} size={28} />
+                    <div className="min-w-0 flex-1">
+                      <div className={`rounded-md border px-3 py-2 text-sm ${
+                        comment.is_revision
+                          ? 'border-amber-300 bg-amber-50/50'
+                          : 'border-border bg-muted/30'
+                      }`}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-foreground">
+                            {comment.team_members?.name ?? 'Client'}
+                          </span>
+                          {comment.is_revision && (
+                            <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
+                              Revision Requested
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                          {comment.content}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
-                      {comment.content}
-                    </p>
                   </div>
                 ))}
               </div>

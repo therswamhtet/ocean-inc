@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { format } from 'date-fns'
+import { Check, Pencil, Trash2, X } from 'lucide-react'
 
-import { notifyAssignerAction, postCommentAction, updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
+import { notifyAssignerAction, editCommentAction, deleteCommentAction, postCommentAction, updateTeamTaskContentAction, updateTeamTaskFilePathAction } from '@/app/team/tasks/actions'
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
+import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -85,14 +88,18 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
     content: string
     is_revision: boolean
     created_at: string
+    team_member_id: string | null
     team_members: { name: string } | null
   }>>([])
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentText, setEditCommentText] = useState('')
+  const [isEditingComment, startEditingComment] = useTransition()
 
   useEffect(() => {
     const fetchComments = () => {
       createClient()
         .from('comments')
-        .select('id, content, is_revision, created_at, team_members(name)')
+        .select('id, content, is_revision, created_at, team_member_id, team_members(name)')
         .eq('task_id', task.id)
         .order('created_at', { ascending: true })
         .then(({ data, error }) => {
@@ -117,7 +124,53 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
         // Refresh comments
         createClient()
           .from('comments')
-          .select('id, content, is_revision, created_at, team_members(name)')
+          .select('id, content, is_revision, created_at, team_member_id, team_members(name)')
+          .eq('task_id', task.id)
+          .order('created_at', { ascending: true })
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setComments(data as any)
+            }
+          })
+      } else {
+        setFeedback(result.error)
+      }
+    })
+  }
+
+  function handleEditComment(commentId: string) {
+    if (!editCommentText.trim()) return
+    startEditingComment(async () => {
+      const result = await editCommentAction(commentId, editCommentText)
+      if (result.success) {
+        setEditingCommentId(null)
+        setEditCommentText('')
+        setFeedback('Comment updated.')
+        // Refresh comments
+        createClient()
+          .from('comments')
+          .select('id, content, is_revision, created_at, team_member_id, team_members(name)')
+          .eq('task_id', task.id)
+          .order('created_at', { ascending: true })
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setComments(data as any)
+            }
+          })
+      } else {
+        setFeedback(result.error)
+      }
+    })
+  }
+
+  function handleDeleteComment(commentId: string) {
+    startPostingComment(async () => {
+      const result = await deleteCommentAction(commentId)
+      if (result.success) {
+        setFeedback('Comment deleted.')
+        createClient()
+          .from('comments')
+          .select('id, content, is_revision, created_at, team_member_id, team_members(name)')
           .eq('task_id', task.id)
           .order('created_at', { ascending: true })
           .then(({ data, error }) => {
@@ -367,28 +420,89 @@ export function TaskDetailForm({ task }: TaskDetailFormProps) {
               {comments.map((comment) => (
                 <div
                   key={comment.id}
-                  className={`rounded-md border px-3 py-2 text-sm ${
-                    comment.is_revision
-                      ? 'border-amber-300 bg-amber-50/50'
-                      : 'border-border bg-muted/30'
-                  }`}
+                  className="group flex gap-2"
                 >
-                  <div className="flex items-center gap-2">
-                    {comment.is_revision && (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
-                        Revision Requested
-                      </span>
+                  <Avatar name={comment.team_members?.name ?? 'You'} size={28} />
+                  <div className="min-w-0 flex-1">
+                    <div className={`rounded-md border px-3 py-2 text-sm ${
+                      comment.is_revision
+                        ? 'border-amber-300 bg-amber-50/50'
+                        : 'border-border bg-muted/30'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">
+                          {comment.team_members?.name ?? 'You'}
+                        </span>
+                        {comment.is_revision && (
+                          <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
+                            Revision Requested
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(comment.created_at), 'MMM d, HH:mm')}
+                        </span>
+                        {/* Edit/Delete buttons — only visible on own comments */}
+                        {!editingCommentId && (
+                          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setEditingCommentId(comment.id)
+                                setEditCommentText(comment.content)
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteComment(comment.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                        {comment.content}
+                      </p>
+                    </div>
+
+                    {editingCommentId === comment.id && (
+                      <div className="mt-1 flex items-center gap-1">
+                        <Textarea
+                          value={editCommentText}
+                          onChange={(e) => setEditCommentText(e.target.value)}
+                          rows={2}
+                          className="text-sm"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          disabled={isEditingComment}
+                          onClick={() => handleEditComment(comment.id)}
+                        >
+                          <Check className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          onClick={() => setEditingCommentId(null)}
+                        >
+                          <X className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </div>
                     )}
-                    <span className="font-medium text-foreground">
-                      {comment.team_members?.name ?? 'Unknown'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(comment.created_at), 'MMM d, HH:mm')}
-                    </span>
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
-                    {comment.content}
-                  </p>
                 </div>
               ))}
             </div>

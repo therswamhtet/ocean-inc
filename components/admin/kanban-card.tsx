@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -71,6 +71,8 @@ function isTaskOverdue(task: TaskRow) {
 export function KanbanCard({ task, projectId }: KanbanCardProps) {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => setIsMounted(true), [])
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -110,16 +112,18 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
           )}
         >
           {/* Drag handle */}
-          <button
-            type="button"
-            onClick={(e) => e.stopPropagation()}
-            {...attributes}
-            {...listeners}
-            className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
-            aria-label="Drag to reorder"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
+          {isMounted && (
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              {...attributes}
+              {...listeners}
+              className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
+              aria-label="Drag to reorder"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
           {/* Tags row at top */}
           {tags.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1">

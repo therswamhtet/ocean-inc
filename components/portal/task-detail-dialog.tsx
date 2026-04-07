@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { Clock, LoaderCircle } from 'lucide-react'
+import { Check, Clock, LoaderCircle, Pencil, Trash2, X } from 'lucide-react'
 
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
@@ -61,6 +61,9 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
   const [isPostingComment, startPostingComment] = useTransition()
   const [commentError, setCommentError] = useState<string | null>(null)
   const [revisionRequested, setRevisionRequested] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentText, setEditCommentText] = useState('')
+  const [isEditingComment, startEditingComment] = useTransition()
 
   // Fetch comments when dialog opens
   useEffect(() => {
@@ -94,7 +97,7 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
         const result = await res.json()
         if (result.success) {
           setCommentText('')
-          setRevisionRequested(true)
+          setRevisionRequested(false)
           createClient()
             .from('comments')
             .select('id, content, is_revision, created_at, team_members(name)')
@@ -110,6 +113,60 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
         setCommentError('Network error, please try again')
       }
     })
+  }
+
+  function handleEditPortalComment(commentId: string) {
+    if (!editCommentText.trim()) return
+    startEditingComment(async () => {
+      try {
+        const res = await fetch('/api/portal/comment', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentId, content: editCommentText }),
+        })
+        const result = await res.json()
+        if (result.success) {
+          setEditingCommentId(null)
+          setEditCommentText('')
+          if (task?.id) refreshComments(task.id)
+        } else {
+          setCommentError(result.error ?? 'Failed to update comment')
+        }
+      } catch {
+        setCommentError('Network error, please try again')
+      }
+    })
+  }
+
+  function handleDeletePortalComment(commentId: string) {
+    startPostingComment(async () => {
+      try {
+        const res = await fetch('/api/portal/comment', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentId }),
+        })
+        const result = await res.json()
+        if (result.success && task?.id) {
+          refreshComments(task.id)
+        } else {
+          setCommentError(result.error ?? 'Failed to delete comment')
+        }
+      } catch {
+        setCommentError('Network error, please try again')
+      }
+    })
+  }
+
+  function refreshComments(taskId: string) {
+    createClient()
+      .from('comments')
+      .select('id, content, is_revision, created_at, team_members(name)')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setComments(data as any)
+      })
   }
 
   const filePathToLoad = task && isImageFile(task.designFilePath ?? null)
@@ -234,25 +291,52 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
                   <div key={comment.id} className="flex gap-2">
                     <Avatar name={comment.team_members?.name ?? 'Client'} size={28} />
                     <div className="min-w-0 flex-1">
-                      <div className={`rounded-md border px-3 py-2 text-sm ${
-                        comment.is_revision
-                          ? 'border-amber-300 bg-amber-50/50'
-                          : 'border-border bg-muted/30'
-                      }`}>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-foreground">
-                            {comment.team_members?.name ?? 'Client'}
-                          </span>
-                          {comment.is_revision && (
-                            <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
-                              Revision Requested
-                            </Badge>
-                          )}
+                      {editingCommentId === comment.id ? (
+                        <div className="space-y-1">
+                          <Textarea
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            rows={2}
+                            className="text-sm"
+                          />
+                          <div className="flex items-center gap-1">
+                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditPortalComment(comment.id)}>
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2" onClick={() => setEditingCommentId(null)}>
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                        <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
-                          {comment.content}
-                        </p>
-                      </div>
+                      ) : (
+                        <div className={`rounded-md border px-3 py-2 text-sm ${
+                          comment.is_revision
+                            ? 'border-amber-300 bg-amber-50/50'
+                            : 'border-border bg-muted/30'
+                        }`}>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-foreground">
+                              {comment.team_members?.name ?? 'Client'}
+                            </span>
+                            {comment.is_revision && (
+                              <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
+                                Revision Requested
+                              </Badge>
+                            )}
+                            <div className="ml-auto flex items-center gap-0.5">
+                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeletePortalComment(comment.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
+                            {comment.content}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
 
     const { taskId, content, isRevision } = parsed.data
 
-    // Verify the task exists before inserting a comment
     const supabase = createServiceRoleClient()
     const { data: existingTask } = await supabase
       .from('tasks')
@@ -34,7 +33,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
     }
 
-    // Insert comment
     const { error: insertError } = await supabase
       .from('comments')
       .insert({
@@ -48,7 +46,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: insertError.message }, { status: 500 })
     }
 
-    // Create admin notification for every comment
     await supabase.from('notifications').insert({
       team_member_id: null,
       message: isRevision
@@ -61,6 +58,84 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to post comment' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { commentId, content } = z.object({
+      commentId: z.string().uuid('Invalid comment ID'),
+      content: z.string().trim().min(1, 'Comment must not be empty'),
+    }).parse(body)
+
+    const supabase = createServiceRoleClient()
+
+    // Verify it's a portal comment (team_member_id is null)
+    const { data: comment } = await supabase
+      .from('comments')
+      .select('id')
+      .eq('id', commentId)
+      .is('team_member_id', null)
+      .maybeSingle()
+
+    if (!comment) {
+      return NextResponse.json({ success: false, error: 'Comment not found' }, { status: 404 })
+    }
+
+    const { error } = await supabase
+      .from('comments')
+      .update({ content: content.trim() })
+      .eq('id', commentId)
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Failed to update comment' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { commentId } = z.object({
+      commentId: z.string().uuid('Invalid comment ID'),
+    }).parse(await request.json())
+
+    const supabase = createServiceRoleClient()
+
+    // Verify it's a portal comment (team_member_id is null)
+    const { data: comment } = await supabase
+      .from('comments')
+      .select('id')
+      .eq('id', commentId)
+      .is('team_member_id', null)
+      .maybeSingle()
+
+    if (!comment) {
+      return NextResponse.json({ success: false, error: 'Comment not found' }, { status: 404 })
+    }
+
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId)
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Failed to delete comment' },
       { status: 500 }
     )
   }

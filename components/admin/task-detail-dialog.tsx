@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format } from 'date-fns'
-import { Download, LoaderCircle, Copy, Pencil } from 'lucide-react'
+import { Check, Download, LoaderCircle, Copy, Pencil, Trash2, X } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
+import { adminDeleteCommentAction, adminEditCommentAction, adminPostCommentAction } from '@/app/admin/clients/actions'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { LABELS } from '@/lib/labels'
@@ -16,7 +17,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field, FieldDescription } from '@/components/ui/field'
 import { StatusDot } from '@/components/ui/status-dot'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
 import { linkify } from '@/lib/utils'
 
@@ -64,6 +68,13 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
   const [copyFeedback, setCopyFeedback] = useState(false)
   const [comments, setComments] = useState<CommentWithAuthor[]>([])
   const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [commentIsRevision, setCommentIsRevision] = useState(false)
+  const [isPostingComment, startPostingComment] = useTransition()
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentText, setEditCommentText] = useState('')
+  const [isEditingComment, startEditingComment] = useTransition()
+  const [commentFeedback, setCommentFeedback] = useState<string | null>(null)
   const prevFilePath = useRef<string | null>(null)
 
   const filePathToLoad = task?.design_file_path && isImageFile(task.design_file_path)
@@ -133,6 +144,62 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
     } catch {
       // Clipboard API failed
     }
+  }
+
+  function handlePostComment() {
+    if (!commentText.trim() || !task?.id) return
+    setCommentFeedback(null)
+    startPostingComment(async () => {
+      const result = await adminPostCommentAction(task.id, commentText, commentIsRevision)
+      if (result.success) {
+        setCommentText('')
+        setCommentIsRevision(false)
+        setCommentFeedback('Comment posted.')
+        refreshComments(task.id)
+      } else {
+        setCommentFeedback(result.error)
+      }
+    })
+  }
+
+  function handleEditComment(commentId: string) {
+    if (!editCommentText.trim()) return
+    startEditingComment(async () => {
+      const result = await adminEditCommentAction(commentId, editCommentText)
+      if (result.success) {
+        setEditingCommentId(null)
+        setEditCommentText('')
+        setCommentFeedback('Comment updated.')
+        if (task?.id) refreshComments(task.id)
+      } else {
+        setCommentFeedback(result.error)
+      }
+    })
+  }
+
+  function handleDeleteComment(commentId: string) {
+    startPostingComment(async () => {
+      const result = await adminDeleteCommentAction(commentId)
+      if (result.success) {
+        setCommentFeedback('Comment deleted.')
+        if (task?.id) refreshComments(task.id)
+      } else {
+        setCommentFeedback(result.error)
+      }
+    })
+  }
+
+  function refreshComments(taskId: string) {
+    createClient()
+      .from('comments')
+      .select('id, content, is_revision, created_at, team_members(name)')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setComments(data as unknown as CommentWithAuthor[])
+        }
+      })
   }
 
   if (!task) {
@@ -244,26 +311,41 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
             )}
           </section>
 
-          {(commentsLoading || comments.length > 0) && (
-            <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-              <p className="text-sm font-medium text-foreground">Comments</p>
-              {commentsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <LoaderCircle className="h-3 w-3 animate-spin" />
-                  Loading comments...
-                </div>
-              ) : comments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No comments yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-2">
-                      <Avatar name={comment.team_members?.name ?? 'Unknown'} size={28} />
-                      <div className="min-w-0 flex-1">
+          <section className="space-y-3 rounded-sm border border-border px-3 py-3">
+            <p className="text-sm font-medium text-foreground">Comments</p>
+            {commentsLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <LoaderCircle className="h-3 w-3 animate-spin" />
+                Loading comments...
+              </div>
+            ) : comments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No comments yet.</p>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-2">
+                    <Avatar name={comment.team_members?.name ?? 'Unknown'} size={28} />
+                    <div className="min-w-0 flex-1">
+                      {editingCommentId === comment.id ? (
+                        <div className="space-y-1">
+                          <Textarea
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            rows={2}
+                            className="text-sm"
+                          />
+                          <div className="flex items-center gap-1">
+                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditComment(comment.id)}>
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button type="button" variant="ghost" size="sm" className="h-6 px-2" onClick={() => setEditingCommentId(null)}>
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
                         <div className={`rounded-md border px-3 py-2 text-sm ${
-                          comment.is_revision
-                            ? 'border-amber-300 bg-amber-50/50'
-                            : 'border-border bg-muted/30'
+                          comment.is_revision ? 'border-amber-300 bg-amber-50/50' : 'border-border bg-muted/30'
                         }`}>
                           <div className="flex items-center gap-2">
                             {comment.is_revision && (
@@ -277,18 +359,41 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
                             <span className="text-xs text-muted-foreground">
                               {format(new Date(comment.created_at), 'MMM d, HH:mm')}
                             </span>
+                            <div className="ml-auto flex items-center gap-0.5">
+                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteComment(comment.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                           <p className="mt-1 whitespace-pre-wrap break-words text-foreground">
                             {comment.content}
                           </p>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Post comment form */}
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={2} />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Switch checked={commentIsRevision} onCheckedChange={setCommentIsRevision} id="admin-revision-flag" />
+                  <label htmlFor="admin-revision-flag" className="text-sm text-muted-foreground cursor-pointer">Request revision</label>
                 </div>
-              )}
-            </section>
-          )}
+                <Button type="button" disabled={isPostingComment || !commentText.trim()} onClick={handlePostComment} size="sm">
+                  {isPostingComment ? 'Posting...' : 'Post comment'}
+                </Button>
+              </div>
+              {commentFeedback && <p className="text-sm text-muted-foreground">{commentFeedback}</p>}
+            </div>
+          </section>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <section className="space-y-2 rounded-sm border border-border px-3 py-3">

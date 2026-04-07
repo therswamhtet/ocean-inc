@@ -235,3 +235,138 @@ export async function toggleClientStatusActionWrapper(formData: FormData) {
   }
   await toggleClientStatusAction(clientId)
 }
+
+// ---- comment CRUD for admin ----
+
+type CommentActionResult = { success: true } | { success: false; error: string }
+
+export async function adminPostCommentAction(
+  taskId: string,
+  content: string,
+  isRevision: boolean = false
+): Promise<CommentActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const trimmed = content.trim()
+  if (trimmed.length < 1) {
+    return { success: false, error: 'Comment must not be empty' }
+  }
+
+  // Verify task exists
+  const { data: taskData } = await createServiceRoleClient()
+    .from('tasks')
+    .select('title, project_id')
+    .eq('id', taskId)
+    .single()
+
+  if (!taskData) {
+    return { success: false, error: 'Task not found' }
+  }
+
+  const { error: insertError } = await createServiceRoleClient()
+    .from('comments')
+    .insert({
+      task_id: taskId,
+      team_member_id: null,
+      content: trimmed,
+      is_revision: isRevision,
+    })
+
+  if (insertError) {
+    return { success: false, error: insertError.message }
+  }
+
+  const { data: adminData } = await createServiceRoleClient()
+    .from('team_members')
+    .select('name')
+    .eq('id', user.id)
+    .maybeSingle<{ name: string }>()
+
+  await createServiceRoleClient().from('notifications').insert({
+    team_member_id: null,
+    message: isRevision
+      ? `🔴 ${adminData?.name ?? 'Admin'} requested revision on task ${taskData.title}`
+      : `💬 ${adminData?.name ?? 'Admin'} commented on task ${taskData.title}`,
+    read: false,
+  })
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+
+export async function adminEditCommentAction(
+  commentId: string,
+  content: string
+): Promise<CommentActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const trimmed = content.trim()
+  if (trimmed.length < 1) {
+    return { success: false, error: 'Comment must not be empty' }
+  }
+
+  const { data: comment } = await createServiceRoleClient()
+    .from('comments')
+    .select('task_id')
+    .eq('id', commentId)
+    .maybeSingle<{ task_id: string }>()
+
+  if (!comment) {
+    return { success: false, error: 'Comment not found' }
+  }
+
+  const { error: updateError } = await createServiceRoleClient()
+    .from('comments')
+    .update({ content: trimmed })
+    .eq('id', commentId)
+
+  if (updateError) {
+    return { success: false, error: updateError.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}
+
+export async function adminDeleteCommentAction(
+  commentId: string
+): Promise<CommentActionResult> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const { data: comment } = await createServiceRoleClient()
+    .from('comments')
+    .select('task_id')
+    .eq('id', commentId)
+    .maybeSingle<{ task_id: string }>()
+
+  if (!comment) {
+    return { success: false, error: 'Comment not found' }
+  }
+
+  const { error: deleteError } = await createServiceRoleClient()
+    .from('comments')
+    .delete()
+    .eq('id', commentId)
+
+  if (deleteError) {
+    return { success: false, error: deleteError.message }
+  }
+
+  revalidatePath('/admin')
+  return { success: true }
+}

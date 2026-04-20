@@ -1,20 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { Check, Clock, LoaderCircle, Pencil, Trash2, X } from 'lucide-react'
-import { format } from 'date-fns'
+import { useEffect, useRef, useState } from 'react'
+import { Clock } from 'lucide-react'
 
 import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { createClient } from '@/lib/supabase/client'
 import { LABELS } from '@/lib/labels'
-import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { StatusDot } from '@/components/ui/status-dot'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import type { PortalTask } from '@/lib/portal/types'
 
 type PortalTaskDetailDialogProps = {
@@ -49,126 +43,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const prevFilePath = useRef<string | null>(null)
-
-  // Comments state
-  const [comments, setComments] = useState<Array<{
-    id: string
-    content: string
-    is_revision: boolean
-    created_at: string
-    team_members: { name: string } | null
-  }>>([])
-  const [commentText, setCommentText] = useState('')
-  const [isPostingComment, startPostingComment] = useTransition()
-  const [commentError, setCommentError] = useState<string | null>(null)
-  const [revisionRequested, setRevisionRequested] = useState(false)
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
-  const [editCommentText, setEditCommentText] = useState('')
-  const [isEditingComment, startEditingComment] = useTransition()
-
-  // Fetch comments when dialog opens
-  useEffect(() => {
-    if (!open || !task?.id) {
-      setComments([])
-      return
-    }
-    createClient()
-      .from('comments')
-      .select('id, content, is_revision, created_at, team_members(name)')
-      .eq('task_id', task.id)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setComments(data as any)
-        }
-      })
-  }, [open, task?.id])
-
-  function handlePostComment() {
-    if (!commentText.trim() || !task) return
-    const taskId = task.id
-    setCommentError(null)
-    startPostingComment(async () => {
-      try {
-        const res = await fetch('/api/portal/comment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId, content: commentText.trim(), isRevision: revisionRequested }),
-        })
-        const result = await res.json()
-        if (result.success) {
-          setCommentText('')
-          setRevisionRequested(false)
-          createClient()
-            .from('comments')
-            .select('id, content, is_revision, created_at, team_members(name)')
-            .eq('task_id', taskId)
-            .order('created_at', { ascending: true })
-            .then(({ data, error }) => {
-              if (!error && data) setComments(data as any)
-            })
-        } else {
-          setCommentError(result.error ?? 'Failed to post comment')
-        }
-      } catch {
-        setCommentError('Network error, please try again')
-      }
-    })
-  }
-
-  function handleEditPortalComment(commentId: string) {
-    if (!editCommentText.trim()) return
-    startEditingComment(async () => {
-      try {
-        const res = await fetch('/api/portal/comment', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ commentId, content: editCommentText }),
-        })
-        const result = await res.json()
-        if (result.success) {
-          setEditingCommentId(null)
-          setEditCommentText('')
-          if (task?.id) refreshComments(task.id)
-        } else {
-          setCommentError(result.error ?? 'Failed to update comment')
-        }
-      } catch {
-        setCommentError('Network error, please try again')
-      }
-    })
-  }
-
-  function handleDeletePortalComment(commentId: string) {
-    startPostingComment(async () => {
-      try {
-        const res = await fetch('/api/portal/comment', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ commentId }),
-        })
-        const result = await res.json()
-        if (result.success && task?.id) {
-          refreshComments(task.id)
-        } else {
-          setCommentError(result.error ?? 'Failed to delete comment')
-        }
-      } catch {
-        setCommentError('Network error, please try again')
-      }
-    })
-  }
-
-  function refreshComments(taskId: string) {
-    createClient()
-      .from('comments')
-      .select('id, content, is_revision, created_at, team_members(name)')
-      .eq('task_id', taskId)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) setComments(data as any)
-      })
-  }
 
   const filePathToLoad = task && isImageFile(task.designFilePath ?? null)
     ? task.designFilePath
@@ -211,18 +85,16 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        {/* ── Title header with generous right padding so text never touches X ── */}
         <DialogHeader className="space-y-2 pb-3">
           <DialogTitle className="truncate leading-snug pr-10 text-base" title={task.title}>
             {task.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Task details and revision request form for {task.title}
+            Task details for {task.title}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 min-w-0">
-          {/* ── Caption section with divider line ── */}
           <section className="rounded-lg border border-border px-4 py-4">
             <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-border">
               <p className="text-sm font-semibold text-foreground shrink-0">Caption</p>
@@ -231,7 +103,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
             <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground leading-relaxed">{caption}</p>
           </section>
 
-          {/* ── Design file ── */}
           <section className="space-y-2 overflow-hidden rounded-lg border border-border px-4 py-4 min-w-0">
             <p className="text-sm font-medium text-foreground">Design file</p>
             {task.designFilePath && fileName ? (
@@ -262,7 +133,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
             )}
           </section>
 
-          {/* ── Metadata row ── */}
           <div className="grid gap-3 sm:grid-cols-3">
             <section className="space-y-2 rounded-lg border border-border px-4 py-3.5">
               <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{LABELS.task.postingDate}</p>
@@ -280,105 +150,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
               <StatusDot status={task.status} showLabel />
             </section>
           </div>
-
-          {/* ── Comments / Revision Requests ── */}
-          <section className="space-y-3 rounded-lg border border-border px-4 py-4">
-            <p className="text-sm font-semibold text-foreground">Comments & Revision Requests</p>
-            {comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet.</p>
-            ) : (
-              <div className="space-y-3 max-h-52 overflow-y-auto">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar name={comment.team_members?.name ?? 'Client'} size={28} />
-                    <div className="min-w-0 flex-1">
-                      {editingCommentId === comment.id ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editCommentText}
-                            onChange={(e) => setEditCommentText(e.target.value)}
-                            rows={2}
-                            className="text-sm"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditPortalComment(comment.id)}>
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2" onClick={() => setEditingCommentId(null)}>
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={`rounded-xl border px-3.5 py-3 ${
-                          comment.is_revision
-                            ? 'border-l-2 border-l-amber-400 border-y-amber-200 border-r-amber-200 bg-amber-50/20'
-                            : 'border-border bg-card'
-                        }`}>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-foreground truncate">
-                              {comment.team_members?.name ?? 'Client'}
-                            </span>
-                            {comment.is_revision && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 shrink-0">
-                                <span className="h-1 w-1 rounded-full bg-amber-500" />
-                                Revision
-                              </span>
-                            )}
-                            <span className="text-[11px] text-muted-foreground shrink-0">
-                              {format(new Date(comment.created_at), 'MMM d · HH:mm')}
-                            </span>
-                            <div className="ml-auto flex items-center gap-0.5">
-                              <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeletePortalComment(comment.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                          <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words">
-                            {comment.content}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-2 pt-2 border-t border-border">
-              <Textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Request a revision or leave a comment..."
-                rows={3}
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={revisionRequested}
-                    onCheckedChange={setRevisionRequested}
-                    id="portal-revision-flag"
-                  />
-                  <label htmlFor="portal-revision-flag" className="text-sm text-muted-foreground cursor-pointer">
-                    Request revision
-                  </label>
-                </div>
-                <Button
-                  type="button"
-                  disabled={isPostingComment || !commentText.trim()}
-                  onClick={handlePostComment}
-                  size="sm"
-                >
-                  {isPostingComment ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-                  {isPostingComment ? 'Posting...' : 'Post comment'}
-                </Button>
-              </div>
-              {commentError && <p className="text-sm text-destructive">{commentError}</p>}
-            </div>
-          </section>
         </div>
       </DialogContent>
     </Dialog>

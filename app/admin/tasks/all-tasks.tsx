@@ -1,14 +1,10 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { format, isBefore, startOfDay } from 'date-fns'
-import { ChevronDown, ChevronRight, Clock, LinkIcon, User } from 'lucide-react'
+import { format, isBefore, startOfDay, isToday, isTomorrow, differenceInDays } from 'date-fns'
+import { ArrowRight, Calendar, Clock } from 'lucide-react'
 
-import { LABELS } from '@/lib/labels'
-import { StatusDot } from '@/components/ui/status-dot'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { QuickTaskDialog } from '@/components/admin/quick-task-dialog'
 
@@ -19,8 +15,6 @@ type TaskRecord = {
   due_date: string | null
   deadline: string | null
   status: string
-  assigned_to_username: string | null
-  assigned_to_name: string | null
   client_id: string
   client_name: string
   client_color: string | null
@@ -37,268 +31,143 @@ type AllTasksProps = {
   today: TaskSection
   upcoming: TaskSection
   overdue: TaskSection
+  clients: { id: string; name: string; color: string }[]
+  projectsByClient: Record<string, { id: string; name: string; month: number; year: number }[]>
 }
 
-type TaskExpandState = {
-  id: string | null
-  task: TaskRecord | null
+function formatDateLabel(dateStr: string | null) {
+  if (!dateStr) return null
+  const date = new Date(dateStr)
+  if (isToday(date)) return 'Today'
+  if (isTomorrow(date)) return 'Tomorrow'
+  return format(date, 'MMM d')
 }
 
-function formatOptionalDate(value: string | null, fallback = '—') {
-  if (!value) return fallback
-  return format(new Date(value), 'MMM d, yyyy')
+function daysUntil(dateStr: string | null) {
+  if (!dateStr) return null
+  return differenceInDays(new Date(dateStr), new Date())
 }
 
-function getMonthLabel(dateStr: string | null) {
-  if (!dateStr) return '—'
-  return format(new Date(dateStr), 'MMMM')
+const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
+  todo: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-600', dot: 'bg-slate-400' },
+  in_progress: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-400' },
+  done: { bg: 'bg-green-50 border-green-200', text: 'text-green-700', dot: 'bg-green-500' },
 }
 
-function TaskDetailPanel({ task }: { task: TaskRecord }) {
+function TaskRow({ task }: { task: TaskRecord }) {
   const isOverdue = Boolean(
     task.posting_date &&
       isBefore(startOfDay(new Date(task.posting_date)), startOfDay(new Date())) &&
       task.status !== 'done'
   )
+  const taskHref = `/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`
+  const style = isOverdue
+    ? { bg: 'bg-red-50 border-red-200', text: 'text-red-700', dot: 'bg-red-500' }
+    : (statusStyles[task.status] ?? statusStyles.todo)
+  const dateLabel = formatDateLabel(task.posting_date)
 
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm">
-      {/* Header */}
-      <div className="mb-3 flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2">
-            <p className="font-medium text-foreground truncate">{task.title}</p>
-            <Badge
-              className={cn(
-                'flex-shrink-0 mt-0 capitalize',
-                isOverdue
-                  ? 'border-destructive bg-destructive/10 text-destructive'
-                  : task.status === 'in_progress'
-                    ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                    : 'border-muted-foreground/20 bg-muted text-muted-foreground',
-              )}
-            >
-              {isOverdue ? 'overdue' : task.status.replace('_', ' ')}
-            </Badge>
-          </div>
-          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: task.client_color ?? undefined }}
-              />
-              {task.client_name}
-            </span>
-            <span>·</span>
-            <span className="truncate">{task.project_name}</span>
-          </div>
-        </div>
-      </div>
+    <Link
+      href={taskHref}
+      className="group flex items-center gap-4 rounded-lg px-4 py-3 transition hover:bg-muted/50"
+    >
+      <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', style.dot)} />
 
-      {/* Detail Fields - 2 Column Grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-        {/* Assigned To */}
-        <div className="flex items-start gap-2">
-          <User className="h-3.5 w-3.5 text-muted-foreground mt-0 flex-shrink-0" />
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {LABELS.common.assignedTo}
-            </p>
-            <p className="text-sm font-medium text-foreground">
-              {task.assigned_to_username
-                ? `@${task.assigned_to_username}`
-                : task.assigned_to_name ?? 'Unassigned'}
-            </p>
-          </div>
-        </div>
+      <span className="flex-1 min-w-0">
+        <span className="block text-sm font-medium text-foreground truncate group-hover:underline">
+          {task.title}
+        </span>
+        <span className="block mt-0.5 text-xs text-muted-foreground truncate">
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full mr-1 align-middle"
+            style={{ backgroundColor: task.client_color ?? '#b45309' }}
+          />
+          {task.client_name}
+          <span className="mx-1.5 text-muted-foreground/40">·</span>
+          {task.project_name}
+        </span>
+      </span>
 
-        {/* Posting Date */}
-        <div className="flex items-start gap-2">
-          <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0 flex-shrink-0" />
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              {LABELS.task.postingDate}
-            </p>
-            <p className="text-sm text-foreground tabular-nums">
-              {formatOptionalDate(task.posting_date, LABELS.task.noDate)}
-            </p>
-          </div>
-        </div>
+      {dateLabel && (
+        <span className={cn(
+          'hidden sm:inline-flex items-center gap-1 shrink-0 text-xs',
+          isOverdue ? 'text-red-600 font-medium' : 'text-muted-foreground'
+        )}>
+          <Calendar className="h-3 w-3" />
+          {dateLabel}
+        </span>
+      )}
 
-      </div>
+      <span className={cn(
+        'shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium',
+        style.bg, style.text
+      )}>
+        {isOverdue ? 'Overdue' : task.status === 'in_progress' ? 'In Progress' : task.status === 'done' ? 'Done' : 'To Do'}
+      </span>
 
-      {/* Navigation Link */}
-      <div className="pt-3 mt-3">
-        <Link
-          href={`/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`}
-          className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground transition"
-        >
-          Open task detail &rarr;
-        </Link>
-      </div>
-    </div>
+      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-foreground transition" />
+    </Link>
   )
 }
 
-function TaskListView({ title, tasks, expanded, onToggle }: {
-  title: string
-  tasks: TaskRecord[]
-  expanded: TaskExpandState
-  onToggle: (task: TaskRecord | null) => void
-}) {
-  if (tasks.length === 0) return null
+export default function AllTasks({ today, upcoming, overdue, clients, projectsByClient }: AllTasksProps) {
+  const sections = [
+    { key: 'overdue', data: overdue, accent: 'bg-red-500', empty: 'No overdue tasks' },
+    { key: 'today', data: today, accent: 'bg-amber-400', empty: 'No tasks scheduled for today' },
+    { key: 'upcoming', data: upcoming, accent: 'bg-blue-400', empty: 'No upcoming tasks' },
+  ] as const
+
+  const totalTasks = today.tasks.length + upcoming.tasks.length + overdue.tasks.length
 
   return (
-    <section className="space-y-2">
-      <h3 className="px-2 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-        {title}
-      </h3>
-      <div className="space-y-1">
-        {tasks.map((task) => {
-          const isOverdue = Boolean(
-            task.posting_date &&
-              isBefore(startOfDay(new Date(task.posting_date)), startOfDay(new Date())) &&
-              task.status !== 'done'
-          )
-          const isExpanded = expanded.id === task.id
-          const taskHref = `/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">Tasks</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {totalTasks > 0
+              ? `${totalTasks} task${totalTasks !== 1 ? 's' : ''} across your projects`
+              : 'No tasks yet. Create one to get started.'}
+          </p>
+        </div>
+        <QuickTaskDialog clients={clients} projectsByClient={projectsByClient} />
+      </div>
 
+      <div className="space-y-3">
+        {sections.map((section) => {
+          if (section.data.tasks.length === 0) return null
           return (
-            <div key={task.id} className="space-y-0">
-              {/* Task Row */}
-              <div
-                className={cn(
-                  'group rounded-lg border border-transparent px-3 py-2.5 transition hover:bg-muted/20 hover:border-border',
-                  isExpanded && 'border-border bg-muted/30',
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  {/* Expand Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => onToggle(isExpanded ? null : task)}
-                    className="flex-shrink-0 text-muted-foreground hover:text-foreground transition p-0.5"
-                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </button>
-
-                  {/* Status Dot */}
-                  <div className="flex-shrink-0">
-                    <StatusDot status={isOverdue ? 'overdue' : task.status as 'todo' | 'in_progress' | 'done'} />
-                  </div>
-
-                  {/* Task Title (links to parent task) */}
-                  <Link
-                    href={taskHref}
-                    className="flex-1 min-w-0 font-medium text-foreground text-sm underline-offset-4 hover:underline truncate"
-                  >
-                    {task.title}
-                  </Link>
-
-                  {/* Content Plan / Month */}
-                  <span className="hidden lg:inline text-xs text-muted-foreground flex-shrink-0 w-20 truncate">
-                    {getMonthLabel(task.posting_date)}
-                  </span>
-
-                  {/* Client Name */}
-                  <span className="hidden sm:inline flex items-center gap-1.5 text-xs text-muted-foreground flex-shrink-0 w-28 truncate">
-                    <span
-                      className="h-2 w-2 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: task.client_color ?? undefined }}
-                    />
-                    {task.client_name}
-                  </span>
-
-                  {/* Project Name */}
-                  <span className="hidden md:inline text-xs text-muted-foreground flex-shrink-0 w-28 truncate">
-                    {task.project_name}
-                  </span>
-
-                  {/* Assignment */}
-                  <span className="hidden lg:inline text-xs text-muted-foreground flex-shrink-0 w-28 truncate text-right">
-                    {task.assigned_to_username
-                      ? `@${task.assigned_to_username}`
-                      : task.assigned_to_name ?? '—'}
-                  </span>
-                </div>
+            <div key={section.key}>
+              <div className="mb-2 flex items-center gap-2">
+                <span className={cn('h-2 w-2 rounded-full', section.accent)} />
+                <h3 className="text-sm font-semibold text-foreground">
+                  {section.data.label}
+                </h3>
+                <span className="text-xs text-muted-foreground">
+                  {section.data.tasks.length}
+                </span>
               </div>
-
-              {/* Expandable Detail Panel */}
-              {isExpanded && task && (
-                <TaskDetailPanel task={task} />
-              )}
+              <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
+                {section.data.tasks.map((task) => (
+                  <TaskRow key={task.id} task={task} />
+                ))}
+              </div>
             </div>
           )
         })}
       </div>
-    </section>
-  )
-}
 
-export default function AllTasks({ today, upcoming, overdue }: AllTasksProps) {
-  const [expanded, setExpanded] = useState<TaskExpandState>({ id: null, task: null })
-
-  const handleToggle = useCallback(
-    (task: TaskRecord | null) => {
-      setExpanded(task ? { id: task.id, task } : { id: null, task: null })
-    },
-    [],
-  )
-
-  return (
-    <div className="space-y-4">
-      {/* Header Bar - matches clients page pattern */}
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-foreground">All Tasks</h2>
-          <p className="text-sm text-muted-foreground">
-            View tasks organized by urgency — today, upcoming, and overdue.
+      {totalTasks === 0 && (
+        <div className="rounded-xl border border-dashed border-border py-16 text-center">
+          <Clock className="mx-auto h-8 w-8 text-muted-foreground/40" />
+          <p className="mt-3 text-base font-medium text-foreground">
+            No tasks yet
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tasks will appear here when they are assigned posting dates in a project.
           </p>
         </div>
-        <QuickTaskDialog />
-      </div>
-
-      {/* Compact Task Sections */}
-      <div className="space-y-4">
-        <TaskListView
-          title={`Today's Tasks (${today.tasks.length})`}
-          tasks={today.tasks as TaskRecord[]}
-          expanded={expanded}
-          onToggle={handleToggle}
-          key={`today-${today.tasks.length}`}
-        />
-        <TaskListView
-          title={`Upcoming (${upcoming.tasks.length})`}
-          tasks={upcoming.tasks as TaskRecord[]}
-          expanded={expanded}
-          onToggle={handleToggle}
-          key={`upcoming-${upcoming.tasks.length}`}
-        />
-        <TaskListView
-          title={`Overdue (${overdue.tasks.length})`}
-          tasks={overdue.tasks as TaskRecord[]}
-          expanded={expanded}
-          onToggle={handleToggle}
-          key={`overdue-${overdue.tasks.length}`}
-        />
-      </div>
-
-      {/* Empty State */}
-      {today.tasks.length === 0 &&
-        upcoming.tasks.length === 0 &&
-        overdue.tasks.length === 0 && (
-          <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center">
-            <p className="text-lg font-medium text-foreground">No tasks found.</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tasks will appear here when they are created in a project.
-            </p>
-          </div>
-        )}
+      )}
     </div>
   )
 }

@@ -149,17 +149,10 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
             {task.title}
           </span>
 
-          {/* Bottom row: status dot + assignee + date + overdue */}
+          {/* Bottom row: status dot + date + overdue */}
           <div className="flex items-center justify-between">
-            {/* Left: status + assignee */}
-            <div className="flex items-center gap-2">
-              <StatusDot status={overdue ? 'overdue' : task.status} />
-              {task.assigned_to_username && (
-                <span className="text-[11px] font-mono text-muted-foreground">
-                  @ {task.assigned_to_username}
-                </span>
-              )}
-            </div>
+            {/* Left: status */}
+            <StatusDot status={overdue ? 'overdue' : task.status} />
 
             {/* Right: date + overdue badge */}
             {cardDate && (

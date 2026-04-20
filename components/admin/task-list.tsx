@@ -65,7 +65,6 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>{LABELS.task.postingDate}</TableHead>
-                <TableHead>{LABELS.task.assignee}</TableHead>
                 <TableHead>{LABELS.task.dueDate}</TableHead>
                 <TableHead className="w-[72px]">Actions</TableHead>
               </TableRow>
@@ -95,11 +94,6 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                       <StatusDot status={isOverdue ? 'overdue' : task.status} showLabel />
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatOptionalDate(task.posting_date)}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {task.assigned_to_username
-                        ? `@${task.assigned_to_username}`
-                        : task.assigned_to_name ?? '—'}
-                    </TableCell>
                     <TableCell className="text-muted-foreground">{formatOptionalDate(task.due_date)}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
@@ -166,14 +160,6 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                   <p>{formatOptionalDate(task.posting_date)}</p>
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-[0.1em]">{LABELS.task.assignee}</span>
-                  <p>
-                    {task.assigned_to_username
-                      ? `@${task.assigned_to_username}`
-                      : task.assigned_to_name ?? '—'}
-                  </p>
-                </div>
-                <div className="col-span-2">
                   <span className="text-xs uppercase tracking-[0.1em]">{LABELS.task.dueDate}</span>
                   <p>{formatOptionalDate(task.due_date)}</p>
                 </div>

@@ -31,8 +31,6 @@ export type TaskRow = {
   deadline: string | null
   status: 'todo' | 'in_progress' | 'done'
   created_at: string
-  assigned_to_name: string | null
-  assigned_to_username: string | null
 }
 
 type TabId = 'board' | 'timeline' | 'files'

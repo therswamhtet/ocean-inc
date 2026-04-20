@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format } from 'date-fns'
-import { Check, Download, LoaderCircle, Copy, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Download, LoaderCircle, Copy, Pencil, X } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
-import { adminDeleteCommentAction, adminEditCommentAction, adminPostCommentAction } from '@/app/admin/clients/actions'
 import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,10 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Field, FieldDescription } from '@/components/ui/field'
 import { StatusDot } from '@/components/ui/status-dot'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
 import { linkify } from '@/lib/utils'
 
@@ -54,27 +49,10 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
-type CommentWithAuthor = {
-  id: string
-  content: string
-  is_revision: boolean
-  created_at: string
-  team_members: { name: string } | null
-}
-
 export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetailDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
-  const [comments, setComments] = useState<CommentWithAuthor[]>([])
-  const [commentsLoading, setCommentsLoading] = useState(false)
-  const [commentText, setCommentText] = useState('')
-  const [commentIsRevision, setCommentIsRevision] = useState(false)
-  const [isPostingComment, startPostingComment] = useTransition()
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
-  const [editCommentText, setEditCommentText] = useState('')
-  const [isEditingComment, startEditingComment] = useTransition()
-  const [commentFeedback, setCommentFeedback] = useState<string | null>(null)
   const prevFilePath = useRef<string | null>(null)
 
   const filePathToLoad = task?.design_file_path && isImageFile(task.design_file_path)
@@ -111,30 +89,6 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
     return () => { cancelled = true }
   }, [filePathToLoad, previewUrl])
 
-  useEffect(() => {
-    if (!open || !task?.id) {
-      setComments([])
-      return
-    }
-
-    setCommentsLoading(true)
-    createClient()
-      .from('comments')
-      .select('id, content, is_revision, created_at, team_members(name)')
-      .eq('task_id', task.id)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setComments(data as unknown as CommentWithAuthor[])
-        }
-      })
-      .then(() => {
-        setCommentsLoading(false)
-      }, () => {
-        setCommentsLoading(false)
-      })
-  }, [open, task?.id])
-
   const handleCopyCaption = async () => {
     if (!task?.caption) return
     try {
@@ -144,62 +98,6 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
     } catch {
       // Clipboard API failed
     }
-  }
-
-  function handlePostComment() {
-    if (!commentText.trim() || !task?.id) return
-    setCommentFeedback(null)
-    startPostingComment(async () => {
-      const result = await adminPostCommentAction(task.id, commentText, commentIsRevision)
-      if (result.success) {
-        setCommentText('')
-        setCommentIsRevision(false)
-        setCommentFeedback('Comment posted.')
-        refreshComments(task.id)
-      } else {
-        setCommentFeedback(result.error)
-      }
-    })
-  }
-
-  function handleEditComment(commentId: string) {
-    if (!editCommentText.trim()) return
-    startEditingComment(async () => {
-      const result = await adminEditCommentAction(commentId, editCommentText)
-      if (result.success) {
-        setEditingCommentId(null)
-        setEditCommentText('')
-        setCommentFeedback('Comment updated.')
-        if (task?.id) refreshComments(task.id)
-      } else {
-        setCommentFeedback(result.error)
-      }
-    })
-  }
-
-  function handleDeleteComment(commentId: string) {
-    startPostingComment(async () => {
-      const result = await adminDeleteCommentAction(commentId)
-      if (result.success) {
-        setCommentFeedback('Comment deleted.')
-        if (task?.id) refreshComments(task.id)
-      } else {
-        setCommentFeedback(result.error)
-      }
-    })
-  }
-
-  function refreshComments(taskId: string) {
-    createClient()
-      .from('comments')
-      .select('id, content, is_revision, created_at, team_members(name)')
-      .eq('task_id', taskId)
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setComments(data as unknown as CommentWithAuthor[])
-        }
-      })
   }
 
   if (!task) {
@@ -221,7 +119,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl">{task.title}</DialogTitle>
           <DialogDescription className="sr-only">
-            Task details and comments for {task.title}
+            Task details for {task.title}
           </DialogDescription>
           {onEdit && (
             <Button type="button" variant="outline" size="sm" onClick={onEdit}>
@@ -233,19 +131,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
 
         <div className="space-y-4">
           <section className="flex items-center justify-between rounded-sm border border-border px-3 py-3">
-            <div className="flex items-center gap-2">
-              <StatusDot status={task.status} showLabel />
-              {task.assigned_to_username && (
-                <span className="text-sm font-mono text-muted-foreground">
-                  @{task.assigned_to_username}
-                </span>
-              )}
-              {task.assigned_to_name && !task.assigned_to_username && (
-                <span className="text-sm text-muted-foreground">
-                  {task.assigned_to_name}
-                </span>
-              )}
-            </div>
+            <StatusDot status={task.status} showLabel />
           </section>
 
           <section className="space-y-2 rounded-sm border border-border px-3 py-3">
@@ -309,96 +195,6 @@ export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetai
             ) : (
               <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noDesignFile}</p>
             )}
-          </section>
-
-          <section className="space-y-3 rounded-sm border border-border px-3 py-3">
-            <p className="text-sm font-medium text-foreground">Comments</p>
-            {commentsLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LoaderCircle className="h-3 w-3 animate-spin" />
-                Loading comments...
-              </div>
-            ) : comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet.</p>
-            ) : (
-              <div className="space-y-3 max-h-52 overflow-y-auto">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar name={comment.team_members?.name ?? 'Unknown'} size={28} />
-                    <div className="min-w-0 flex-1">
-                      {editingCommentId === comment.id ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editCommentText}
-                            onChange={(e) => setEditCommentText(e.target.value)}
-                            rows={2}
-                            className="text-sm"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-green-600" disabled={isEditingComment} onClick={() => handleEditComment(comment.id)}>
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button type="button" variant="ghost" size="sm" className="h-7 px-2" onClick={() => setEditingCommentId(null)}>
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={`relative rounded-xl border px-3.5 py-3 ${
-                          comment.is_revision
-                            ? 'border-l-2 border-l-amber-400 border-y-amber-200 border-r-amber-200 bg-amber-50/20'
-                            : 'border-border bg-card'
-                        }`}>
-                          {/* Edit/Delete buttons - top right */}
-                          <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCommentId(comment.id); setEditCommentText(comment.content); }}>
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteComment(comment.id)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          {/* Author, badge, timestamp */}
-                          <div className="flex items-center gap-1.5 pr-12">
-                            <span className="text-sm font-medium text-foreground truncate">
-                              {comment.team_members?.name ?? 'Unknown'}
-                            </span>
-                            {comment.is_revision && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 shrink-0">
-                                <span className="h-1 w-1 rounded-full bg-amber-500" />
-                                Revision
-                              </span>
-                            )}
-                            <span className="text-[11px] text-muted-foreground shrink-0">
-                              {format(new Date(comment.created_at), 'MMM d · HH:mm')}
-                            </span>
-                          </div>
-                          {/* Comment text */}
-                          <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words pr-12">
-                            {comment.content}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Post comment form */}
-            <div className="space-y-2 pt-2 border-t border-border">
-              <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={2} />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch checked={commentIsRevision} onCheckedChange={setCommentIsRevision} id="admin-revision-flag" />
-                  <label htmlFor="admin-revision-flag" className="text-sm text-muted-foreground cursor-pointer">Request revision</label>
-                </div>
-                <Button type="button" disabled={isPostingComment || !commentText.trim()} onClick={handlePostComment} size="sm">
-                  {isPostingComment ? 'Posting...' : 'Post comment'}
-                </Button>
-              </div>
-              {commentFeedback && <p className="text-sm text-muted-foreground">{commentFeedback}</p>}
-            </div>
           </section>
 
           <div className="grid gap-3 sm:grid-cols-2">

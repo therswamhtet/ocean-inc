@@ -16,8 +16,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 type CreateClientDialogProps = {
   errorMessage?: string
@@ -25,7 +25,7 @@ type CreateClientDialogProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-const CLIENT_PALETTE = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316']
+const CLIENT_PALETTE = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
 
 export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenChange }: CreateClientDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(Boolean(errorMessage))
@@ -59,9 +59,11 @@ export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenC
           </DialogDescription>
         </DialogHeader>
 
-        <form action={createClientAction} className="space-y-4 pt-2">
+        <form action={createClientAction} className="space-y-5 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="client-name">Client name</Label>
+            <label htmlFor="client-name" className="text-sm font-medium text-foreground">
+              Client name
+            </label>
             <Input
               id="client-name"
               name="name"
@@ -69,18 +71,26 @@ export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenC
               placeholder="Northwind Studio"
               required
               type="text"
+              className="h-10"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Brand color</Label>
-            <div className="flex gap-2">
+            <label className="text-sm font-medium text-foreground">
+              Brand color
+            </label>
+            <div className="flex items-center gap-2">
               {CLIENT_PALETTE.map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setSelectedColor(c)}
-                  className={`h-7 w-7 rounded-full transition ring-2 ring-offset-1 ${selectedColor === c ? 'ring-foreground scale-110' : 'ring-transparent'}`}
+                  className={cn(
+                    'h-8 w-8 rounded-full transition-all',
+                    selectedColor === c
+                      ? 'ring-2 ring-foreground ring-offset-2 scale-110'
+                      : 'ring-1 ring-border hover:scale-105'
+                  )}
                   style={{ backgroundColor: c }}
                   aria-label={`Select color ${c}`}
                 />
@@ -90,25 +100,28 @@ export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenC
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-description">Description</Label>
+            <label htmlFor="client-description" className="text-sm font-medium text-foreground">
+              Description <span className="text-muted-foreground font-normal">(optional)</span>
+            </label>
             <Textarea
               id="client-description"
               name="description"
               maxLength={200}
-              placeholder="Optional — what does this client do?"
+              placeholder="What does this client do?"
+              rows={2}
             />
             <p className="text-xs text-muted-foreground">
-              Brief description for internal reference (max 200 characters).
+              Internal reference only. Max 200 characters.
             </p>
           </div>
 
-          {errorMessage ? (
-            <p className="rounded-lg border border-destructive px-3 py-2 text-sm text-destructive">
+          {errorMessage && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {errorMessage}
-            </p>
-          ) : null}
+            </div>
+          )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <Button type="submit">{LABELS.project.create}</Button>
           </div>
         </form>

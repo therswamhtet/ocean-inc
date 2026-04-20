@@ -32,14 +32,6 @@ type TaskRecord = {
   deadline: string | null
   status: 'todo' | 'in_progress' | 'done'
   created_at: string
-  task_assignments:
-    | Array<{
-        team_members: {
-          name: string | null
-          username: string | null
-        } | null
-      }>
-    | null
 }
 
 function monthName(m: number) {
@@ -93,7 +85,7 @@ export default async function ProjectTasksPage({
   const { data: tasks, error: tasksError } = await serviceRoleClient
     .from('tasks')
     .select(
-      'id, title, briefing, caption, design_file_path, posting_date, posting_time, due_date, deadline, status, created_at, task_assignments(team_members(name, username))'
+      'id, title, briefing, caption, design_file_path, posting_date, posting_time, due_date, deadline, status, created_at'
     )
     .eq('project_id', projectId)
     .order('created_at', { ascending: false })
@@ -111,8 +103,6 @@ export default async function ProjectTasksPage({
 
   const normalizedTasks: TaskRow[] = (tasks ?? []).map((task) => ({
     ...task,
-    assigned_to_username: task.task_assignments?.[0]?.team_members?.username ?? null,
-    assigned_to_name: task.task_assignments?.[0]?.team_members?.name ?? null,
     posting_time: task.posting_time,
   }))
 

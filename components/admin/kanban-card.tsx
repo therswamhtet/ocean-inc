@@ -1,34 +1,17 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, ImageUp, LoaderCircle, Upload, X } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
+import { updateTaskFilePathAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { StatusDot } from '@/components/ui/status-dot'
 import { ContentCard } from '@/components/ui/content-card'
 import { Button } from '@/components/ui/button'
 import { TaskDetailDialog } from '@/components/admin/task-detail-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { updateTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { cn } from '@/lib/utils'
 
 type KanbanCardProps = {
@@ -36,16 +19,6 @@ type KanbanCardProps = {
   projectId: string
 }
 
-const editTaskSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  posting_date: z.string().optional(),
-  posting_time: z.string().optional(),
-  status: z.enum(['todo', 'in_progress', 'done']),
-})
-
-type EditTaskFormValues = z.infer<typeof editTaskSchema>
-
-/** Derive a task category tag from task fields */
 function getTaskTags(task: TaskRow): string[] {
   const tags: string[] = []
   if (task.caption) tags.push('Content')
@@ -68,11 +41,107 @@ function isTaskOverdue(task: TaskRow) {
   )
 }
 
+function DesignUploadButton({
+  taskId,
+  projectId,
+  onUploadComplete,
+}: {
+  taskId: string
+  projectId: string
+  onUploadComplete: (path: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      setError('Only images allowed')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Max 10MB')
+      return
+    }
+
+    setUploading(true)
+    setError(null)
+
+    const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
+    const fileName = `${crypto.randomUUID()}.${ext}`
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${fileName}`
+
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('path', path)
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const finalPath = data.path
+
+        const result = await updateTaskFilePathAction(taskId, finalPath)
+        if (result.success) {
+          onUploadComplete(finalPath)
+        } else {
+          setError(result.error ?? 'Failed to save')
+        }
+      } else {
+        setError('Upload failed')
+      }
+    } catch {
+      setError('Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) void handleFile(file)
+          e.target.value = ''
+        }}
+      />
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          inputRef.current?.click()
+        }}
+        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition"
+      >
+        {uploading ? (
+          <LoaderCircle className="h-3 w-3 animate-spin" />
+        ) : (
+          <Upload className="h-3 w-3" />
+        )}
+        {uploading ? 'Uploading' : 'Upload'}
+      </button>
+      {error && (
+        <span className="text-[10px] text-destructive ml-1">{error}</span>
+      )}
+    </>
+  )
+}
+
 export function KanbanCard({ task, projectId }: KanbanCardProps) {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [currentDesignPath, setCurrentDesignPath] = useState(task.design_file_path)
   useEffect(() => setIsMounted(true), [])
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   })
@@ -84,16 +153,13 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
 
   const overdue = isTaskOverdue(task)
   const cardDate = formatCardDate(task)
-  const tags = getTaskTags(task)
+
+  const displayTask = { ...task, design_file_path: currentDesignPath }
+  const tags = getTaskTags(displayTask)
 
   const handleCardClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+    if ((e.target as HTMLElement).closest('[data-no-click]')) return
     setDetailDialogOpen(true)
-  }
-
-  const handleEditClick = () => {
-    setDetailDialogOpen(false)
-    setEditDialogOpen(true)
   }
 
   return (
@@ -111,7 +177,6 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
             overdue ? 'border-destructive/40 hover:border-destructive/60' : 'hover:border-foreground/30 cursor-pointer'
           )}
         >
-          {/* Drag handle */}
           {isMounted && (
             <button
               type="button"
@@ -124,9 +189,9 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
               <GripVertical className="h-4 w-4" />
             </button>
           )}
-          {/* Tags row at top */}
+
           {tags.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1">
+            <div className="mb-2 flex flex-wrap items-center gap-1">
               {tags.map((tag) => (
                 <span
                   key={tag}
@@ -138,23 +203,43 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
                     'bg-muted text-muted-foreground'
                   )}
                 >
-                  {tag}
+                  {tag === 'Design' ? (
+                    <span className="inline-flex items-center gap-0.5">
+                      <ImageUp className="h-2.5 w-2.5" />
+                      Design
+                    </span>
+                  ) : tag}
                 </span>
               ))}
+
+              {!currentDesignPath && (
+                <div data-no-click="true">
+                  <DesignUploadButton
+                    taskId={task.id}
+                    projectId={projectId}
+                    onUploadComplete={(path) => setCurrentDesignPath(path)}
+                  />
+                </div>
+              )}
             </div>
           )}
 
-          {/* Title */}
+          {!tags.length && !currentDesignPath && (
+            <div className="mb-2 flex items-center gap-1" data-no-click="true">
+              <DesignUploadButton
+                taskId={task.id}
+                projectId={projectId}
+                onUploadComplete={(path) => setCurrentDesignPath(path)}
+              />
+            </div>
+          )}
+
           <span className="mb-3 block text-sm font-medium leading-snug text-foreground">
             {task.title}
           </span>
 
-          {/* Bottom row: status dot + date + overdue */}
           <div className="flex items-center justify-between">
-            {/* Left: status */}
             <StatusDot status={overdue ? 'overdue' : task.status} />
-
-            {/* Right: date + overdue badge */}
             {cardDate && (
               <span className={cn(
                 'text-[11px] font-medium',
@@ -176,124 +261,9 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
       <TaskDetailDialog
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
-        task={task}
-      />
-
-      <EditTaskDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        task={task}
-        onEdit={handleEditClick}
+        task={displayTask}
+        projectId={projectId}
       />
     </>
-  )
-}
-
-function EditTaskDialog({ open, onOpenChange, task, onEdit }: { open: boolean; onOpenChange: (open: boolean) => void; task: TaskRow; onEdit: () => void }) {
-  const [isPending, startTransition] = useTransition()
-  const [feedback, setFeedback] = useState<string | null>(null)
-
-  const form = useForm<EditTaskFormValues>({
-    resolver: zodResolver(editTaskSchema),
-    defaultValues: {
-      title: task.title,
-      posting_date: task.posting_date ?? '',
-      posting_time: task.posting_time ?? '10:00',
-      status: task.status,
-    },
-  })
-
-  const onSubmit = (values: EditTaskFormValues) => {
-    setFeedback(null)
-    startTransition(async () => {
-      const result = await updateTaskAction(task.id, {
-        title: values.title,
-        postingDate: values.posting_date || undefined,
-        postingTime: values.posting_time || undefined,
-        status: values.status,
-      })
-      if (result.success) {
-        onOpenChange(false)
-        window.location.reload()
-      } else {
-        setFeedback(result.error)
-      }
-    })
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">Title</label>
-            <Input
-              id="title"
-              {...form.register('title')}
-            />
-            {form.formState.errors.title && (
-              <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="posting_date" className="text-sm font-medium">Posting Date</label>
-              <Input
-                id="posting_date"
-                type="date"
-                {...form.register('posting_date')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="posting_time" className="text-sm font-medium">Posting Time</label>
-              <Input
-                id="posting_time"
-                type="time"
-                {...form.register('posting_time')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Status</label>
-              <Select
-                value={form.watch('status')}
-                onValueChange={(value: 'todo' | 'in_progress' | 'done') => 
-                  form.setValue('status', value, { shouldDirty: true })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {feedback && (
-            <div className="rounded-lg border border-destructive px-3 py-2 text-sm text-destructive">
-              {feedback}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }

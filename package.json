@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "verify:team-rls": "tsx scripts/verify-team-rls.ts"
+    "verify:team-rls": "tsx scripts/verify-team-rls.ts",
+    "voidct:start": "sh ./scripts/voidct-start.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

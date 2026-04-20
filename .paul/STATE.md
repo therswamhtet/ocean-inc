@@ -5,40 +5,40 @@
 See: .paul/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Admins can create/manage social media content tasks and give clients a clean read-only portal — all in one place.
-**Current focus:** v1.2 UI/UX Overhaul & Simplification — Plans 15-01 through 15-03 complete, ready for 15-04
+**Current focus:** v1.2 UI/UX Overhaul & Simplification — Phase 15 COMPLETE
 
 ## Current Position
 
 Milestone: v1.2 Collaboration & Workflow (v1.2.0)
-Phase: 15 of 15 — UI/UX Overhaul & Simplification
-Plan: 15-03 complete, awaiting 15-04
-Status: Plans 15-01 + 15-02 + 15-03 UNIFY complete, ready for Plan 15-04
-Last activity: 2026-04-20 — Plan 15-03 complete (streamlined project navigation)
+Phase: 15 of 15 — UI/UX Overhaul & Simplification (COMPLETE)
+Plan: 15-04 complete
+Status: Phase 15 complete — all 4 plans done
+Last activity: 2026-04-20 — Plan 15-04 complete (calendar/mobile/dialog polish)
 
 Progress:
-- Milestone: [██████████░] 93%
-- Phase 15: [███████░░░] 75%
+- Milestone: [██████████] 100%
+- Phase 15: [██████████] 100%
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete - Plan 15-03 done]
+  ✓        ✓        ✓     [Loop complete - Phase 15 done]
 ```
 
 ## Session Continuity
 
 Last session: 2026-04-20
-Stopped at: Plan 15-03 complete — navigation streamlined
-Next action: Create Plan 15-04 (fix calendar overflows, mobile issues, portal layout)
-Resume file: .paul/phases/15-ui-ux-overhaul/15-03-SUMMARY.md
+Stopped at: Phase 15 complete — all UI/UX overhaul plans shipped
+Next action: Transition phase 15 as complete, archive milestone
+Resume file: .paul/phases/15-ui-ux-overhaul/15-04-SUMMARY.md
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Phase 15: 3 plans total
+- Total plans completed: 4
+- Phase 15: 4 plans total (15-01, 15-02, 15-03, 15-04)
 
 ## Accumulated Context
 
@@ -51,11 +51,18 @@ Resume file: .paul/phases/15-ui-ux-overhaul/15-03-SUMMARY.md
 - Clients can edit/delete their own comments in portal
 - Avatars are initials-only (no profile images, no DB migration)
 - Hydration fix for dnd-kit KanbanCard (mounted guard on drag button)
-- Phase 15 split into 4 plans: 15-01 (remove notifications+comments), 15-02 (disable team features), 15-03 (streamline navigation), 15-04 (fix calendar/mobile/portal layout)
+- Phase 15 split into 4 plans: 15-01 (remove notifications+comments), 15-02 (disable team features), 15-03 (streamline navigation), 15-04 (fix calendar/mobile/dialog polish)
 - Database tables hidden from UI only (not dropped) for reversibility
 - Projects page added as flat list shortcut — skips Clients intermediary
 - Dashboard enhanced with Active Projects quick-access cards
 - Quick Task Dialog cleaned of team member/assignee references
+- Mobile calendar pattern: hidden sm:block grid + block sm:hidden card feed
+- Status pill pattern: rounded-full with dot, bg, text, border classes
+- Section card pattern: rounded-xl border bg-card with border-b header
+- Removed min-w-[560px]/min-w-[640px] from all portal calendar/timeline views
+- Replaced StatusDot component with status pill badges across all views
+- Task edit form: section cards (Content/Schedule/Design File), removed team member assignment
+- Kanban detail dialogs: h3 section titles, breathing room, copy button as bordered element, status in footer
 
 ### Deferred Issues
 From codebase mapping:
@@ -64,7 +71,7 @@ From codebase mapping:
 - Race condition in invite registration flow
 
 ### Blockers/Concerns
-None yet.
+None.
 
 ---
 

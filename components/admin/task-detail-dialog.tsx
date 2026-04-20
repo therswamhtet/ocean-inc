@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
-import { Copy, Download, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
+import { Calendar, Clock, Copy, Download, FileImage, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
 import Link from 'next/link'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
@@ -50,10 +50,10 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
-const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string; border: string }> = {
+  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
 }
 
 function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
@@ -100,16 +100,18 @@ function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
         onDragLeave={() => setIsDragging(false)}
         onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
         className={cn(
-          'rounded-lg border-2 border-dashed px-6 py-8 text-center transition cursor-pointer',
+          'rounded-lg border-2 border-dashed transition cursor-pointer',
           isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
         )}
       >
-        <div className="mx-auto flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 py-6">
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
             {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
           </div>
-          <p className="text-sm font-medium text-foreground">Upload design file</p>
-          <p className="text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">Upload design file</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+          </div>
         </div>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -161,15 +163,15 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
     task.status !== 'done'
   )
   const s = isOverdue
-    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
     : (statusConfig[task.status] ?? statusConfig.todo)
   const caption = task.caption ?? ''
   const briefing = task.briefing ?? ''
   const fileName = currentDesignPath?.split('/').pop() ?? null
   const isDesignImage = isImageFile(currentDesignPath)
-  const postingDateTime = task.posting_date
-    ? `${formatDate(task.posting_date)}${task.posting_time ? ` at ${formatTime(task.posting_time)}` : ''}`
-    : '—'
+  const hasContent = caption || briefing
+  const hasDesignFile = currentDesignPath && fileName
+  const hasDates = task.posting_date || task.due_date || task.deadline
 
   function handleDesignUpload(path: string) {
     setCurrentDesignPath(path)
@@ -178,98 +180,114 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold pr-8">{task.title}</DialogTitle>
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {caption && (
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Caption</label>
-                <button type="button" onClick={handleCopyCaption} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition">
-                  <Copy className="h-3 w-3" />
-                  {copyFeedback ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
-              </div>
+        <div className="space-y-5">
+          {/* ── Content ── */}
+          {hasContent && (
+            <div className="space-y-3">
+              {caption && (
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Caption</span>
+                    <button
+                      type="button"
+                      onClick={handleCopyCaption}
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                    >
+                      <Copy className="h-3 w-3" />
+                      {copyFeedback ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
+                  </div>
+                </div>
+              )}
+              {briefing && (
+                <div>
+                  <span className="mb-1 block text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Briefing</span>
+                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
+                </div>
+              )}
             </div>
           )}
 
-          {briefing && (
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Briefing</label>
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
-            </div>
-          )}
-
+          {/* ── Design File ── */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Design file</label>
-            {currentDesignPath && fileName ? (
+            <span className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              <FileImage className="h-3.5 w-3.5" />
+              Design file
+            </span>
+            {hasDesignFile ? (
               <div className="space-y-3">
                 {isDesignImage && previewLoading && !previewUrl && (
-                  <div className="flex items-center justify-center rounded-lg border border-border py-8">
+                  <div className="flex items-center justify-center rounded-lg border border-border py-10">
                     <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
                 )}
                 {isDesignImage && previewUrl && (
                   <div className="overflow-hidden rounded-lg border border-border">
-                    <img src={previewUrl} alt="Design preview" className="h-auto w-full max-h-80 object-contain bg-muted/20" />
+                    <img src={previewUrl} alt="Design preview" className="h-auto w-full object-contain bg-muted/20" />
                   </div>
                 )}
-                <DownloadButton fileName={fileName} filePath={currentDesignPath} />
+                <DownloadButton fileName={fileName!} filePath={currentDesignPath!} />
               </div>
             ) : (
               <InlineDesignUploader taskId={task.id} projectId={projectId ?? ''} onUploadComplete={handleDesignUpload} />
             )}
           </div>
 
-          <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Details</label>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {task.posting_date && (
-                <div className="rounded-lg border border-border px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-0.5">Posting Date</p>
-                  <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
-                </div>
-              )}
-              {task.due_date && (
-                <div className="rounded-lg border border-border px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-0.5">Due Date</p>
-                  <p className="text-sm font-medium text-foreground">{formatDate(task.due_date)}</p>
-                </div>
-              )}
-              {task.deadline && (
-                <div className="rounded-lg border border-border px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-0.5">Deadline</p>
-                  <p className="text-sm font-medium text-foreground">{formatDate(task.deadline)}</p>
-                </div>
-              )}
-              {!task.posting_date && !task.due_date && !task.deadline && (
-                <p className="text-sm text-muted-foreground col-span-2">No dates set.</p>
-              )}
+          {/* ── Schedule ── */}
+          {hasDates && (
+            <div>
+              <span className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                Schedule
+              </span>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {task.posting_date && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Posting Date</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
+                  </div>
+                )}
+                {task.due_date && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Due Date</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.due_date)}</p>
+                  </div>
+                )}
+                {task.deadline && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Deadline</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.deadline)}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between border-t border-border pt-3">
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', s.bg, s.text)}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
-            {s.label}
-          </span>
-          {projectId && clientId && (
-            <Link
-              href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
-            >
-              <Pencil className="h-3 w-3" />
-              Edit
-            </Link>
           )}
+
+          {/* ── Footer: Status + Edit ── */}
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', s.bg, s.text, s.border)}>
+              <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+              {s.label}
+            </span>
+            {projectId && clientId && (
+              <Link
+                href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+              >
+                <Pencil className="h-3 w-3" />
+                Edit task
+              </Link>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

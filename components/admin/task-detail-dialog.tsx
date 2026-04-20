@@ -192,14 +192,16 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
             <div className="space-y-3">
               {caption && (
                 <div>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Caption</span>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                      <Copy className="h-3.5 w-3.5" />
+                      Caption
+                    </span>
                     <button
                       type="button"
                       onClick={handleCopyCaption}
                       className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
                     >
-                      <Copy className="h-3 w-3" />
                       {copyFeedback ? 'Copied!' : 'Copy'}
                     </button>
                   </div>

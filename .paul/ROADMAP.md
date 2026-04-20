@@ -7,8 +7,8 @@ Orca Digital is an internal project management tool for a digital marketing agen
 ## Current Milestone
 
 **v1.2 Collaboration & Workflow** (v1.2.0)
-Status: In progress
-Phases: 14 of 15 complete
+Status: Complete
+Phases: 15 of 15 complete
 
 ## Phases
 
@@ -16,7 +16,7 @@ Phases: 14 of 15 complete
 |-------|------|-------|--------|-----------|
 | 13 | Collaboration & Comments | 1/1 | Done | 2026-04-07 |
 | 14 | Full Comment Management | 1/1 | Done | 2026-04-07 |
-| 15 | UI/UX Overhaul & Simplification | 2/4 | In progress | - |
+| 15 | UI/UX Overhaul & Simplification | 4/4 | Done | 2026-04-20 |
 
 ## Completed Roadmap History
 
@@ -46,10 +46,10 @@ Phases: 14 of 15 complete
 
 ### Phase 15: UI/UX Overhaul & Simplification
 
-Focus: Complete UI/UX overhaul — streamline project navigation, fix calendar task overflows, remove notifications and commenting features, disable team-related functionality (pivot to personal-use), fix mobile view overflow issues, and reorganize client portal task descriptions for consistency.
+Focus: Complete UI/UX overhaul — removed notifications and comments, disabled team features, streamlined navigation, fixed calendar overflows, made all views mobile-responsive, redesign task edit/detail pages and kanban dialogs.
 
-Plans: TBD (defined during /paul-plan)
-Status: Not started
+Plans: 4/4 (15-01 through 15-04)
+Status: Complete (2026-04-20)
 
 ## Phase Details
 
@@ -58,4 +58,4 @@ Phases will be defined during `/paul:plan`.
 ---
 
 *Roadmap created: 2026-04-07*
-*Last updated: 2026-04-07*
+*Last updated: 2026-04-20*

@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { format } from 'date-fns'
-import { Check, Download, LoaderCircle, Copy, Pencil, X } from 'lucide-react'
+import { format, isBefore, startOfDay } from 'date-fns'
+import { Copy, Download, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
+import Link from 'next/link'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
-import { Avatar } from '@/components/ui/avatar'
-import { LABELS } from '@/lib/labels'
+import { updateTaskFilePathAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,15 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { StatusDot } from '@/components/ui/status-dot'
+import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { linkify } from '@/lib/utils'
 
 type TaskDetailDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   task: TaskRow | null
-  onEdit?: () => void
+  projectId?: string
+  clientId?: string
+  onDesignUpload?: (path: string) => void
 }
 
 function isImageFile(path: string | null) {
@@ -33,7 +34,7 @@ function isImageFile(path: string | null) {
 }
 
 function formatDate(dateStr: string | null) {
-  if (!dateStr) return 'Not set'
+  if (!dateStr) return '—'
   return format(new Date(dateStr), 'MMM d, yyyy')
 }
 
@@ -49,172 +50,232 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
-export function TaskDetailDialog({ open, onOpenChange, task, onEdit }: TaskDetailDialogProps) {
+const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string; border: string }> = {
+  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
+}
+
+function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
+  taskId: string
+  projectId: string
+  onUploadComplete: (path: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) { setError('Only image files are supported.'); return }
+    if (file.size > 10 * 1024 * 1024) { setError('Files must be 10MB or smaller.'); return }
+    setUploading(true)
+    setError(null)
+    const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('path', path)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        const result = await updateTaskFilePathAction(taskId, data.path)
+        if (result.success) onUploadComplete(data.path)
+        else setError(result.error ?? 'Failed to save.')
+      } else { setError('Upload failed.') }
+    } catch { setError('Upload failed.') }
+    finally { setUploading(false) }
+  }
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = '' }} />
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click() } }}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
+        className={cn(
+          'rounded-lg border-2 border-dashed transition cursor-pointer',
+          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
+        )}
+      >
+        <div className="flex flex-col items-center gap-2 py-6">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
+            {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">Upload design file</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+          </div>
+        </div>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  )
+}
+
+export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId, onDesignUpload }: TaskDetailDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
+  const [currentDesignPath, setCurrentDesignPath] = useState<string | null>(null)
   const prevFilePath = useRef<string | null>(null)
 
-  const filePathToLoad = task?.design_file_path && isImageFile(task.design_file_path)
-    ? task.design_file_path
-    : null
+  useEffect(() => {
+    if (task?.design_file_path) setCurrentDesignPath(task.design_file_path)
+    else setCurrentDesignPath(null)
+    setPreviewUrl(null)
+  }, [task?.id])
+
+  const filePathToLoad = currentDesignPath && isImageFile(currentDesignPath) ? currentDesignPath : null
 
   useEffect(() => {
-    if (!filePathToLoad) {
-      setPreviewUrl(null)
-      setPreviewLoading(false)
-      return
-    }
-
+    if (!filePathToLoad) { setPreviewUrl(null); setPreviewLoading(false); return }
     if (prevFilePath.current === filePathToLoad && previewUrl) return
     prevFilePath.current = filePathToLoad
-
     setPreviewLoading(true)
     setPreviewUrl(null)
-
     let cancelled = false
     createClient()
       .storage.from('design-files')
       .createSignedUrl(filePathToLoad, 3600)
-      .then(({ data, error }) => {
-        if (!cancelled && !error && data?.signedUrl) {
-          const previewUrlWithParams = `${data.signedUrl}&width=800&height=600&resize=contain`
-          setPreviewUrl(previewUrlWithParams)
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setPreviewLoading(false)
-      })
-
+      .then(({ data, error }) => { if (!cancelled && !error && data?.signedUrl) setPreviewUrl(`${data.signedUrl}&width=800&height=600&resize=contain`) })
+      .finally(() => { if (!cancelled) setPreviewLoading(false) })
     return () => { cancelled = true }
-  }, [filePathToLoad, previewUrl])
+  }, [filePathToLoad])
 
   const handleCopyCaption = async () => {
     if (!task?.caption) return
-    try {
-      await navigator.clipboard.writeText(task.caption)
-      setCopyFeedback(true)
-      setTimeout(() => setCopyFeedback(false), 2000)
-    } catch {
-      // Clipboard API failed
-    }
+    try { await navigator.clipboard.writeText(task.caption); setCopyFeedback(true); setTimeout(() => setCopyFeedback(false), 2000) }
+    catch { /* */ }
   }
 
-  if (!task) {
-    return null
-  }
+  if (!task) return null
 
-  const caption = task.caption ?? LABELS.emptyStates.noCaption
+  const isOverdue = Boolean(
+    (task.due_date || task.posting_date) &&
+    isBefore(startOfDay(new Date(task.due_date || task.posting_date!)), startOfDay(new Date())) &&
+    task.status !== 'done'
+  )
+  const s = isOverdue
+    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
+    : (statusConfig[task.status] ?? statusConfig.todo)
+  const caption = task.caption ?? ''
   const briefing = task.briefing ?? ''
-  const fileName = task.design_file_path?.split('/').pop() ?? null
-  const isDesignImage = isImageFile(task.design_file_path ?? null)
+  const fileName = currentDesignPath?.split('/').pop() ?? null
+  const isDesignImage = isImageFile(currentDesignPath)
+  const hasDesignFile = currentDesignPath && fileName
 
-  const postingDateTime = task.posting_date 
-    ? `${formatDate(task.posting_date)}${task.posting_time ? ` at ${formatTime(task.posting_time)}` : ''}`
-    : 'Not set'
+  function handleDesignUpload(path: string) {
+    setCurrentDesignPath(path)
+    onDesignUpload?.(path)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-xl">{task.title}</DialogTitle>
-          <DialogDescription className="sr-only">
-            Task details for {task.title}
-          </DialogDescription>
-          {onEdit && (
-            <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-              <Pencil className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-          )}
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold pr-8">{task.title}</DialogTitle>
+          <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <section className="flex items-center justify-between rounded-sm border border-border px-3 py-3">
-            <StatusDot status={task.status} showLabel />
-          </section>
-
-          <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-foreground">Caption</p>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleCopyCaption}
-                className="h-8 px-2"
-              >
-                {copyFeedback ? (
-                  <span className="text-xs text-green-600">Copied!</span>
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            <p className="whitespace-pre-wrap break-words text-sm text-foreground">{caption}</p>
-          </section>
-
-          {briefing && (
-            <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-              <p className="text-sm font-medium text-foreground">Briefing</p>
-              <div 
-                className="text-sm text-foreground whitespace-pre-wrap break-words"
-                dangerouslySetInnerHTML={{ __html: linkify(briefing) }}
-              />
+        <div className="mt-2 space-y-6">
+          {/* ── Caption ── */}
+          {caption && (
+            <section>
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="text-sm font-semibold text-foreground">Caption</h3>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                >
+                  <Copy className="h-3 w-3" />
+                  {copyFeedback ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
+              </div>
             </section>
           )}
 
-          <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-            <p className="text-sm font-medium text-foreground">Design file</p>
-            {task.design_file_path && fileName ? (
-              isDesignImage ? (
-                <div className="space-y-3">
-                  {previewUrl ? (
-                    <div className="space-y-3">
-                      <div className="overflow-hidden rounded-lg border border-border">
-                        <img
-                          src={previewUrl}
-                          alt="Design preview"
-                          className="h-auto w-full max-h-64 object-contain"
-                        />
-                      </div>
-                      <DownloadButton fileName={fileName} filePath={task.design_file_path} />
-                    </div>
-                  ) : previewLoading ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <LoaderCircle className="h-4 w-4 animate-spin" />
-                      Loading preview…
-                    </div>
-                  ) : (
-                    <DownloadButton fileName={fileName} filePath={task.design_file_path} />
-                  )}
-                </div>
-              ) : (
-                <DownloadButton fileName={fileName} filePath={task.design_file_path} />
-              )
+          {/* ── Briefing ── */}
+          {briefing && (
+            <section>
+              <h3 className="text-sm font-semibold text-foreground mb-2">Briefing</h3>
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
+            </section>
+          )}
+
+          {/* ── Design File ── */}
+          <section>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Design file</h3>
+            {hasDesignFile ? (
+              <div className="space-y-3">
+                {isDesignImage && previewLoading && !previewUrl && (
+                  <div className="flex items-center justify-center rounded-lg border border-border py-10">
+                    <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {isDesignImage && previewUrl && (
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <img src={previewUrl} alt="Design preview" className="h-auto w-full object-contain bg-muted/20" />
+                  </div>
+                )}
+                <DownloadButton fileName={fileName!} filePath={currentDesignPath!} />
+              </div>
             ) : (
-              <p className="text-sm text-muted-foreground">{LABELS.emptyStates.noDesignFile}</p>
+              <InlineDesignUploader taskId={task.id} projectId={projectId ?? ''} onUploadComplete={handleDesignUpload} />
             )}
           </section>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Posting Date & Time</p>
-              <p className="text-sm text-foreground">{postingDateTime}</p>
+          {/* ── Schedule ── */}
+          {(task.posting_date || task.due_date || task.deadline) && (
+            <section>
+              <h3 className="text-sm font-semibold text-foreground mb-2">Schedule</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {task.posting_date && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Posting Date</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
+                  </div>
+                )}
+                {task.due_date && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Due Date</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.due_date)}</p>
+                  </div>
+                )}
+                {task.deadline && (
+                  <div className="rounded-lg border border-border px-3 py-2.5">
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Deadline</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.deadline)}</p>
+                  </div>
+                )}
+              </div>
             </section>
+          )}
 
-            {task.due_date && (
-              <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{LABELS.task.dueDate}</p>
-                <p className="text-sm text-foreground">{formatDate(task.due_date)}</p>
-              </section>
-            )}
-
-            {task.deadline && (
-              <section className="space-y-2 rounded-sm border border-border px-3 py-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{LABELS.task.deadline}</p>
-                <p className="text-sm text-foreground">{formatDate(task.deadline)}</p>
-              </section>
+          {/* ── Footer ── */}
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', s.bg, s.text, s.border)}>
+              <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+              {s.label}
+            </span>
+            {projectId && clientId && (
+              <Link
+                href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+              >
+                <Pencil className="h-3 w-3" />
+                Edit task
+              </Link>
             )}
           </div>
         </div>
@@ -232,23 +293,18 @@ function DownloadButton({ fileName, filePath }: { fileName: string; filePath: st
     startTransition(async () => {
       const supabase = createClient()
       const { data, error: signedUrlError } = await supabase.storage.from('design-files').createSignedUrl(filePath, 60)
-
-      if (signedUrlError || !data?.signedUrl) {
-        setError('Download link expired, please refresh')
-        return
-      }
-
+      if (signedUrlError || !data?.signedUrl) { setError('Download link expired, please refresh'); return }
       window.open(data.signedUrl, '_blank')
     })
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex items-center gap-2">
       <Button type="button" variant="outline" size="sm" onClick={download} disabled={isPending}>
         {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
         {fileName}
       </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

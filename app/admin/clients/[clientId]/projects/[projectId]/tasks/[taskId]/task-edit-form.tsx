@@ -1,25 +1,21 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { LoaderCircle, Trash2 } from 'lucide-react'
+import { ArrowLeft, Calendar, ClipboardCopy, FileImage, ImageUp, LoaderCircle, Save, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import {
-  assignTaskToMemberAction,
   deleteTaskAction,
   updateTaskAction,
   updateTaskFilePathAction,
 } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
-import CopyButton from '@/components/admin/copy-button'
 import DesignFileDownloader from '@/components/admin/design-file-downloader'
-import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -30,40 +26,33 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
-import { linkify } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 function isImageFile(path: string) {
   const ext = path.split('.').pop()?.toLowerCase() ?? ''
   return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext)
 }
 
-/** Fetches a signed URL for a design file image and returns it for display. */
 function useDesignImageUrl(filePath: string | null) {
   const [url, setUrl] = useState<string | null>(null)
   const prevPath = useRef(filePath)
 
-  useEffect(() => {
-    if (!filePath || prevPath.current !== filePath) {
-      setUrl(null)
-      prevPath.current = filePath
-    }
-    if (!filePath) return
+  if (prevPath.current !== filePath) {
+    prevPath.current = filePath
+    setUrl(null)
+  }
 
-    let cancelled = false
-    createClient()
-      .storage
-      .from('design-files')
-      .createSignedUrl(filePath, 3600)
-      .then(({ data, error }) => {
-        if (!cancelled && !error && data?.signedUrl) {
-          setUrl(data.signedUrl)
-        }
-      })
+  if (!filePath) return null
+  if (url) return url
 
-    return () => { cancelled = true }
-  }, [filePath])
+  createClient()
+    .storage.from('design-files')
+    .createSignedUrl(filePath, 3600)
+    .then(({ data, error }) => {
+      if (!error && data?.signedUrl) setUrl(data.signedUrl)
+    })
 
-  return url
+  return null
 }
 
 const taskSchema = z.object({
@@ -94,30 +83,23 @@ type TaskEditFormProps = {
     status: 'todo' | 'in_progress' | 'done'
     designFilePath: string | null
   }
-  teamMembers: Array<{
-    id: string
-    name: string
-    email: string
-    username: string | null
-  }>
-  adminTeamMemberId: string | null
-  initialAssignmentId: string | null
 }
+
+const statusOptions: { value: 'todo' | 'in_progress' | 'done'; label: string; dot: string }[] = [
+  { value: 'todo', label: 'To Do', dot: 'bg-slate-400' },
+  { value: 'in_progress', label: 'In Progress', dot: 'bg-blue-400' },
+  { value: 'done', label: 'Done', dot: 'bg-green-500' },
+]
 
 export function TaskEditForm({
   clientId,
   projectId,
   task,
-  teamMembers,
-  adminTeamMemberId,
-  initialAssignmentId,
 }: TaskEditFormProps) {
   const router = useRouter()
   const [feedback, setFeedback] = useState<string | null>(null)
-  const [assignmentId, setAssignmentId] = useState(initialAssignmentId ?? 'unassigned')
   const [designFilePath, setDesignFilePath] = useState(task.designFilePath)
   const [isSaving, startSaving] = useTransition()
-  const [isAssigning, startAssigning] = useTransition()
   const [isDeleting, startDeleting] = useTransition()
   const [isReplacing, startReplacing] = useTransition()
 
@@ -143,24 +125,31 @@ export function TaskEditForm({
     formState: { errors },
   } = form
 
-  // Generate signed URL for image preview (auto-loads on mount / change)
   const previewUrl = useDesignImageUrl(designFilePath)
-
   const currentFileName = useMemo(() => designFilePath?.split('/').pop() ?? null, [designFilePath])
   const projectPath = `/admin/clients/${clientId}/projects/${projectId}`
   const showDesignImage = designFilePath && isImageFile(designFilePath)
+  const [copiedCaption, setCopiedCaption] = useState(false)
+
+  const handleCopyCaption = async () => {
+    const caption = watch('caption') ?? ''
+    if (!caption) return
+    try {
+      await navigator.clipboard.writeText(caption)
+      setCopiedCaption(true)
+      setTimeout(() => setCopiedCaption(false), 2000)
+    } catch { /* */ }
+  }
 
   const onSubmit = handleSubmit((values) => {
     setFeedback(null)
-
     startSaving(async () => {
       const result = await updateTaskAction(task.id, {
         ...values,
         designFilePath: designFilePath ?? '',
       })
-
       if (result.success) {
-        setFeedback('Task saved.')
+        setFeedback('Saved')
         router.refresh()
       } else {
         setFeedback(result.error)
@@ -168,61 +157,87 @@ export function TaskEditForm({
     })
   })
 
+  const handleDesignUpload = (path: string) => {
+    setFeedback(null)
+    setDesignFilePath(path)
+    setValue('designFilePath', path, { shouldDirty: true })
+    startReplacing(async () => {
+      const result = await updateTaskFilePathAction(task.id, path)
+      if (result.success) {
+        setFeedback('Design file uploaded.')
+        router.refresh()
+      } else {
+        setFeedback(result.error)
+      }
+    })
+  }
+
   return (
-    <div className="space-y-6">
-      <form className="space-y-6 rounded-lg border border-border p-5" onSubmit={onSubmit}>
-        <div className="space-y-4">
-          <Field>
-            <FieldLabel htmlFor="title">Title</FieldLabel>
+    <div className="space-y-4">
+      {/* ── Content Section ── */}
+      <section className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-3">
+          <h2 className="text-sm font-semibold text-foreground">Content</h2>
+        </div>
+        <div className="space-y-4 p-5">
+          <div>
+            <label htmlFor="title" className="mb-1.5 block text-sm font-medium text-foreground">Title</label>
             <Input id="title" placeholder="Instagram carousel" {...register('title')} />
-            {errors.title && <FieldError>{errors.title.message}</FieldError>}
-          </Field>
+            {errors.title && <p className="mt-1 text-sm text-destructive">{errors.title.message}</p>}
+          </div>
 
-          <Field>
-            <FieldLabel htmlFor="briefing">Briefing</FieldLabel>
-            <Textarea
-              id="briefing"
-              placeholder="Key notes, references, or campaign direction"
-              rows={4}
-              {...register('briefing')}
-            />
-            <FieldDescription>URLs render as clickable links for the team member.</FieldDescription>
-            {errors.briefing && <FieldError>{errors.briefing.message}</FieldError>}
-          </Field>
+          <div>
+            <label htmlFor="briefing" className="mb-1.5 block text-sm font-medium text-foreground">Briefing</label>
+            <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" rows={4} {...register('briefing')} />
+            <p className="mt-1 text-xs text-muted-foreground">URLs will render as clickable links.</p>
+            {errors.briefing && <p className="mt-1 text-sm text-destructive">{errors.briefing.message}</p>}
+          </div>
 
-          <Field>
-            <div className="flex items-center justify-between gap-3">
-              <FieldLabel htmlFor="caption">Caption</FieldLabel>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">Keep the final social copy current here.</span>
-                <CopyButton label="Copy" text={watch('caption') ?? ''} />
-              </div>
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label htmlFor="caption" className="text-sm font-medium text-foreground">Caption</label>
+              <button
+                type="button"
+                onClick={handleCopyCaption}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
+              >
+                <ClipboardCopy className="h-3 w-3" />
+                {copiedCaption ? 'Copied!' : 'Copy'}
+              </button>
             </div>
-            <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
-            {errors.caption && <FieldError>{errors.caption.message}</FieldError>}
-          </Field>
+            <Textarea id="caption" placeholder="Write the post caption here" rows={4} {...register('caption')} />
+            {errors.caption && <p className="mt-1 text-sm text-destructive">{errors.caption.message}</p>}
+          </div>
+        </div>
+      </section>
 
+      {/* ── Schedule Section ── */}
+      <section className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-3">
+          <h2 className="text-sm font-semibold text-foreground">Schedule</h2>
+        </div>
+        <div className="p-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
+            <div>
+              <label htmlFor="postingDate" className="mb-1.5 block text-sm font-medium text-foreground">{LABELS.task.postingDate}</label>
               <Input id="postingDate" type="date" {...register('postingDate')} />
-              {errors.postingDate && <FieldError>{errors.postingDate.message}</FieldError>}
-            </Field>
+              {errors.postingDate && <p className="mt-1 text-sm text-destructive">{errors.postingDate.message}</p>}
+            </div>
 
-            <Field>
-              <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
+            <div>
+              <label htmlFor="postingTime" className="mb-1.5 block text-sm font-medium text-foreground">Posting Time</label>
               <Input id="postingTime" type="time" {...register('postingTime')} />
-              {errors.postingTime && <FieldError>{errors.postingTime.message}</FieldError>}
-            </Field>
+              {errors.postingTime && <p className="mt-1 text-sm text-destructive">{errors.postingTime.message}</p>}
+            </div>
 
-            <Field>
-              <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
+            <div>
+              <label htmlFor="deadline" className="mb-1.5 block text-sm font-medium text-foreground">{LABELS.task.deadline}</label>
               <Input id="deadline" type="date" {...register('deadline')} />
-              {errors.deadline && <FieldError>{errors.deadline.message}</FieldError>}
-            </Field>
+              {errors.deadline && <p className="mt-1 text-sm text-destructive">{errors.deadline.message}</p>}
+            </div>
 
-            <Field>
-              <FieldLabel>{LABELS.task.status}</FieldLabel>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Status</label>
               <Select
                 value={watch('status')}
                 onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
@@ -233,178 +248,160 @@ export function TaskEditForm({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.status && <FieldError>{errors.status.message}</FieldError>}
-            </Field>
-
-            <Field>
-              <FieldLabel>{LABELS.task.assignee}</FieldLabel>
-              <Select
-                value={assignmentId}
-                onValueChange={(value) => {
-                  setFeedback(null)
-                  setAssignmentId(value)
-
-                  startAssigning(async () => {
-                    const nextMemberId = value === 'unassigned' ? null : value
-                    const result = await assignTaskToMemberAction(task.id, nextMemberId)
-
-                    if (result.success) {
-                      setFeedback(nextMemberId ? 'Task reassigned.' : 'Task unassigned.')
-                      router.refresh()
-                    } else {
-                      setFeedback(result.error)
-                      setAssignmentId(initialAssignmentId ?? 'unassigned')
-                    }
-                  })
-                }}
-              >
-                <SelectTrigger disabled={isAssigning}>
-                  <SelectValue placeholder="Unassigned" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  <SelectItem value="self">Assign to myself</SelectItem>
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.username ? `@${member.username}` : member.name}
+                  {statusOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <span className="inline-flex items-center gap-2">
+                        <span className={cn('h-2 w-2 rounded-full', opt.dot)} />
+                        {opt.label}
+                      </span>
                     </SelectItem>
-                  ))}
+                    ))}
                 </SelectContent>
               </Select>
-              <FieldDescription>
-                {isAssigning ? 'Updating assignment...' : 'Changes save immediately.'}
-              </FieldDescription>
-            </Field>
+              {errors.status && <p className="mt-1 text-sm text-destructive">{errors.status.message}</p>}
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Design file — full-width */}
-        <Field>
-          <div className="flex items-center justify-between gap-3">
-            <FieldLabel>Design file</FieldLabel>
-            {currentFileName && (
-              <span className="text-xs text-muted-foreground">Replace the current upload any time.</span>
-            )}
+      {/* ── Design File Section ── */}
+      <section className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-3">
+          <div className="flex items-center gap-2">
+            <FileImage className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Design file</h2>
           </div>
-
+        </div>
+        <div className="p-5">
           {designFilePath && currentFileName ? (
             <div className="space-y-4">
-              {/* Image preview shown automatically */}
               {showDesignImage && previewUrl && (
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <img
-                    src={previewUrl}
-                    alt={currentFileName}
-                    className="h-auto w-full max-w-none object-contain"
-                  />
+                  <img src={previewUrl} alt={currentFileName} className="h-auto w-full max-h-80 object-contain bg-muted/20" />
                 </div>
               )}
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Current file: {currentFileName}</p>
-                <p className="break-all text-xs text-muted-foreground">{designFilePath}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
+              {showDesignImage && !previewUrl && (
+                <div className="flex items-center justify-center rounded-lg border border-border py-10">
+                  <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex items-center gap-3">
                 <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
+                <span className="text-xs text-muted-foreground truncate">{currentFileName}</span>
               </div>
-
-              <div className="border-t border-border pt-4">
+              <div className="rounded-lg border border-dashed border-border p-4">
                 <p className="mb-3 text-sm font-medium text-foreground">Replace file</p>
-                <DesignFileUploader
-                  projectId={projectId}
-                  taskId={task.id}
-                  onUploadComplete={(path) => {
-                    setFeedback(null)
-                    setDesignFilePath(path)
-                    setValue('designFilePath', path, { shouldDirty: true })
-
-                    startReplacing(async () => {
-                      const result = await updateTaskFilePathAction(task.id, path)
-
-                      if (result.success) {
-                        setFeedback('Design file replaced.')
-                        router.refresh()
-                      } else {
-                        setFeedback(result.error)
-                      }
-                    })
-                  }}
-                />
+                <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
               </div>
             </div>
           ) : (
-            <DesignFileUploader
-              projectId={projectId}
-              taskId={task.id}
-              onUploadComplete={(path) => {
-                setFeedback(null)
-                setDesignFilePath(path)
-                setValue('designFilePath', path, { shouldDirty: true })
-
-                startReplacing(async () => {
-                  const result = await updateTaskFilePathAction(task.id, path)
-
-                  if (result.success) {
-                    setFeedback('Design file uploaded.')
-                    router.refresh()
-                  } else {
-                    setFeedback(result.error)
-                  }
-                })
-              }}
-            />
+            <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
           )}
-        </Field>
+        </div>
+      </section>
 
-        {feedback && (
-          <div className="rounded-lg border border-border px-3 py-2 text-sm">{feedback}</div>
-        )}
-
-        {/* Action buttons — mobile-friendly stacking */}
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center border-t border-border pt-4">
-          <div className="flex flex-wrap gap-3">
-            <Button asChild variant="outline">
-              <Link href={projectPath}>Back to project</Link>
-            </Button>
-            <Button disabled={isSaving || isReplacing} type="submit">
-              {isSaving ? 'Saving...' : LABELS.common.save}
-            </Button>
-          </div>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={isDeleting}
-            onClick={() => {
-              const confirmed = window.confirm(LABELS.task.deleteConfirm)
-
-              if (!confirmed) {
-                return
-              }
-
-              setFeedback(null)
-              startDeleting(async () => {
-                const result = await deleteTaskAction(task.id, projectId, designFilePath ?? undefined)
-
-                if (result.success) {
-                  router.push(projectPath)
-                  router.refresh()
-                } else {
-                  setFeedback(result.error)
-                }
-              })
-            }}
-          >
-            {isDeleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-            {LABELS.task.deleted}
+      {/* ── Actions ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="outline">
+            <Link href={projectPath}>
+              <ArrowLeft className="h-4 w-4" />
+              Back to project
+            </Link>
+          </Button>
+          <Button disabled={isSaving || isReplacing} type="button" onClick={onSubmit}>
+            {isSaving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {isSaving ? 'Saving...' : LABELS.common.save}
           </Button>
         </div>
-      </form>
+
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={isDeleting}
+          onClick={() => {
+            if (!window.confirm(LABELS.task.deleteConfirm)) return
+            setFeedback(null)
+            startDeleting(async () => {
+              const result = await deleteTaskAction(task.id, projectId, designFilePath ?? undefined)
+              if (result.success) {
+                router.push(projectPath)
+                router.refresh()
+              } else {
+                setFeedback(result.error)
+              }
+            })
+          }}
+        >
+          {isDeleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          Delete task
+        </Button>
+      </div>
+
+      {feedback && (
+        <div className="rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">{feedback}</div>
+      )}
+    </div>
+  )
+}
+
+function InlineUploader({ projectId, taskId, onUpload }: {
+  projectId: string
+  taskId: string
+  onUpload: (path: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) { setError('Only image files are supported.'); return }
+    if (file.size > 10 * 1024 * 1024) { setError('Files must be 10MB or smaller.'); return }
+    setUploading(true)
+    setError(null)
+    const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('path', path)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        const result = await updateTaskFilePathAction(taskId, data.path)
+        if (result.success) onUpload(data.path)
+        else setError(result.error ?? 'Failed to save.')
+      } else { setError('Upload failed.') }
+    } catch { setError('Upload failed.') }
+    finally { setUploading(false) }
+  }
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = '' }} />
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click() } }}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
+        className={cn(
+          'rounded-lg border-2 border-dashed px-6 py-8 text-center transition cursor-pointer',
+          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
+        )}
+      >
+        <div className="mx-auto flex flex-col items-center gap-2">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
+            {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
+          </div>
+          <p className="text-sm font-medium text-foreground">Upload design file</p>
+          <p className="text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+        </div>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )
 }

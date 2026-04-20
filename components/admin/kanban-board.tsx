@@ -21,6 +21,7 @@ type KanbanColumn = {
 type KanbanBoardProps = {
   tasks: TaskRow[]
   projectId: string
+  clientId: string
 }
 
 const columns: KanbanColumn[] = [
@@ -33,10 +34,12 @@ function KanbanColumn({
   column,
   tasks,
   projectId,
+  clientId,
 }: {
   column: KanbanColumn
   tasks: TaskRow[]
   projectId: string
+  clientId: string
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `column:${column.status}` })
 
@@ -59,7 +62,7 @@ function KanbanColumn({
           )}
         >
           {tasks.map((task) => (
-            <KanbanCard key={task.id} task={task} projectId={projectId} />
+            <KanbanCard key={task.id} task={task} projectId={projectId} clientId={clientId} />
           ))}
 
           {tasks.length === 0 ? (
@@ -73,7 +76,7 @@ function KanbanColumn({
   )
 }
 
-export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, projectId, clientId }: KanbanBoardProps) {
   const [items, setItems] = useState(tasks)
   const [isPending, startTransition] = useTransition()
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor))
@@ -135,6 +138,7 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
               column={column}
               tasks={tasksByStatus[column.status]}
               projectId={projectId}
+              clientId={clientId}
             />
           ))}
         </div>

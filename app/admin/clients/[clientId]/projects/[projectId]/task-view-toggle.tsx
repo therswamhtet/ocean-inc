@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-
-import { LayoutGrid, List, FileText } from 'lucide-react'
+import Link from 'next/link'
+import { LayoutGrid, List } from 'lucide-react'
 
 import { KanbanBoard } from '@/components/admin/kanban-board'
 import { TaskCreateForm } from '@/components/admin/task-create-form'
@@ -33,7 +33,7 @@ export type TaskRow = {
   created_at: string
 }
 
-type TabId = 'board' | 'timeline' | 'files'
+type TabId = 'board' | 'list'
 
 type TaskViewToggleProps = {
   initialTasks: TaskRow[]
@@ -42,9 +42,8 @@ type TaskViewToggleProps = {
 }
 
 const tabs: { id: TabId; label: string; icon: typeof LayoutGrid }[] = [
-  { id: 'board', label: 'Task Board', icon: LayoutGrid },
-  { id: 'timeline', label: 'Timeline', icon: List },
-  { id: 'files', label: 'Files', icon: FileText },
+  { id: 'board', label: 'Board', icon: LayoutGrid },
+  { id: 'list', label: 'List', icon: List },
 ]
 
 export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewToggleProps) {
@@ -53,7 +52,6 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
 
   return (
     <div className="space-y-4">
-      {/* Tab navigation */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <nav className="flex gap-0 border-b border-border" role="tablist">
           {tabs.map((tab) => {
@@ -79,44 +77,25 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
           })}
         </nav>
 
-        {/* New task button — only show for Task Board */}
-        {activeTab === 'board' && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>{LABELS.task.create}</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create task</DialogTitle>
-                <DialogDescription>Add a new content task to this project.</DialogDescription>
-              </DialogHeader>
-              <TaskCreateForm
-                projectId={projectId}
-                onSuccess={() => {
-                  setOpen(false)
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button>{LABELS.task.create}</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create task</DialogTitle>
+              <DialogDescription>Add a new content task to this project.</DialogDescription>
+            </DialogHeader>
+            <TaskCreateForm
+              projectId={projectId}
+              onSuccess={() => { setOpen(false) }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Tab content */}
-      {activeTab === 'board' && <KanbanBoard tasks={initialTasks} projectId={projectId} />}
-      {activeTab === 'timeline' && <TaskList tasks={initialTasks} projectId={projectId} />}
-      {activeTab === 'files' && <FilesPlaceholder />}
-    </div>
-  )
-}
-
-function FilesPlaceholder() {
-  return (
-    <div className="flex min-h-64 items-center justify-center rounded-lg border border-dashed border-border">
-      <div className="text-center">
-        <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="text-sm font-medium text-muted-foreground">Files view coming soon</p>
-        <p className="mt-1 text-xs text-muted-foreground/70">Manage design files and assets for this project</p>
-      </div>
+      {activeTab === 'board' && <KanbanBoard tasks={initialTasks} projectId={projectId} clientId={clientId} />}
+      {activeTab === 'list' && <TaskList tasks={initialTasks} projectId={projectId} />}
     </div>
   )
 }

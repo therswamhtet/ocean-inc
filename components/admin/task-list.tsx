@@ -4,197 +4,107 @@ import { useTransition } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { format, isBefore, startOfDay } from 'date-fns'
-import { MoreHorizontal } from 'lucide-react'
+import { ArrowRight, MoreHorizontal, Trash2 } from 'lucide-react'
 
 import { deleteTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
 import { LABELS } from '@/lib/labels'
-import { StatusDot } from '@/components/ui/status-dot'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ContentCard } from '@/components/ui/content-card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 
 type TaskListProps = {
   tasks: TaskRow[]
   projectId: string
 }
 
-function formatOptionalDate(value: string | null) {
-  if (!value) {
-    return '—'
-  }
-
-  return format(new Date(value), 'MMM d, yyyy')
+const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
+  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
+  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
 }
 
 export function TaskList({ tasks, projectId }: TaskListProps) {
   const router = useRouter()
-  const params = useParams<{ clientId: string }>()
-  const clientId = params.clientId
-  const today = startOfDay(new Date())
+  const clientId = useParams<{ clientId: string }>().clientId
   const [isPending, startTransition] = useTransition()
 
   if (tasks.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border px-5 py-10 text-center text-sm text-muted-foreground">
-        {LABELS.emptyStates.noTasks}
+      <div className="rounded-xl border border-dashed border-border py-12 text-center">
+        <p className="text-base font-medium text-foreground">No tasks yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">Create your first task to get started.</p>
       </div>
     )
   }
 
   return (
-    <>
-      <div className="hidden md:block">
-        <div className="rounded-lg border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>{LABELS.task.postingDate}</TableHead>
-                <TableHead>{LABELS.task.dueDate}</TableHead>
-                <TableHead className="w-[72px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => {
-                const isOverdue = Boolean(
-                  task.posting_date && isBefore(startOfDay(new Date(task.posting_date)), today) && task.status !== 'done'
-                )
-
-                return (
-                  <TableRow 
-                    key={task.id} 
-                    className="cursor-pointer"
-                    onClick={() => document.getElementById(`dropdown-${task.id}`)?.click()}
-                  >
-                    <TableCell className="font-medium text-foreground">
-                      <Link
-                        className="underline-offset-4 hover:underline"
-                        href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {task.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <StatusDot status={isOverdue ? 'overdue' : task.status} showLabel />
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{formatOptionalDate(task.posting_date)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatOptionalDate(task.due_date)}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild id={`dropdown-${task.id}`}>
-                          <Button aria-label={`Task actions for ${task.title}`} size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}>Edit</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={isPending}
-                            onSelect={(event) => {
-                              event.preventDefault()
-
-                              if (!window.confirm(`Delete ${task.title}?`)) {
-                                return
-                              }
-
-                              startTransition(async () => {
-                                const result = await deleteTaskAction(task.id, projectId, task.design_file_path ?? undefined)
-
-                                if (result.success) {
-                                  router.refresh()
-                                }
-                              })
-                            }}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      <div className="space-y-3 md:hidden">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="divide-y divide-border">
         {tasks.map((task) => {
           const isOverdue = Boolean(
-            task.posting_date && isBefore(startOfDay(new Date(task.posting_date)), today) && task.status !== 'done'
+            (task.posting_date || task.due_date) &&
+            isBefore(startOfDay(new Date(task.due_date || task.posting_date!)), startOfDay(new Date())) &&
+            task.status !== 'done'
           )
+          const s = isOverdue
+            ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+            : (statusPill[task.status] ?? statusPill.todo)
+          const taskHref = `/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`
+          const date = task.due_date || task.posting_date
 
           return (
-            <ContentCard key={task.id} variant="mobile" className="space-y-3 bg-white">
-              <div className="flex items-start justify-between gap-3">
-                <Link
-                  href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-                  className="text-base font-medium text-foreground underline-offset-4 hover:underline"
-                >
-                  {task.title}
-                </Link>
-                <StatusDot status={isOverdue ? 'overdue' : task.status} showLabel />
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                <div>
-                  <span className="text-xs uppercase tracking-[0.1em]">{LABELS.task.postingDate}</span>
-                  <p>{formatOptionalDate(task.posting_date)}</p>
+            <div key={task.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-muted/40">
+              <Link href={taskHref} className="min-w-0 flex-1 group/link">
+                <p className="text-sm font-medium text-foreground truncate group-hover/link:underline">{task.title}</p>
+                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                  {date && <span>{format(new Date(date), 'MMM d, yyyy')}</span>}
+                  {task.caption && <span className="rounded bg-blue-50 text-blue-600 px-1 py-0.5 text-[10px] font-medium">Caption</span>}
+                  {task.design_file_path && <span className="rounded bg-purple-50 text-purple-600 px-1 py-0.5 text-[10px] font-medium">Design</span>}
                 </div>
-                <div>
-                  <span className="text-xs uppercase tracking-[0.1em]">{LABELS.task.dueDate}</span>
-                  <p>{formatOptionalDate(task.due_date)}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Link
-                  href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-                  className="min-h-[44px] flex-1 rounded-md border border-border px-3 py-2 text-center text-sm font-medium text-foreground transition hover:bg-muted/30"
-                >
-                  Edit
-                </Link>
-                <button
-                  type="button"
-                  className="min-h-[44px] flex-1 rounded-md border border-destructive px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/5"
-                  onClick={() => {
-                    if (!window.confirm(`Delete ${task.title}?`)) {
-                      return
-                    }
+              </Link>
 
-                    startTransition(async () => {
-                      const result = await deleteTaskAction(task.id, projectId, task.design_file_path ?? undefined)
+              <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold', s.bg, s.text)}>
+                <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+                {s.label}
+              </span>
 
-                      if (result.success) {
-                        router.refresh()
-                      }
-                    })
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </ContentCard>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  <DropdownMenuItem asChild>
+                    <Link href={taskHref}>Edit</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={isPending}
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (!window.confirm(`Delete "${task.title}"?`)) return
+                      startTransition(async () => {
+                        const result = await deleteTaskAction(task.id, projectId, task.design_file_path ?? undefined)
+                        if (result.success) router.refresh()
+                      })
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )
         })}
       </div>
-    </>
+    </div>
   )
 }

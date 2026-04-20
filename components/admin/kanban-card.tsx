@@ -1,57 +1,33 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, ImageUp, LoaderCircle, Upload } from 'lucide-react'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
-import { StatusDot } from '@/components/ui/status-dot'
-import { ContentCard } from '@/components/ui/content-card'
-import { Button } from '@/components/ui/button'
+import { updateTaskFilePathAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { TaskDetailDialog } from '@/components/admin/task-detail-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { updateTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
 import { cn } from '@/lib/utils'
 
 type KanbanCardProps = {
   task: TaskRow
   projectId: string
+  clientId: string
 }
 
-const editTaskSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  posting_date: z.string().optional(),
-  posting_time: z.string().optional(),
-  status: z.enum(['todo', 'in_progress', 'done']),
-})
+const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
+  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
+  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+}
 
-type EditTaskFormValues = z.infer<typeof editTaskSchema>
-
-/** Derive a task category tag from task fields */
 function getTaskTags(task: TaskRow): string[] {
   const tags: string[] = []
   if (task.caption) tags.push('Content')
   if (task.design_file_path) tags.push('Design')
   if (task.briefing) tags.push('Briefed')
-  if (!task.caption && !task.design_file_path && !task.briefing) tags.push('Todo')
   return tags
 }
 
@@ -68,32 +44,73 @@ function isTaskOverdue(task: TaskRow) {
   )
 }
 
-export function KanbanCard({ task, projectId }: KanbanCardProps) {
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  useEffect(() => setIsMounted(true), [])
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: task.id,
-  })
+function DesignUploadButton({ taskId, projectId, onUploadComplete }: {
+  taskId: string
+  projectId: string
+  onUploadComplete: (path: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  async function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) { setError('Only images'); return }
+    if (file.size > 10 * 1024 * 1024) { setError('Max 10MB'); return }
+    setUploading(true)
+    setError(null)
+    const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('path', path)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        const result = await updateTaskFilePathAction(taskId, data.path)
+        if (result.success) onUploadComplete(data.path)
+        else setError(result.error ?? 'Failed')
+      } else { setError('Upload failed') }
+    } catch { setError('Upload failed') }
+    finally { setUploading(false) }
   }
+
+  return (
+    <>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = '' }} />
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
+        className="inline-flex items-center gap-1 rounded-md border border-dashed border-purple-200 bg-purple-50/50 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 hover:bg-purple-100 hover:border-purple-300 transition"
+      >
+        {uploading ? <LoaderCircle className="h-3 w-3 animate-spin" /> : <Upload className="h-2.5 w-2.5" />}
+        Upload
+      </button>
+      {error && <span className="text-[10px] text-destructive">{error}</span>}
+    </>
+  )
+}
+
+export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [currentDesignPath, setCurrentDesignPath] = useState(task.design_file_path)
+  useEffect(() => setIsMounted(true), [])
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
+  const style = { transform: CSS.Transform.toString(transform), transition }
 
   const overdue = isTaskOverdue(task)
   const cardDate = formatCardDate(task)
-  const tags = getTaskTags(task)
+  const s = overdue
+    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+    : (statusPill[task.status] ?? statusPill.todo)
+  const tags = getTaskTags({ ...task, design_file_path: currentDesignPath })
+  const displayTask = { ...task, design_file_path: currentDesignPath }
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('[data-no-click]')) return
     setDetailDialogOpen(true)
-  }
-
-  const handleEditClick = () => {
-    setDetailDialogOpen(false)
-    setEditDialogOpen(true)
   }
 
   return (
@@ -102,198 +119,79 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
         ref={setNodeRef}
         style={style}
         data-dragging={isDragging ? 'true' : 'false'}
-        onClick={handleCardClick}
+        onClick={handleClick}
+        className={cn(
+          'group relative rounded-lg border bg-card p-3 cursor-pointer transition-all',
+          'hover:shadow-md hover:border-primary/20',
+          overdue ? 'border-red-200 bg-red-50/30' : 'border-border'
+        )}
       >
-        <ContentCard
-          variant="kanban"
-          className={cn(
-            'group bg-background transition hover:shadow-sm relative',
-            overdue ? 'border-destructive/40 hover:border-destructive/60' : 'hover:border-foreground/30 cursor-pointer'
-          )}
-        >
-          {/* Drag handle */}
-          {isMounted && (
-            <button
-              type="button"
-              onClick={(e) => e.stopPropagation()}
-              {...attributes}
-              {...listeners}
-              className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
-              aria-label="Drag to reorder"
-            >
-              <GripVertical className="h-4 w-4" />
-            </button>
-          )}
-          {/* Tags row at top */}
-          {tags.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className={cn(
-                    'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em]',
-                    tag === 'Content' ? 'bg-blue-100 text-blue-700' :
-                    tag === 'Design' ? 'bg-purple-100 text-purple-700' :
-                    tag === 'Briefed' ? 'bg-emerald-100 text-emerald-700' :
-                    'bg-muted text-muted-foreground'
-                  )}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+        {isMounted && (
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            {...attributes}
+            {...listeners}
+            className="absolute top-2.5 right-2.5 cursor-grab active:cursor-grabbing rounded p-0.5 text-muted-foreground/40 hover:text-muted-foreground transition"
+            aria-label="Drag to reorder"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
+        )}
 
-          {/* Title */}
-          <span className="mb-3 block text-sm font-medium leading-snug text-foreground">
-            {task.title}
-          </span>
-
-          {/* Bottom row: status dot + date + overdue */}
-          <div className="flex items-center justify-between">
-            {/* Left: status */}
-            <StatusDot status={overdue ? 'overdue' : task.status} />
-
-            {/* Right: date + overdue badge */}
-            {cardDate && (
-              <span className={cn(
-                'text-[11px] font-medium',
-                overdue ? 'text-destructive' : 'text-muted-foreground'
-              )}>
-                {cardDate}
+        {tags.length > 0 && (
+          <div className="mb-1.5 flex flex-wrap items-center gap-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className={cn(
+                  'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                  tag === 'Content' ? 'bg-blue-50 text-blue-600' :
+                  tag === 'Design' ? 'bg-purple-50 text-purple-600' :
+                  'bg-emerald-50 text-emerald-600'
+                )}
+              >
+                {tag}
               </span>
+            ))}
+            {!currentDesignPath && (
+              <div data-no-click="true" className="shrink-0">
+                <DesignUploadButton taskId={task.id} projectId={projectId} onUploadComplete={(path) => setCurrentDesignPath(path)} />
+              </div>
             )}
           </div>
+        )}
 
-          {overdue && (
-            <div className="mt-2 inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive">
-              Overdue
-            </div>
+        {tags.length === 0 && !currentDesignPath && (
+          <div className="mb-1.5" data-no-click="true">
+            <DesignUploadButton taskId={task.id} projectId={projectId} onUploadComplete={(path) => setCurrentDesignPath(path)} />
+          </div>
+        )}
+
+        <p className="mb-2 text-sm font-medium leading-snug text-foreground line-clamp-2 break-words pr-6">
+          {task.title}
+        </p>
+
+        <div className="flex items-center justify-between">
+          <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+            {s.label}
+          </span>
+          {cardDate && (
+            <span className={cn('text-[11px] tabular-nums', overdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
+              {cardDate}
+            </span>
           )}
-        </ContentCard>
+        </div>
       </article>
 
       <TaskDetailDialog
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
-        task={task}
-      />
-
-      <EditTaskDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        task={task}
-        onEdit={handleEditClick}
+        task={displayTask}
+        projectId={projectId}
+        clientId={clientId}
       />
     </>
-  )
-}
-
-function EditTaskDialog({ open, onOpenChange, task, onEdit }: { open: boolean; onOpenChange: (open: boolean) => void; task: TaskRow; onEdit: () => void }) {
-  const [isPending, startTransition] = useTransition()
-  const [feedback, setFeedback] = useState<string | null>(null)
-
-  const form = useForm<EditTaskFormValues>({
-    resolver: zodResolver(editTaskSchema),
-    defaultValues: {
-      title: task.title,
-      posting_date: task.posting_date ?? '',
-      posting_time: task.posting_time ?? '10:00',
-      status: task.status,
-    },
-  })
-
-  const onSubmit = (values: EditTaskFormValues) => {
-    setFeedback(null)
-    startTransition(async () => {
-      const result = await updateTaskAction(task.id, {
-        title: values.title,
-        postingDate: values.posting_date || undefined,
-        postingTime: values.posting_time || undefined,
-        status: values.status,
-      })
-      if (result.success) {
-        onOpenChange(false)
-        window.location.reload()
-      } else {
-        setFeedback(result.error)
-      }
-    })
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">Title</label>
-            <Input
-              id="title"
-              {...form.register('title')}
-            />
-            {form.formState.errors.title && (
-              <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="posting_date" className="text-sm font-medium">Posting Date</label>
-              <Input
-                id="posting_date"
-                type="date"
-                {...form.register('posting_date')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="posting_time" className="text-sm font-medium">Posting Time</label>
-              <Input
-                id="posting_time"
-                type="time"
-                {...form.register('posting_time')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Status</label>
-              <Select
-                value={form.watch('status')}
-                onValueChange={(value: 'todo' | 'in_progress' | 'done') => 
-                  form.setValue('status', value, { shouldDirty: true })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {feedback && (
-            <div className="rounded-lg border border-destructive px-3 py-2 text-sm text-destructive">
-              {feedback}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }

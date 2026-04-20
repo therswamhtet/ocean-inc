@@ -82,6 +82,103 @@ function TaskPill({
   )
 }
 
+const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// ── Mobile day card ──
+function MobileDayCard({
+  day,
+  tasks,
+  isCurrentMonth,
+  isToday,
+  expanded,
+  onExpand,
+  onTaskSelect,
+  maxVisible = 5,
+}: {
+  day: Date
+  tasks: PortalTask[]
+  isCurrentMonth: boolean
+  isToday: boolean
+  expanded: boolean
+  onExpand: () => void
+  onTaskSelect: (task: PortalTask) => void
+  maxVisible?: number
+}) {
+  const visible = expanded ? tasks : tasks.slice(0, maxVisible)
+  const overflow = !expanded && tasks.length > maxVisible ? tasks.length - maxVisible : 0
+
+  return (
+    <div
+      onClick={tasks.length > 0 ? onExpand : undefined}
+      className={cn(
+        'rounded-xl border p-4 transition-colors',
+        isToday
+          ? 'border-primary/25 bg-primary/[0.03] ring-1 ring-primary/10'
+          : isCurrentMonth
+            ? 'border-border bg-white'
+            : 'border-border/40 bg-muted/[0.06]'
+      )}
+    >
+      <div className="flex items-center gap-3 mb-2">
+        <span className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold',
+          isToday
+            ? 'bg-primary text-primary-foreground'
+            : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
+        )}>
+          {format(day, 'd')}
+        </span>
+        <div className="min-w-0">
+          <p className={cn(
+            'text-sm font-semibold',
+            isToday ? 'text-primary' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
+          )}>
+            {DAY_SHORT[day.getDay()]}
+          </p>
+        </div>
+        {tasks.length > 0 && (
+          <span className="ml-auto shrink-0 text-xs font-medium text-muted-foreground tabular-nums">
+            {tasks.length}
+          </span>
+        )}
+      </div>
+
+      {tasks.length > 0 ? (
+        <div className="space-y-2">
+          {visible.map((task) => {
+            const cat = categoriseTask(task)
+            const style = getCategoryColour(cat)
+            return (
+              <button
+                key={task.id}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onTaskSelect(task) }}
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-lg border bg-white px-3 py-2.5 text-left transition active:scale-[0.99]',
+                  style.bg, style.border, style.text
+                )}
+              >
+                <span className="truncate text-sm font-medium">{task.title}</span>
+              </button>
+            )
+          })}
+          {overflow > 0 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onExpand() }}
+              className="w-full text-center text-sm font-medium text-muted-foreground py-2 rounded-lg border border-dashed border-border hover:bg-muted/[0.08] transition"
+            >
+              Show {overflow} more task{overflow > 1 ? 's' : ''}
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground/50 ml-12">No tasks</p>
+      )}
+    </div>
+  )
+}
+
 // ── Day cell (uses <div> to allow nested <button> pills) ──
 function MonthDayCell({
   day,
@@ -223,21 +320,18 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
         </div>
       </div>
 
-      {/* Weekday labels */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[560px] grid grid-cols-7 gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+      {/* Desktop: full grid (hidden on mobile) */}
+      <div className="hidden sm:block">
+        <div className="grid grid-cols-7 gap-1 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
           {weekDayLabels.map((label) => (
             <p key={label}>{label}</p>
           ))}
         </div>
-      </div>
 
-      {/* Month grid */}
-      {mode === 'month' && (
-        <div className="overflow-x-auto">
-          <div className="min-w-[560px] space-y-2">
+        {mode === 'month' && (
+          <div className="mt-2 space-y-1">
             {monthGrid.map((week, weekIndex) => (
-              <div key={`month-week-${weekIndex}`} className="grid grid-cols-7 gap-2">
+              <div key={`month-week-${weekIndex}`} className="grid grid-cols-7 gap-1">
                 {week.map((day) => {
                   const key = format(day, 'yyyy-MM-dd')
                   const dayTasks = groupedTasks[key] ?? []
@@ -262,13 +356,10 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Week strip */}
-      {mode === 'week' && (
-        <div className="overflow-x-auto">
-          <div className="min-w-[560px] grid grid-cols-7 gap-2">
+        {mode === 'week' && (
+          <div className="mt-2 grid grid-cols-7 gap-1">
             {weekGrid.map((day) => {
               const key = format(day, 'yyyy-MM-dd')
               const dayTasks = groupedTasks[key] ?? []
@@ -291,8 +382,66 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
               )
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Mobile: vertical card feed (visible on small screens only) */}
+      <div className="block sm:hidden space-y-3">
+        {mode === 'month' && monthGrid.flat()
+          .filter((day) => {
+            const key = format(day, 'yyyy-MM-dd')
+            const dayTasks = groupedTasks[key] ?? []
+            return dayTasks.length > 0 || isSameDay(day, new Date())
+          })
+          .map((day) => {
+            const key = format(day, 'yyyy-MM-dd')
+            const dayTasks = groupedTasks[key] ?? []
+            const isToday = isSameDay(day, new Date())
+
+            return (
+              <MobileDayCard
+                key={key}
+                day={day}
+                tasks={dayTasks}
+                isCurrentMonth={isSameMonth(day, anchorDate)}
+                isToday={isToday}
+                expanded={expandedDate === key}
+                onExpand={() =>
+                  setExpandedDate(expandedDate === key ? null : key)
+                }
+                onTaskSelect={onTaskSelect}
+                maxVisible={5}
+              />
+            )
+          })}
+        {mode === 'week' && weekGrid
+          .filter((day) => {
+            const key = format(day, 'yyyy-MM-dd')
+            const dayTasks = groupedTasks[key] ?? []
+            return dayTasks.length > 0 || isSameDay(day, new Date())
+          })
+          .map((day) => {
+            const key = format(day, 'yyyy-MM-dd')
+            const dayTasks = groupedTasks[key] ?? []
+            const isToday = isSameDay(day, new Date())
+
+            return (
+              <MobileDayCard
+                key={key}
+                day={day}
+                tasks={dayTasks}
+                isCurrentMonth
+                isToday={isToday}
+                expanded={expandedDate === key}
+                onExpand={() =>
+                  setExpandedDate(expandedDate === key ? null : key)
+                }
+                onTaskSelect={onTaskSelect}
+                maxVisible={999}
+              />
+            )
+          })}
+      </div>
 
       {/* Empty state */}
       {!hasTasks ? (

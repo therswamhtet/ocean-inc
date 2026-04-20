@@ -172,16 +172,17 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
           {task.title}
         </p>
 
-        <div className="flex items-center justify-between">
+        {cardDate && (
+          <p className={cn('mb-2 text-[11px] tabular-nums', overdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
+            {cardDate}
+          </p>
+        )}
+
+        <div className="flex items-center gap-1.5">
           <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
             <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
             {s.label}
           </span>
-          {cardDate && (
-            <span className={cn('text-[11px] tabular-nums', overdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
-              {cardDate}
-            </span>
-          )}
         </div>
       </article>
 

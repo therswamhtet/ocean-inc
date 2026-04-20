@@ -191,12 +191,12 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
           )}
 
           {tags.length > 0 && (
-            <div className="mb-2 flex flex-wrap items-center gap-1">
+            <div className="mb-1.5 flex flex-wrap items-center gap-1">
               {tags.map((tag) => (
                 <span
                   key={tag}
                   className={cn(
-                    'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em]',
+                    'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em] whitespace-nowrap',
                     tag === 'Content' ? 'bg-blue-100 text-blue-700' :
                     tag === 'Design' ? 'bg-purple-100 text-purple-700' :
                     tag === 'Briefed' ? 'bg-emerald-100 text-emerald-700' :
@@ -213,7 +213,7 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
               ))}
 
               {!currentDesignPath && (
-                <div data-no-click="true">
+                <div data-no-click="true" className="shrink-0">
                   <DesignUploadButton
                     taskId={task.id}
                     projectId={projectId}
@@ -225,7 +225,7 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
           )}
 
           {!tags.length && !currentDesignPath && (
-            <div className="mb-2 flex items-center gap-1" data-no-click="true">
+            <div className="mb-1.5 flex items-center gap-1" data-no-click="true">
               <DesignUploadButton
                 taskId={task.id}
                 projectId={projectId}
@@ -234,9 +234,9 @@ export function KanbanCard({ task, projectId }: KanbanCardProps) {
             </div>
           )}
 
-          <span className="mb-3 block text-sm font-medium leading-snug text-foreground">
+          <p className="mb-2 text-sm font-medium leading-snug text-foreground line-clamp-2 break-words">
             {task.title}
-          </span>
+          </p>
 
           <div className="flex items-center justify-between">
             <StatusDot status={overdue ? 'overdue' : task.status} />

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
-import { Calendar, Clock, Copy, Download, FileImage, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
+import { Copy, Download, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
 import Link from 'next/link'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
@@ -169,9 +169,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
   const briefing = task.briefing ?? ''
   const fileName = currentDesignPath?.split('/').pop() ?? null
   const isDesignImage = isImageFile(currentDesignPath)
-  const hasContent = caption || briefing
   const hasDesignFile = currentDesignPath && fileName
-  const hasDates = task.posting_date || task.due_date || task.deadline
 
   function handleDesignUpload(path: string) {
     setCurrentDesignPath(path)
@@ -186,45 +184,38 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
-          {/* ── Content ── */}
-          {hasContent && (
-            <div className="space-y-3">
-              {caption && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      <Copy className="h-3.5 w-3.5" />
-                      Caption
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyCaption}
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
-                    >
-                      {copyFeedback ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                    <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
-                  </div>
-                </div>
-              )}
-              {briefing && (
-                <div>
-                  <span className="mb-1 block text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Briefing</span>
-                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
-                </div>
-              )}
-            </div>
+        <div className="mt-2 space-y-6">
+          {/* ── Caption ── */}
+          {caption && (
+            <section>
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="text-sm font-semibold text-foreground">Caption</h3>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                >
+                  <Copy className="h-3 w-3" />
+                  {copyFeedback ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
+              </div>
+            </section>
+          )}
+
+          {/* ── Briefing ── */}
+          {briefing && (
+            <section>
+              <h3 className="text-sm font-semibold text-foreground mb-2">Briefing</h3>
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
+            </section>
           )}
 
           {/* ── Design File ── */}
-          <div>
-            <span className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-              <FileImage className="h-3.5 w-3.5" />
-              Design file
-            </span>
+          <section>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Design file</h3>
             {hasDesignFile ? (
               <div className="space-y-3">
                 {isDesignImage && previewLoading && !previewUrl && (
@@ -242,40 +233,37 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
             ) : (
               <InlineDesignUploader taskId={task.id} projectId={projectId ?? ''} onUploadComplete={handleDesignUpload} />
             )}
-          </div>
+          </section>
 
           {/* ── Schedule ── */}
-          {hasDates && (
-            <div>
-              <span className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5" />
-                Schedule
-              </span>
+          {(task.posting_date || task.due_date || task.deadline) && (
+            <section>
+              <h3 className="text-sm font-semibold text-foreground mb-2">Schedule</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {task.posting_date && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Posting Date</p>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Posting Date</p>
                     <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
                   </div>
                 )}
                 {task.due_date && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Due Date</p>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Due Date</p>
                     <p className="text-sm font-medium text-foreground">{formatDate(task.due_date)}</p>
                   </div>
                 )}
                 {task.deadline && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">Deadline</p>
+                    <p className="text-[11px] text-muted-foreground mb-0.5">Deadline</p>
                     <p className="text-sm font-medium text-foreground">{formatDate(task.deadline)}</p>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* ── Footer: Status + Edit ── */}
-          <div className="flex items-center justify-between pt-2 border-t border-border">
+          {/* ── Footer ── */}
+          <div className="flex items-center justify-between pt-4 border-t border-border">
             <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', s.bg, s.text, s.border)}>
               <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
               {s.label}

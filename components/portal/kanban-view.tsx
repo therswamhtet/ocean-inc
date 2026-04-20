@@ -1,4 +1,4 @@
-import { isBefore, startOfDay } from 'date-fns'
+import { format, isBefore, startOfDay } from 'date-fns'
 
 import { PortalKanbanTaskCard } from '@/components/portal/kanban-task-card'
 import type { PortalTask, PortalTaskStatus } from '@/lib/portal/types'
@@ -15,21 +15,15 @@ type KanbanColumn = {
 }
 
 const columns: KanbanColumn[] = [
-  { status: 'todo', label: 'To Do', dotColor: 'bg-status-todo' },
-  { status: 'in_progress', label: 'In Progress', dotColor: 'bg-status-in-progress' },
-  { status: 'done', label: 'Done', dotColor: 'bg-status-done' },
+  { status: 'todo', label: 'To Do', dotColor: 'bg-slate-400' },
+  { status: 'in_progress', label: 'In Progress', dotColor: 'bg-blue-400' },
+  { status: 'done', label: 'Done', dotColor: 'bg-green-500' },
 ]
 
 function isTaskOverdue(task: PortalTask) {
-  if (!task.postingDate || task.status === 'done') {
-    return false
-  }
-
+  if (!task.postingDate || task.status === 'done') return false
   const postingDate = new Date(task.postingDate)
-  if (Number.isNaN(postingDate.getTime())) {
-    return false
-  }
-
+  if (Number.isNaN(postingDate.getTime())) return false
   return isBefore(startOfDay(postingDate), startOfDay(new Date()))
 }
 
@@ -63,11 +57,11 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
                 />
               ))}
 
-              {tasksInColumn.length === 0 ? (
+              {tasksInColumn.length === 0 && (
                 <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-border">
                   <p className="text-sm text-muted-foreground">No tasks</p>
                 </div>
-              ) : null}
+              )}
             </div>
           </section>
         )

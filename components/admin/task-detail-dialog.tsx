@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { format, isBefore, startOfDay } from 'date-fns'
-import { Copy, Download, ImageUp, LoaderCircle } from 'lucide-react'
+import { Copy, Download, ImageUp, LoaderCircle, Pencil } from 'lucide-react'
 import Link from 'next/link'
 
 import type { TaskRow } from '@/app/admin/clients/[clientId]/projects/[projectId]/task-view-toggle'
@@ -24,7 +24,6 @@ type TaskDetailDialogProps = {
   task: TaskRow | null
   projectId?: string
   clientId?: string
-  onEdit?: () => void
   onDesignUpload?: (path: string) => void
 }
 
@@ -57,11 +56,7 @@ const statusConfig: Record<string, { label: string; dot: string; bg: string; tex
   done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
 }
 
-function InlineDesignUploader({
-  taskId,
-  projectId,
-  onUploadComplete,
-}: {
+function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
   taskId: string
   projectId: string
   onUploadComplete: (path: string) => void
@@ -74,51 +69,28 @@ function InlineDesignUploader({
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) { setError('Only image files are supported.'); return }
     if (file.size > 10 * 1024 * 1024) { setError('Files must be 10MB or smaller.'); return }
-
     setUploading(true)
     setError(null)
-
     const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
-    const fileName = `${crypto.randomUUID()}.${ext}`
-    const path = `${projectId}/temp/${crypto.randomUUID()}/${fileName}`
-
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`
     try {
       const formData = new FormData()
       formData.set('file', file)
       formData.set('path', path)
-
       const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
       if (res.ok) {
         const data = await res.json()
         const result = await updateTaskFilePathAction(taskId, data.path)
-        if (result.success) {
-          onUploadComplete(data.path)
-        } else {
-          setError(result.error ?? 'Failed to save.')
-        }
-      } else {
-        setError('Upload failed. Please try again.')
-      }
-    } catch {
-      setError('Upload failed. Please try again.')
-    } finally {
-      setUploading(false)
-    }
+        if (result.success) onUploadComplete(data.path)
+        else setError(result.error ?? 'Failed to save.')
+      } else { setError('Upload failed.') }
+    } catch { setError('Upload failed.') }
+    finally { setUploading(false) }
   }
 
   return (
     <div className="space-y-2">
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) void handleFile(file)
-          e.target.value = ''
-        }}
-      />
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = '' }} />
       <div
         role="button"
         tabIndex={0}
@@ -126,12 +98,7 @@ function InlineDesignUploader({
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click() } }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
         onDragLeave={() => setIsDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault()
-          setIsDragging(false)
-          const file = e.dataTransfer.files?.[0]
-          if (file) void handleFile(file)
-        }}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
         className={cn(
           'rounded-lg border-2 border-dashed px-6 py-8 text-center transition cursor-pointer',
           isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
@@ -141,10 +108,8 @@ function InlineDesignUploader({
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
             {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Upload design file</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
-          </div>
+          <p className="text-sm font-medium text-foreground">Upload design file</p>
+          <p className="text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
         </div>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -152,7 +117,7 @@ function InlineDesignUploader({
   )
 }
 
-export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId, onEdit, onDesignUpload }: TaskDetailDialogProps) {
+export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId, onDesignUpload }: TaskDetailDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState(false)
@@ -160,71 +125,54 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
   const prevFilePath = useRef<string | null>(null)
 
   useEffect(() => {
-    if (task?.design_file_path) {
-      setCurrentDesignPath(task.design_file_path)
-    } else {
-      setCurrentDesignPath(null)
-    }
+    if (task?.design_file_path) setCurrentDesignPath(task.design_file_path)
+    else setCurrentDesignPath(null)
     setPreviewUrl(null)
   }, [task?.id])
 
   const filePathToLoad = currentDesignPath && isImageFile(currentDesignPath) ? currentDesignPath : null
 
   useEffect(() => {
-    if (!filePathToLoad) {
-      setPreviewUrl(null)
-      setPreviewLoading(false)
-      return
-    }
+    if (!filePathToLoad) { setPreviewUrl(null); setPreviewLoading(false); return }
     if (prevFilePath.current === filePathToLoad && previewUrl) return
     prevFilePath.current = filePathToLoad
-
     setPreviewLoading(true)
     setPreviewUrl(null)
-
     let cancelled = false
     createClient()
       .storage.from('design-files')
       .createSignedUrl(filePathToLoad, 3600)
-      .then(({ data, error }) => {
-        if (!cancelled && !error && data?.signedUrl) {
-          setPreviewUrl(`${data.signedUrl}&width=800&height=600&resize=contain`)
-        }
-      })
+      .then(({ data, error }) => { if (!cancelled && !error && data?.signedUrl) setPreviewUrl(`${data.signedUrl}&width=800&height=600&resize=contain`) })
       .finally(() => { if (!cancelled) setPreviewLoading(false) })
-
     return () => { cancelled = true }
   }, [filePathToLoad])
 
   const handleCopyCaption = async () => {
     if (!task?.caption) return
-    try {
-      await navigator.clipboard.writeText(task.caption)
-      setCopyFeedback(true)
-      setTimeout(() => setCopyFeedback(false), 2000)
-    } catch { /* Clipboard API failed */ }
+    try { await navigator.clipboard.writeText(task.caption); setCopyFeedback(true); setTimeout(() => setCopyFeedback(false), 2000) }
+    catch { /* */ }
   }
 
   if (!task) return null
 
-  const status = statusConfig[task.status] ?? statusConfig.todo
-  const caption = task.caption ?? ''
-  const briefing = task.briefing ?? ''
-  const fileName = currentDesignPath?.split('/').pop() ?? null
-  const isDesignImage = isImageFile(currentDesignPath)
   const isOverdue = Boolean(
     (task.due_date || task.posting_date) &&
     isBefore(startOfDay(new Date(task.due_date || task.posting_date!)), startOfDay(new Date())) &&
     task.status !== 'done'
   )
-
-  const overdueStyle = isOverdue
+  const s = isOverdue
     ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
-    : status
+    : (statusConfig[task.status] ?? statusConfig.todo)
+  const caption = task.caption ?? ''
+  const briefing = task.briefing ?? ''
+  const fileName = currentDesignPath?.split('/').pop() ?? null
+  const isDesignImage = isImageFile(currentDesignPath)
+  const postingDateTime = task.posting_date
+    ? `${formatDate(task.posting_date)}${task.posting_time ? ` at ${formatTime(task.posting_time)}` : ''}`
+    : '—'
 
   function handleDesignUpload(path: string) {
     setCurrentDesignPath(path)
-    previewUrl
     onDesignUpload?.(path)
   }
 
@@ -232,37 +180,32 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">{task.title}</DialogTitle>
+          <DialogTitle className="text-lg font-semibold pr-8">{task.title}</DialogTitle>
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 pt-1">
-          {/* Status badge */}
-          <div className="flex items-center justify-between">
-            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold', overdueStyle.bg, overdueStyle.text)}>
-              <span className={cn('h-1.5 w-1.5 rounded-full', overdueStyle.dot)} />
-              {overdueStyle.label}
-            </span>
-            {projectId && clientId && (
-              <Link
-                href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-                className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground transition"
-              >
-                Edit task
-              </Link>
-            )}
-          </div>
+        <div className="flex items-center justify-between pt-1">
+          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', s.bg, s.text)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+            {s.label}
+          </span>
+          {projectId && clientId && (
+            <Link
+              href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+            >
+              <Pencil className="h-3 w-3" />
+              Edit
+            </Link>
+          )}
+        </div>
 
-          {/* Caption */}
+        <div className="space-y-4">
           {caption && (
             <div>
-              <div className="flex items-center justify-between gap-2 mb-1.5">
+              <div className="mb-1.5 flex items-center justify-between">
                 <label className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Caption</label>
-                <button
-                  type="button"
-                  onClick={handleCopyCaption}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
-                >
+                <button type="button" onClick={handleCopyCaption} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition">
                   <Copy className="h-3 w-3" />
                   {copyFeedback ? 'Copied!' : 'Copy'}
                 </button>
@@ -273,62 +216,41 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
             </div>
           )}
 
-          {/* Briefing */}
           {briefing && (
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Briefing</label>
-              <div
-                className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words"
-                dangerouslySetInnerHTML={{ __html: briefing }}
-              />
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
             </div>
           )}
 
-          {/* Design file */}
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Design file</label>
             {currentDesignPath && fileName ? (
               <div className="space-y-3">
-                {isDesignImage && (
-                  <>
-                    {previewLoading && !previewUrl && (
-                      <div className="flex items-center justify-center rounded-lg border border-border py-8">
-                        <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                    {previewUrl && (
-                      <div className="overflow-hidden rounded-lg border border-border">
-                        <img
-                          src={previewUrl}
-                          alt="Design preview"
-                          className="h-auto w-full max-h-80 object-contain bg-muted/20"
-                        />
-                      </div>
-                    )}
-                  </>
+                {isDesignImage && previewLoading && !previewUrl && (
+                  <div className="flex items-center justify-center rounded-lg border border-border py-8">
+                    <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {isDesignImage && previewUrl && (
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <img src={previewUrl} alt="Design preview" className="h-auto w-full max-h-80 object-contain bg-muted/20" />
+                  </div>
                 )}
                 <DownloadButton fileName={fileName} filePath={currentDesignPath} />
               </div>
             ) : (
-              <InlineDesignUploader
-                taskId={task.id}
-                projectId={projectId ?? ''}
-                onUploadComplete={handleDesignUpload}
-              />
+              <InlineDesignUploader taskId={task.id} projectId={projectId ?? ''} onUploadComplete={handleDesignUpload} />
             )}
           </div>
 
-          {/* Dates */}
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Details</label>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {task.posting_date && (
                 <div className="rounded-lg border border-border px-3 py-2.5">
                   <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-0.5">Posting Date</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {formatDate(task.posting_date)}
-                    {task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}
-                  </p>
+                  <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
                 </div>
               )}
               {task.due_date && (
@@ -363,10 +285,7 @@ function DownloadButton({ fileName, filePath }: { fileName: string; filePath: st
     startTransition(async () => {
       const supabase = createClient()
       const { data, error: signedUrlError } = await supabase.storage.from('design-files').createSignedUrl(filePath, 60)
-      if (signedUrlError || !data?.signedUrl) {
-        setError('Download link expired, please refresh')
-        return
-      }
+      if (signedUrlError || !data?.signedUrl) { setError('Download link expired, please refresh'); return }
       window.open(data.signedUrl, '_blank')
     })
   }

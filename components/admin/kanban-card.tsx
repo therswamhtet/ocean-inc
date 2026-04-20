@@ -17,7 +17,7 @@ type KanbanCardProps = {
   clientId: string
 }
 
-const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
   todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
   in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
   done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
@@ -44,11 +44,7 @@ function isTaskOverdue(task: TaskRow) {
   )
 }
 
-function DesignUploadButton({
-  taskId,
-  projectId,
-  onUploadComplete,
-}: {
+function DesignUploadButton({ taskId, projectId, onUploadComplete }: {
   taskId: string
   projectId: string
   onUploadComplete: (path: string) => void
@@ -60,48 +56,28 @@ function DesignUploadButton({
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) { setError('Only images'); return }
     if (file.size > 10 * 1024 * 1024) { setError('Max 10MB'); return }
-
     setUploading(true)
     setError(null)
-
     const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') ?? 'jpg'
-    const fileName = `${crypto.randomUUID()}.${ext}`
-    const path = `${projectId}/temp/${crypto.randomUUID()}/${fileName}`
-
+    const path = `${projectId}/temp/${crypto.randomUUID()}/${crypto.randomUUID()}.${ext}`
     try {
       const formData = new FormData()
       formData.set('file', file)
       formData.set('path', path)
-
       const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
       if (res.ok) {
         const data = await res.json()
         const result = await updateTaskFilePathAction(taskId, data.path)
-        if (result.success) {
-          onUploadComplete(data.path)
-        } else {
-          setError(result.error ?? 'Failed')
-        }
-      } else {
-        setError('Upload failed')
-      }
+        if (result.success) onUploadComplete(data.path)
+        else setError(result.error ?? 'Failed')
+      } else { setError('Upload failed') }
     } catch { setError('Upload failed') }
     finally { setUploading(false) }
   }
 
   return (
     <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) void handleFile(file)
-          e.target.value = ''
-        }}
-      />
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = '' }} />
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
@@ -122,12 +98,13 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
   useEffect(() => setIsMounted(true), [])
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
-
   const style = { transform: CSS.Transform.toString(transform), transition }
 
   const overdue = isTaskOverdue(task)
   const cardDate = formatCardDate(task)
-  const status = overdue ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' } : (statusConfig[task.status] ?? statusConfig.todo)
+  const s = overdue
+    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+    : (statusPill[task.status] ?? statusPill.todo)
   const tags = getTaskTags({ ...task, design_file_path: currentDesignPath })
   const displayTask = { ...task, design_file_path: currentDesignPath }
 
@@ -163,7 +140,7 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
         )}
 
         {tags.length > 0 && (
-          <div className="mb-2 flex flex-wrap items-center gap-1">
+          <div className="mb-1.5 flex flex-wrap items-center gap-1">
             {tags.map((tag) => (
               <span
                 key={tag}
@@ -186,26 +163,22 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
         )}
 
         {tags.length === 0 && !currentDesignPath && (
-          <div className="mb-2" data-no-click="true">
+          <div className="mb-1.5" data-no-click="true">
             <DesignUploadButton taskId={task.id} projectId={projectId} onUploadComplete={(path) => setCurrentDesignPath(path)} />
           </div>
         )}
 
-        <h4 className="text-sm font-medium leading-snug text-foreground line-clamp-2 break-words pr-6">
+        <p className="mb-2 text-sm font-medium leading-snug text-foreground line-clamp-2 break-words pr-6">
           {task.title}
-        </h4>
+        </p>
 
-        <div className="mt-2.5 flex items-center justify-between gap-2">
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold', status.bg, status.text)}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', status.dot)} />
-            {status.label}
+        <div className="flex items-center justify-between">
+          <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+            {s.label}
           </span>
-
           {cardDate && (
-            <span className={cn(
-              'text-[11px] tabular-nums',
-              overdue ? 'font-semibold text-red-600' : 'text-muted-foreground'
-            )}>
+            <span className={cn('text-[11px] tabular-nums', overdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
               {cardDate}
             </span>
           )}

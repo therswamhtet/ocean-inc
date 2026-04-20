@@ -103,8 +103,8 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
     weeks.push(allDays.slice(i, i + 7))
   }
 
-  return (
-    <section className="rounded-lg border border-border overflow-x-auto min-h-0">
+return (
+    <section className="rounded-lg border border-border min-h-0">
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold">Calendar</h3>
@@ -112,119 +112,207 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
         </div>
         <p className="text-sm text-muted-foreground">{format(currentMonth, 'MMMM yyyy')}</p>
       </div>
-      <div className="overflow-visible p-4">
-        {/* Weekday header */}
-        <div className="mb-2 flex">
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-muted-foreground w-full">
+      <div className="p-4">
+        {/* Desktop: full grid (hidden on mobile) */}
+        <div className="hidden sm:block overflow-visible">
+          <div className="mb-2 grid grid-cols-7 gap-2 text-center text-xs font-medium text-muted-foreground">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
               <div key={d} className="py-1">{d}</div>
             ))}
           </div>
-        </div>
 
-        {/* Day grid */}
-        <div className="space-y-2">
-          {weeks.map((week, wi) => (
-            <div key={`admin-week-${wi}`} className="grid grid-cols-7 gap-2">
-              {week.map((day) => {
-                const dateKey = format(day, 'yyyy-MM-dd')
-                const dayTasks = tasksByDate[dateKey] ?? []
-                const isToday = isSameDay(day, new Date())
-                const isCurrentMonth = isSameMonth(day, currentMonth)
-                const isExpanded = expandedDay === dateKey
+          <div className="space-y-2">
+            {weeks.map((week, wi) => (
+              <div key={`admin-week-${wi}`} className="grid grid-cols-7 gap-2">
+                {week.map((day) => {
+                  const dateKey = format(day, 'yyyy-MM-dd')
+                  const dayTasks = tasksByDate[dateKey] ?? []
+                  const isToday = isSameDay(day, new Date())
+                  const isCurrentMonth = isSameMonth(day, currentMonth)
+                  const isExpanded = expandedDay === dateKey
 
-                return (
-                  <div
-                    key={dateKey}
-                    tabIndex={0}
-                    onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
-                    onKeyDown={(e) => {
-                      if ((e.key === 'Enter' || e.key === ' ') && dayTasks.length > 0) {
-                        e.preventDefault()
-                        setExpandedDay(isExpanded ? null : dateKey)
-                      }
-                    }}
-                    role="button"
-                    aria-label={`${format(day, 'd')} – ${dayTasks.length} task(s)`}
-                    aria-expanded={isExpanded}
-                    className={cn(
-                      'relative cursor-pointer rounded-lg border p-2 text-left transition',
-                      isToday
-                        ? 'border-primary/30 bg-primary/[0.04]'
-                        : isCurrentMonth
-                          ? 'border-border bg-white hover:bg-muted/40'
-                          : 'border-border/50 bg-muted/20 hover:bg-muted/30'
-                    )}
-                    style={{ minHeight: '48px' }}
-                  >
-                    {/* Day number */}
-                    <div className="mb-1">
-                      {isToday ? (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                          {format(day, 'd')}
-                        </span>
-                      ) : (
-                        <span className={cn(
-                          'text-xs font-medium',
-                          isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
-                        )}>
-                          {format(day, 'd')}
-                        </span>
+                  return (
+                    <div
+                      key={dateKey}
+                      tabIndex={0}
+                      onClick={() => dayTasks.length > 0 && setExpandedDay(isExpanded ? null : dateKey)}
+                      onKeyDown={(e) => {
+                        if ((e.key === 'Enter' || e.key === ' ') && dayTasks.length > 0) {
+                          e.preventDefault()
+                          setExpandedDay(isExpanded ? null : dateKey)
+                        }
+                      }}
+                      role="button"
+                      aria-label={`${format(day, 'd')} – ${dayTasks.length} task(s)`}
+                      aria-expanded={isExpanded}
+                      className={cn(
+                        'relative cursor-pointer rounded-lg border p-2 text-left transition',
+                        isToday
+                          ? 'border-primary/30 bg-primary/[0.04]'
+                          : isCurrentMonth
+                            ? 'border-border bg-white hover:bg-muted/40'
+                            : 'border-border/50 bg-muted/20 hover:bg-muted/30'
+                      )}
+                      style={{ minHeight: '48px' }}
+                    >
+                      <div className="mb-1">
+                        {isToday ? (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                            {format(day, 'd')}
+                          </span>
+                        ) : (
+                          <span className={cn(
+                            'text-xs font-medium',
+                            isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                          )}>
+                            {format(day, 'd')}
+                          </span>
+                        )}
+                      </div>
+
+                      {dayTasks.length > 0 && (
+                        <>
+                          <div className="flex flex-wrap gap-1">
+                            {dayTasks.slice(0, 5).map((task) => (
+                              <AdminEventDot key={task.id} task={task} />
+                            ))}
+                          </div>
+                          {dayTasks.length > 5 && (
+                            <p className="mt-0.5 text-[11px] text-muted-foreground text-clip">+{dayTasks.length - 5} more</p>
+                          )}
+                        </>
+                      )}
+
+                      {isExpanded && dayTasks.length > 0 && (
+                        <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border bg-background p-2 shadow-lg">
+                          {dayTasks.map((task, i) => {
+                            const taskHref = `/admin/tasks/${task.id}`
+
+                            return (
+                              <div key={task.id} className={cn(
+                                'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                                i > 0 && 'mt-1 border-t border-border pt-1'
+                              )}>
+                                {taskHref ? (
+                                  <Link href={taskHref} className="text-xs font-medium truncate block" onClick={(e) => e.stopPropagation()}>
+                                    {task.title}
+                                  </Link>
+                                ) : (
+                                  <p className="text-xs font-medium truncate">{task.title}</p>
+                                )}
+                                {task.projects?.name && (
+                                  <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
+                                )}
+                              </div>
+                            )
+                          })}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setExpandedDay(null); }}
+                            className="mt-1 w-full text-center text-[11px] text-muted-foreground underline underline-offset-2"
+                          >
+                            Close
+                          </button>
+                        </div>
                       )}
                     </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                    {/* Task dots */}
+        {/* Mobile: vertical card feed (visible on small screens only) */}
+        <div className="block sm:hidden space-y-3">
+          {weeks.flat()
+            .filter((day) => {
+              const dateKey = format(day, 'yyyy-MM-dd')
+              const dayTasks = tasksByDate[dateKey] ?? []
+              return dayTasks.length > 0 || isSameDay(day, new Date())
+            })
+            .map((day) => {
+              const dateKey = format(day, 'yyyy-MM-dd')
+              const dayTasks = tasksByDate[dateKey] ?? []
+              const isToday = isSameDay(day, new Date())
+              const isCurrentMonth = isSameMonth(day, currentMonth)
+              const isExpanded = expandedDay === dateKey
+
+              return (
+                <div
+                  key={dateKey}
+                  className={cn(
+                    'rounded-xl border p-4 transition-colors',
+                    isToday
+                      ? 'border-primary/25 bg-primary/[0.03] ring-1 ring-primary/10'
+                      : isCurrentMonth
+                        ? 'border-border bg-white'
+                        : 'border-border/40 bg-muted/[0.06]'
+                  )}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={cn(
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold',
+                      isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                    )}>
+                      {format(day, 'd')}
+                    </span>
+                    <p className={cn(
+                      'text-sm font-semibold',
+                      isToday ? 'text-primary' : 'text-foreground'
+                    )}>
+                      {format(day, 'EEE')}
+                    </p>
                     {dayTasks.length > 0 && (
-                      <>
-                        <div className="flex flex-wrap gap-1">
-                          {dayTasks.slice(0, 5).map((task) => (
-                            <AdminEventDot key={task.id} task={task} />
-                          ))}
-                        </div>
-                        {dayTasks.length > 5 && (
-                          <p className="mt-0.5 text-[11px] text-muted-foreground text-clip">+{dayTasks.length - 5} more</p>
-                        )}
-                      </>
-                    )}
-
-                    {/* Expanded popup */}
-                    {isExpanded && dayTasks.length > 0 && (
-                      <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border bg-background p-2 shadow-lg">
-                        {dayTasks.map((task, i) => {
-                          const taskHref = `/admin/tasks/${task.id}`
-
-                          return (
-                            <div key={task.id} className={cn(
-                              'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
-                              i > 0 && 'mt-1 border-t border-border pt-1'
-                            )}>
-                              {taskHref ? (
-                                <Link href={taskHref} className="text-xs font-medium truncate block" onClick={(e) => e.stopPropagation()}>
-                                  {task.title}
-                                </Link>
-                              ) : (
-                                <p className="text-xs font-medium truncate">{task.title}</p>
-                              )}
-                              {task.projects?.name && (
-                                <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
-                              )}
-                            </div>
-                          )
-                        })}
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); setExpandedDay(null); }}
-                          className="mt-1 w-full text-center text-[11px] text-muted-foreground underline underline-offset-2"
-                        >
-                          Close
-                        </button>
-                      </div>
+                      <span className="ml-auto shrink-0 text-xs font-medium text-muted-foreground tabular-nums">
+                        {dayTasks.length}
+                      </span>
                     )}
                   </div>
-                )
-              })}
-            </div>
-          ))}
+
+                  {dayTasks.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {dayTasks.map((task) => {
+                        const taskHref = `/admin/tasks/${task.id}`
+                        return (
+                          <Link
+                            key={task.id}
+                            href={taskHref}
+                            className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 transition hover:bg-muted/40 active:scale-[0.99]"
+                          >
+                            <AdminEventDot task={task} />
+                            <span className="truncate text-sm font-medium text-foreground">{task.title}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground/50 ml-12">No tasks</p>
+                  )}
+
+                  {isExpanded && dayTasks.length > 0 && (
+                    <div className="mt-2 rounded-md border border-border bg-background p-2 shadow-lg">
+                      {dayTasks.map((task, i) => {
+                        const taskHref = `/admin/tasks/${task.id}`
+                        return (
+                          <div key={task.id} className={cn(
+                            'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                            i > 0 && 'mt-1 border-t border-border pt-1'
+                          )}>
+                            <Link href={taskHref} className="text-xs font-medium truncate block" onClick={(e) => e.stopPropagation()}>
+                              {task.title}
+                            </Link>
+                            {task.projects?.name && (
+                              <p className="mt-0.5 text-[10px] text-muted-foreground">{task.projects.name}</p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
         </div>
       </div>
     </section>

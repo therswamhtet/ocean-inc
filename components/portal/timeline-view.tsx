@@ -1,9 +1,15 @@
 import { format } from 'date-fns'
 
 import { LABELS } from '@/lib/labels'
-import { StatusDot } from '@/components/ui/status-dot'
-import { calculateTimelineOffset, groupTasksByMonth } from '@/lib/portal/timeline-utils'
+import { groupTasksByMonth } from '@/lib/portal/timeline-utils'
 import type { PortalTask } from '@/lib/portal/types'
+import { cn } from '@/lib/utils'
+
+const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
+  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
+  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+}
 
 type PortalTimelineViewProps = {
   tasks: PortalTask[]
@@ -47,41 +53,35 @@ export function PortalTimelineView({ tasks, onTaskSelect }: PortalTimelineViewPr
         const monthAnchor = getMonthAnchor(monthKey)
 
         return (
-          <article key={monthKey} className="grid gap-3 md:grid-cols-[160px_minmax(0,1fr)] md:items-start">
-            <div className="rounded-sm border border-border bg-background px-3 py-2">
+          <article key={monthKey}>
+            <div className="mb-3 rounded-lg border border-border bg-background px-3 py-2 inline-block">
               <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{format(monthAnchor, 'MMMM yyyy')}</p>
               <p className="text-xs text-muted-foreground">{monthTasks.length} tasks</p>
             </div>
 
-            <div className="overflow-x-auto">
-              <div className="min-w-[640px] space-y-2 rounded-sm border border-border bg-muted/20 p-3">
-                {monthTasks.map((task) => {
-                  const postingDate = getPostingDate(task.postingDate)
+            <div className="space-y-2">
+              {monthTasks.map((task) => {
+                const postingDate = getPostingDate(task.postingDate)
+                if (!postingDate) return null
 
-                  if (!postingDate) {
-                    return null
-                  }
+                const s = statusPill[task.status] ?? statusPill.todo
 
-                  const leftOffset = calculateTimelineOffset(format(postingDate, 'yyyy-MM-dd'), monthAnchor)
-                  const transform = leftOffset > 85 ? 'translate(-100%, -50%)' : 'translate(0, -50%)'
-
-                  return (
-                    <div key={task.id} className="relative h-12 rounded-sm border border-border bg-background">
-                      <p className="absolute left-2 top-1 text-[11px] text-muted-foreground">{format(postingDate, 'MMM d')}</p>
-
-                      <button
-                        type="button"
-                        onClick={() => onTaskSelect(task)}
-                        className="absolute top-1/2 flex max-w-[78%] items-center gap-2 rounded-sm border border-border bg-background px-2 py-1 text-left hover:bg-muted/20"
-                        style={{ left: `${leftOffset}%`, transform }}
-                      >
-                        <StatusDot status={task.status} />
-                        <p className="truncate text-xs font-medium text-foreground">{task.title}</p>
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
+                return (
+                  <button
+                    key={task.id}
+                    type="button"
+                    onClick={() => onTaskSelect(task)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-white px-4 py-3 text-left transition hover:bg-muted/30 active:scale-[0.99]"
+                  >
+                    <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
+                      <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+                      {s.label}
+                    </span>
+                    <span className="min-w-0 truncate text-sm font-medium text-foreground">{task.title}</span>
+                    <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{format(postingDate, 'MMM d')}</span>
+                  </button>
+                )
+              })}
             </div>
           </article>
         )

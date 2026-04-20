@@ -67,17 +67,16 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
           {task.title}
         </p>
 
-        {cardDate && (
-          <p className={cn('mb-2 text-[11px] tabular-nums', isOverdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
-            {cardDate}
-          </p>
-        )}
-
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between">
           <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
             <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
             {s.label}
           </span>
+          {cardDate && (
+            <span className={cn('text-[11px] tabular-nums', isOverdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
+              {cardDate}
+            </span>
+          )}
         </div>
       </ContentCard>
     </button>

@@ -106,13 +106,6 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="pt-1">
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', status.bg, status.text)}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', status.dot)} />
-            {status.label}
-          </span>
-        </div>
-
         <div className="space-y-4">
           {task.caption && (
             <div>
@@ -166,6 +159,13 @@ export function PortalTaskDetailDialog({ open, onOpenChange, task }: PortalTaskD
               </div>
             )}
           </div>
+        </div>
+
+        <div className="border-t border-border pt-3">
+          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', status.bg, status.text)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', status.dot)} />
+            {status.label}
+          </span>
         </div>
       </DialogContent>
     </Dialog>

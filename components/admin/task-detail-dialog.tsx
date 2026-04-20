@@ -184,22 +184,6 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-between pt-1">
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', s.bg, s.text)}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
-            {s.label}
-          </span>
-          {projectId && clientId && (
-            <Link
-              href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
-            >
-              <Pencil className="h-3 w-3" />
-              Edit
-            </Link>
-          )}
-        </div>
-
         <div className="space-y-4">
           {caption && (
             <div>
@@ -270,6 +254,22 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
               )}
             </div>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border pt-3">
+          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold', s.bg, s.text)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+            {s.label}
+          </span>
+          {projectId && clientId && (
+            <Link
+              href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+            >
+              <Pencil className="h-3 w-3" />
+              Edit
+            </Link>
+          )}
         </div>
       </DialogContent>
     </Dialog>

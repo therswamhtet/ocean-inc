@@ -102,7 +102,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
       </div>
 
       {/* Tab content */}
-      {activeTab === 'board' && <KanbanBoard tasks={initialTasks} projectId={projectId} />}
+      {activeTab === 'board' && <KanbanBoard tasks={initialTasks} projectId={projectId} clientId={clientId} />}
       {activeTab === 'timeline' && <TaskList tasks={initialTasks} projectId={projectId} />}
       {activeTab === 'files' && <FilesPlaceholder />}
     </div>

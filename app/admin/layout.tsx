@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation'
 import { logout } from '@/app/login/actions'
 import { MobileNav } from '@/app/admin/mobile-nav'
 import { AdminSidebar } from '@/app/admin/sidebar'
-import { NotificationBell } from '@/components/admin/notification-bell'
-import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminLayout({
   children,
@@ -18,22 +17,11 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
-  const { data: notifications } = await supabase
-    .from('notifications')
-    .select('id, message, created_at, read')
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-background lg:flex lg:flex-col">
         <div className="flex items-center justify-between border-b border-border px-6 py-5">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-          </div>
-          <NotificationBell notifications={notifications} unreadCount={unreadCount} />
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
         </div>
 
         <div className="flex-1 px-4 py-5">
@@ -54,10 +42,7 @@ export default async function AdminLayout({
         <header className="sticky top-0 z-30 border-b border-border bg-background lg:hidden">
           <div className="flex items-center justify-between px-4 py-4">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Orca Digital</p>
-            <div className="flex items-center gap-2">
-              <NotificationBell notifications={notifications} unreadCount={unreadCount} />
-              <MobileNav email={user.email ?? ''} />
-            </div>
+            <MobileNav email={user.email ?? ''} />
           </div>
         </header>
 

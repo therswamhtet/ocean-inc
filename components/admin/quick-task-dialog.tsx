@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { createTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
-import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +18,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -30,6 +28,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { LABELS } from '@/lib/labels'
+import { cn } from '@/lib/utils'
 
 type Client = {
   id: string
@@ -40,15 +39,8 @@ type Client = {
 type Project = {
   id: string
   name: string
-  month: string
+  month: number
   year: number
-}
-
-type TeamMember = {
-  id: string
-  name: string
-  email: string
-  username: string | null
 }
 
 const taskSchema = z.object({
@@ -58,27 +50,28 @@ const taskSchema = z.object({
   postingDate: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
-  assignedTo: z.string().optional(),
   designFilePath: z.string().optional(),
 })
 
 type TaskFormValues = z.infer<typeof taskSchema>
 
 type QuickTaskDialogProps = {
+  clients: Client[]
+  projectsByClient: Record<string, Project[]>
   onSuccess?: () => void
 }
 
-export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
+function monthName(m: number) {
+  return new Date(0, m - 1).toLocaleString('default', { month: 'short' })
+}
+
+export function QuickTaskDialog({ clients, projectsByClient, onSuccess }: QuickTaskDialogProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [open, setOpen] = useState(false)
-  const [step, setStep] = useState<'select' | 'create'>('select')
-  const [clients, setClients] = useState<Client[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [selectedClientId, setSelectedClientId] = useState<string>('')
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [message, setMessage] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -89,73 +82,19 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       postingDate: '',
       deadline: '',
       status: 'todo',
-      assignedTo: '',
       designFilePath: '',
     },
   })
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = form
   const [statusValue, setStatusValue] = useState<'todo' | 'in_progress' | 'done'>('todo')
-  const [assignedToValue, setAssignedToValue] = useState('')
   const watchedDesignFilePath = watch('designFilePath')
 
-  useEffect(() => {
-    if (!open) return
+  const availableProjects = selectedClientId ? (projectsByClient[selectedClientId] ?? []) : []
 
-    const supabase = createSupabaseClient()
-
-    const fetchData = async () => {
-      const { data: clientsData } = await supabase
-        .from('clients')
-        .select('id, name, color')
-        .order('name', { ascending: true })
-
-      if (clientsData) {
-        setClients(clientsData)
-      }
-
-      const { data: membersData } = await supabase
-        .from('team_members')
-        .select('id, name, email, username')
-        .order('name', { ascending: true })
-
-      if (membersData) {
-        setTeamMembers(membersData)
-      }
-    }
-
-    fetchData()
-  }, [open])
-
-  useEffect(() => {
-    if (!selectedClientId) {
-      setProjects([])
-      setSelectedProjectId('')
-      return
-    }
-
-    const supabase = createSupabaseClient()
-
-    const fetchProjects = async () => {
-      const { data } = await supabase
-        .from('projects')
-        .select('id, name, month, year')
-        .eq('client_id', selectedClientId)
-        .eq('status', 'active')
-        .order('year', { ascending: false })
-        .order('month', { ascending: false })
-
-      if (data) {
-        setProjects(data)
-      }
-    }
-
-    fetchProjects()
-  }, [selectedClientId])
-
-  const handleProjectSelect = (projectId: string) => {
-    setSelectedProjectId(projectId)
-    setStep('create')
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId)
+    setSelectedProjectId('')
   }
 
   const onSubmit = handleSubmit((values) => {
@@ -165,10 +104,10 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       const result = await createTaskAction(selectedProjectId, {
         ...values,
         designFilePath: values.designFilePath ?? '',
-      }, values.assignedTo || null)
+      }, null)
 
       if (result.success) {
-        setMessage('Task created')
+        setMessage('Task created successfully')
         reset({
           title: '',
           briefing: '',
@@ -176,29 +115,25 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
           postingDate: '',
           deadline: '',
           status: 'todo',
-          assignedTo: '',
           designFilePath: '',
         })
         setStatusValue('todo')
-        setAssignedToValue('')
         router.refresh()
         onSuccess?.()
 
         setTimeout(() => {
           handleClose()
-        }, 1000)
+        }, 800)
       } else {
-        setMessage(result.error)
+        setMessage(result.error ?? 'Failed to create task')
       }
     })
   })
 
   const handleClose = () => {
     setOpen(false)
-    setStep('select')
     setSelectedClientId('')
     setSelectedProjectId('')
-    setProjects([])
     setMessage(null)
     reset({
       title: '',
@@ -207,14 +142,8 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
       postingDate: '',
       deadline: '',
       status: 'todo',
-      assignedTo: '',
       designFilePath: '',
     })
-  }
-
-  const handleBack = () => {
-    setStep('select')
-    setSelectedProjectId('')
   }
 
   return (
@@ -226,124 +155,116 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        {step === 'select' ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Select Client & Project</DialogTitle>
-              <DialogDescription>
-                Choose a client and project for the new task.
-              </DialogDescription>
-            </DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Create Task</DialogTitle>
+          <DialogDescription>
+            Choose a client and project, then fill in the details.
+          </DialogDescription>
+        </DialogHeader>
 
-            <div className="space-y-4 pt-2">
-              <Field>
-                <FieldLabel>Client</FieldLabel>
-                <Select
-                  value={selectedClientId}
-                  onValueChange={(value) => {
-                    setSelectedClientId(value)
-                    setSelectedProjectId('')
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: client.color }}
-                          />
-                          {client.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field>
-                <FieldLabel>Project</FieldLabel>
-                <Select
-                  value={selectedProjectId}
-                  onValueChange={handleProjectSelect}
-                  disabled={!selectedClientId}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={selectedClientId ? 'Select a project' : 'Select a client first'}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.month} {project.year} — {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+        <form className="space-y-5 pt-2" onSubmit={onSubmit}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Client</label>
+              <Select value={selectedClientId} onValueChange={handleClientSelect}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: client.color }}
+                        />
+                        {client.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2">
-                  ← Back
-                </Button>
-                <DialogTitle>Create Task</DialogTitle>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Project</label>
+              <Select
+                value={selectedProjectId}
+                onValueChange={setSelectedProjectId}
+                disabled={!selectedClientId}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder={selectedClientId ? 'Select a project' : 'Select client first'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProjects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {monthName(project.month)} {project.year} — {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {selectedProjectId && (
+            <>
+              <div className="border-t border-border pt-4 space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="quick-title" className="text-sm font-medium text-foreground">Title</label>
+                  <Input
+                    id="quick-title"
+                    placeholder="Instagram carousel"
+                    className="h-10"
+                    {...register('title')}
+                  />
+                  {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="quick-briefing" className="text-sm font-medium text-foreground">
+                    {LABELS.task.briefing} <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <Textarea
+                    id="quick-briefing"
+                    placeholder="Key notes, references, or campaign direction"
+                    rows={2}
+                    {...register('briefing')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="quick-caption" className="text-sm font-medium text-foreground">
+                    {LABELS.task.caption} <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <Textarea
+                    id="quick-caption"
+                    placeholder="Write the post caption here"
+                    rows={2}
+                    {...register('caption')}
+                  />
+                </div>
               </div>
-              <DialogDescription>
-                Adding task to the selected project.
-              </DialogDescription>
-            </DialogHeader>
 
-            <form className="space-y-4 pt-2" onSubmit={onSubmit}>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field className="sm:col-span-2">
-                  <FieldLabel htmlFor="title">Title</FieldLabel>
-                  <Input id="title" placeholder="Instagram carousel" {...register('title')} />
-                  {errors.title ? <FieldError>{errors.title.message}</FieldError> : null}
-                </Field>
-
-                <Field className="sm:col-span-2">
-                  <FieldLabel htmlFor="briefing">{LABELS.task.briefing}</FieldLabel>
-                  <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" {...register('briefing')} />
-                  {errors.briefing ? <FieldError>{errors.briefing.message}</FieldError> : null}
-                </Field>
-
-                <Field className="sm:col-span-2">
-                  <FieldLabel htmlFor="caption">{LABELS.task.caption}</FieldLabel>
-                  <Textarea id="caption" placeholder="Write the post caption here" {...register('caption')} />
-                  {errors.caption ? <FieldError>{errors.caption.message}</FieldError> : null}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
-                  <Input id="postingDate" type="date" {...register('postingDate')} />
-                  {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
-                  <Input id="deadline" type="date" {...register('deadline')} />
-                  {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
-                </Field>
-
-                <Field>
-                  <FieldLabel>{LABELS.task.status}</FieldLabel>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">{LABELS.task.postingDate}</label>
+                  <Input type="date" className="h-10" {...register('postingDate')} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">{LABELS.task.deadline}</label>
+                  <Input type="date" className="h-10" {...register('deadline')} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">{LABELS.task.status}</label>
                   <Select
-                    defaultValue="todo"
                     value={statusValue}
                     onValueChange={(value: 'todo' | 'in_progress' | 'done') => {
                       setStatusValue(value)
                       setValue('status', value, { shouldValidate: true })
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -352,36 +273,11 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
                       <SelectItem value="done">Done</SelectItem>
                     </SelectContent>
                   </Select>
-                  {errors.status ? <FieldError>{errors.status.message}</FieldError> : null}
-                </Field>
-
-                <Field>
-                  <FieldLabel>{LABELS.task.assignee}</FieldLabel>
-                  <Select
-                    value={assignedToValue}
-                    onValueChange={(value) => {
-                      setAssignedToValue(value)
-                      setValue('assignedTo', value, { shouldValidate: true })
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Unassigned" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="self">Assign to myself</SelectItem>
-                      {teamMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.username ? `@${member.username}` : member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.assignedTo ? <FieldError>{errors.assignedTo.message}</FieldError> : null}
-                </Field>
+                </div>
               </div>
 
-              <Field>
-                <FieldLabel>Design file</FieldLabel>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Design file</label>
                 <DesignFileUploader
                   projectId={selectedProjectId}
                   onUploadComplete={(path) => {
@@ -389,23 +285,30 @@ export function QuickTaskDialog({ onSuccess }: QuickTaskDialogProps) {
                     setMessage('Design file uploaded. Ready to create task.')
                   }}
                 />
-              </Field>
+              </div>
 
-              {message ? (
-                <div className="rounded-lg border border-border px-3 py-2 text-sm">{message}</div>
-              ) : null}
+              {message && (
+                <div className={cn(
+                  'rounded-lg border px-4 py-2.5 text-sm',
+                  message.includes('success') || message.includes('uploaded')
+                    ? 'border-green-200 bg-green-50 text-green-700'
+                    : 'border-border text-foreground'
+                )}>
+                  {message}
+                </div>
+              )}
 
-              <div className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex items-center justify-end gap-3 pt-1">
                 <Button variant="outline" type="button" onClick={handleClose}>
-                  {LABELS.common.cancel}
+                  Cancel
                 </Button>
                 <Button disabled={isPending} type="submit">
                   {isPending ? 'Creating...' : 'Create Task'}
                 </Button>
               </div>
-            </form>
-          </>
-        )}
+            </>
+          )}
+        </form>
       </DialogContent>
     </Dialog>
   )

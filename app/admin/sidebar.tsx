@@ -2,15 +2,15 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FolderKanban, LayoutDashboard, ListTodo, Settings, Users } from "lucide-react"
+import { Briefcase, FolderKanban, LayoutDashboard, ListTodo, Settings } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/projects", label: "Projects", icon: Briefcase },
   { href: "/admin/tasks", label: "Tasks", icon: ListTodo },
   { href: "/admin/clients", label: "Clients", icon: FolderKanban },
-  { href: "/admin/team", label: "Team Members", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 

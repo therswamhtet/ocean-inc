@@ -2,20 +2,21 @@
 
 ## Overview
 
-Orca Digital is an internal project management tool for a digital marketing agency, enabling admins to manage social media content tasks for clients and a read-only portal for clients to track progress. v1.0 (MVP) and v1.1 (redesign) have shipped. v1.2 focuses on collaboration and workflow improvements.
+Orca Digital is an internal project management tool for a digital marketing agency, enabling admins to manage social media content tasks for clients and a read-only portal for clients to track progress. v1.0 (MVP) and v1.1 (redesign) have shipped. v1.2 focuses on collaboration and workflow improvements, with a pivot toward personal-use tool simplification — removing redundant features and overhauling UI/UX.
 
 ## Current Milestone
 
 **v1.2 Collaboration & Workflow** (v1.2.0)
 Status: In progress
-Phases: 0 of 2 complete
+Phases: 14 of 15 complete
 
 ## Phases
 
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
-| 13 | Collaboration & Comments | Planning | Planning | - |
-| 14 | TBD | TBD | Not started | - |
+| 13 | Collaboration & Comments | 1/1 | Done | 2026-04-07 |
+| 14 | Full Comment Management | 1/1 | Done | 2026-04-07 |
+| 15 | UI/UX Overhaul & Simplification | 2/4 | In progress | - |
 
 ## Completed Roadmap History
 
@@ -42,6 +43,13 @@ Phases: 0 of 2 complete
 - Phase 12: Brand Redesign & Mobile Polish (1/1 plans)
 
 </details>
+
+### Phase 15: UI/UX Overhaul & Simplification
+
+Focus: Complete UI/UX overhaul — streamline project navigation, fix calendar task overflows, remove notifications and commenting features, disable team-related functionality (pivot to personal-use), fix mobile view overflow issues, and reorganize client portal task descriptions for consistency.
+
+Plans: TBD (defined during /paul-plan)
+Status: Not started
 
 ## Phase Details
 

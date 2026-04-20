@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { createTaskAction } from '@/app/admin/clients/[clientId]/projects/[projectId]/actions'
-import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { DesignFileUploader } from '@/components/admin/design-file-uploader'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
@@ -22,13 +21,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
-type TeamMember = {
-  id: string
-  name: string
-  email: string
-  username: string | null
-}
-
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   briefing: z.string().optional(),
@@ -37,7 +29,6 @@ const taskSchema = z.object({
   postingTime: z.string().optional(),
   deadline: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'done']),
-  assignedTo: z.string().optional(),
   designFilePath: z.string().optional(),
 })
 
@@ -52,7 +43,6 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
   const router = useRouter()
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -63,7 +53,6 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
       postingTime: '10:00',
       deadline: '',
       status: 'todo',
-      assignedTo: '',
       designFilePath: '',
     },
   })
@@ -75,29 +64,13 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
     formState: { errors },
   } = form
 
-  useEffect(() => {
-    const supabase = createSupabaseClient()
-    const fetchTeamMembers = async () => {
-      const { data } = await supabase
-        .from('team_members')
-        .select('id, name, email, username')
-        .order('name', { ascending: true })
-      if (data) {
-        setTeamMembers(data)
-      }
-    }
-    fetchTeamMembers()
-  }, [])
-
-  // Local state for Select (avoids watch() compiler warning with memoized components)
   const [statusValue, setStatusValue] = useState<'todo' | 'in_progress' | 'done'>('todo')
-  const [assignedToValue, setAssignedToValue] = useState('')
 
   const onSubmit = handleSubmit((values) => {
     setMessage(null)
 
     startTransition(async () => {
-      const result = await createTaskAction(projectId, values, values.assignedTo || null)
+      const result = await createTaskAction(projectId, values, null)
 
       if (result.success) {
         setMessage('Task created')
@@ -109,11 +82,9 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
           postingTime: '10:00',
           deadline: '',
           status: 'todo',
-          assignedTo: '',
           designFilePath: '',
         })
         setStatusValue('todo')
-        setAssignedToValue('')
         router.refresh()
         onSuccess?.()
       } else {
@@ -184,30 +155,6 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
             </SelectContent>
           </Select>
           {errors.status ? <FieldError>{errors.status.message}</FieldError> : null}
-        </Field>
-
-        <Field>
-          <FieldLabel>{LABELS.task.assignee}</FieldLabel>
-          <Select
-            value={assignedToValue}
-            onValueChange={(value) => {
-              setAssignedToValue(value)
-              setValue('assignedTo', value, { shouldValidate: true })
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Unassigned" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="self">Assign to myself</SelectItem>
-              {teamMembers.map((member) => (
-                <SelectItem key={member.id} value={member.id}>
-                  {member.username ? `@${member.username}` : member.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.assignedTo ? <FieldError>{errors.assignedTo.message}</FieldError> : null}
         </Field>
       </div>
 

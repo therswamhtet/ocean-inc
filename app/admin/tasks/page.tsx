@@ -3,6 +3,37 @@ import { format } from 'date-fns'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import AllTasks from './all-tasks'
 
+type TaskRow = {
+  id: string
+  title: string
+  posting_date: string | null
+  status: string
+  project_id: string
+  due_date: string | null
+  deadline: string | null
+  projects: {
+    id: string
+    name: string
+    client_id: string
+    clients: { id: string; name: string; color: string } | null
+  } | null
+}
+
+type ClientRow = {
+  id: string
+  name: string
+  color: string
+}
+
+type ProjectRow = {
+  id: string
+  name: string
+  month: number
+  year: number
+  client_id: string
+  status: string
+}
+
 async function fetchTasks(
   supabase: ReturnType<typeof createServiceRoleClient>,
   filter: 'today' | 'upcoming' | 'overdue',
@@ -14,7 +45,6 @@ async function fetchTasks(
     .select(
       `
       id,
-      created_at,
       title,
       posting_date,
       due_date,
@@ -29,12 +59,6 @@ async function fetchTasks(
           id,
           name,
           color
-        )
-      ),
-      task_assignments (
-        team_members (
-          name,
-          username
         )
       )
     `,
@@ -60,26 +84,20 @@ async function fetchTasks(
       break
   }
 
-  const { data, error } = await builder.returns<any[]>()
+  const { data, error } = await builder.returns<TaskRow[]>()
   if (error) throw new Error(error.message)
 
-  return (data ?? []).map((row: any) => {
+  return (data ?? []).map((row) => {
     const projects = row.projects as Record<string, unknown> | null
     const clients = (projects?.clients ?? {}) as Record<string, unknown> | null
-    const assignments = row.task_assignments as any[] | null
-    const assigneeUsername = assignments?.[0]?.team_members?.username ?? null
-    const assigneeName = assignments?.[0]?.team_members?.name ?? null
 
     return {
       id: row.id,
-      created_at: row.created_at,
       title: row.title,
       posting_date: row.posting_date as string | null,
       due_date: row.due_date as string | null,
       deadline: row.deadline as string | null,
       status: row.status,
-      assigned_to_username: assigneeUsername,
-      assigned_to_name: assigneeName,
       client_id: (clients?.id as string) ?? '',
       client_name: (clients?.name as string) ?? 'Unknown',
       client_color: (clients?.color as string | null) ?? null,
@@ -92,17 +110,46 @@ async function fetchTasks(
 export default async function TasksPage() {
   const serviceRoleClient = createServiceRoleClient()
 
-  const [todayTasks, upcomingTasks, overdueTasks] = await Promise.all([
+  const [todayTasks, upcomingTasks, overdueTasks, clientsData, projectsData] = await Promise.all([
     fetchTasks(serviceRoleClient, 'today'),
     fetchTasks(serviceRoleClient, 'upcoming'),
     fetchTasks(serviceRoleClient, 'overdue'),
+    serviceRoleClient
+      .from('clients')
+      .select('id, name, color')
+      .order('name', { ascending: true })
+      .returns<ClientRow[]>(),
+    serviceRoleClient
+      .from('projects')
+      .select('id, name, month, year, client_id, status')
+      .eq('status', 'active')
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
+      .returns<ProjectRow[]>(),
   ])
+
+  const clients = (clientsData.data ?? []) as ClientRow[]
+  const projects = (projectsData.data ?? []) as ProjectRow[]
+
+  const projectsByClient: Record<string, { id: string; name: string; month: number; year: number }[]> = {}
+  for (const p of projects) {
+    if (!projectsByClient[p.client_id]) projectsByClient[p.client_id] = []
+    projectsByClient[p.client_id].push({ id: p.id, name: p.name, month: p.month, year: p.year })
+  }
+
+  const typedClients = (clients ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    color: c.color,
+  }))
 
   return (
     <AllTasks
       today={{ label: "Today's Tasks", tasks: todayTasks }}
       upcoming={{ label: 'Upcoming', tasks: upcomingTasks }}
       overdue={{ label: 'Overdue', tasks: overdueTasks }}
+      clients={typedClients}
+      projectsByClient={projectsByClient}
     />
   )
 }

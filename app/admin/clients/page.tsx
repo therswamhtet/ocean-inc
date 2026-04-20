@@ -69,22 +69,18 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Page header bar */}
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-2xl font-semibold text-foreground">Clients</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Track every client and monitor active monthly projects in flight.
-        </p>
-      </div>
-
-      {/* Server-side error dialog (hidden trigger) */}
-      <div className="hidden">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">Clients</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {clients.length} client{clients.length !== 1 ? 's' : ''} — manage brands and their projects.
+          </p>
+        </div>
         <CreateClientDialog errorMessage={params.error} />
       </div>
 
-      {/* Toast */}
       {params.created && (
-        <div className="rounded-lg border border-border bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           Client created successfully.
         </div>
       )}

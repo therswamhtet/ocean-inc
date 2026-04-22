@@ -23,6 +23,7 @@ function parseDateInput(display: string) {
 const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, value, defaultValue, onChange, onBlur, ...props }, forwardedRef) => {
     const innerRef = React.useRef<HTMLInputElement>(null)
+    const datePickerRef = React.useRef<HTMLInputElement>(null)
     const [display, setDisplay] = React.useState(() =>
       formatDisplayDate(String(defaultValue ?? value ?? ""))
     )
@@ -35,6 +36,17 @@ const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
         setDisplay(formatDisplayDate(v))
       }
     }, [value])
+
+    const handleDatePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedDate = e.target.value // YYYY-MM-DD format
+      if (selectedDate) {
+        setDisplay(formatDisplayDate(selectedDate))
+        if (onChange) {
+          const synthetic = { ...e, target: { ...e.target, value: selectedDate } }
+          onChange(synthetic as React.ChangeEvent<HTMLInputElement>)
+        }
+      }
+    }
 
     return (
       <div className="relative">
@@ -79,8 +91,16 @@ const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
             }
           }}
         />
+        {/* Hidden date input positioned near the icon */}
+        <input
+          type="date"
+          ref={datePickerRef}
+          className="absolute right-0 top-0 h-10 w-10 opacity-0 cursor-pointer"
+          value={String(value ?? "")}
+          onChange={handleDatePickerChange}
+        />
         <Calendar
-          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 hover:text-foreground transition-colors"
           strokeWidth={1.5}
         />
       </div>
@@ -115,6 +135,7 @@ function parseTimeInput(display: string) {
 const TimeInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, value, defaultValue, onChange, onBlur, ...props }, forwardedRef) => {
     const innerRef = React.useRef<HTMLInputElement>(null)
+    const timePickerRef = React.useRef<HTMLInputElement>(null)
     const [display, setDisplay] = React.useState(() =>
       formatDisplayTime(String(defaultValue ?? value ?? ""))
     )
@@ -127,6 +148,17 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
         setDisplay(formatDisplayTime(v))
       }
     }, [value])
+
+    const handleTimePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedTime = e.target.value // HH:MM format
+      if (selectedTime) {
+        setDisplay(formatDisplayTime(selectedTime))
+        if (onChange) {
+          const synthetic = { ...e, target: { ...e.target, value: selectedTime } }
+          onChange(synthetic as React.ChangeEvent<HTMLInputElement>)
+        }
+      }
+    }
 
     return (
       <div className="relative">
@@ -160,8 +192,16 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
             }
           }}
         />
+        {/* Hidden time input positioned near the icon */}
+        <input
+          type="time"
+          ref={timePickerRef}
+          className="absolute right-0 top-0 h-10 w-10 opacity-0 cursor-pointer"
+          value={String(value ?? "")}
+          onChange={handleTimePickerChange}
+        />
         <Clock
-          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 hover:text-foreground transition-colors"
           strokeWidth={1.5}
         />
       </div>

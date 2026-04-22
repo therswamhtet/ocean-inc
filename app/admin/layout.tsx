@@ -5,6 +5,7 @@ import { MobileNav } from '@/app/admin/mobile-nav'
 import { AdminSidebar } from '@/app/admin/sidebar'
 import { createClient } from '@/lib/supabase/server'
 import { PageTransition } from '@/lib/animations'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function AdminLayout({
   children,
@@ -32,8 +33,11 @@ export default async function AdminLayout({
           <AdminSidebar />
         </div>
 
-        <div className="border-t border-border px-6 py-4 text-sm">
-          <p className="truncate text-foreground">{user.email}</p>
+        <div className="border-t border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <p className="truncate text-sm text-foreground">{user.email}</p>
+            <ThemeToggle size="sm" />
+          </div>
           <form action={logout} className="mt-3">
             <button
               type="submit"
@@ -48,11 +52,14 @@ export default async function AdminLayout({
       <div className="lg:pl-60">
         {/* Mobile header */}
         <header className="sticky top-0 z-30 border-b border-border bg-surface lg:hidden">
-          <div className="flex items-center gap-3 px-4 py-4">
-            <MobileNav email={user.email ?? ''} />
-            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              Orca Digital
-            </p>
+          <div className="flex items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3">
+              <MobileNav email={user.email ?? ''} />
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Orca Digital
+              </p>
+            </div>
+            <ThemeToggle size="sm" />
           </div>
         </header>
 

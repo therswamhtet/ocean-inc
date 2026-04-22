@@ -50,10 +50,10 @@ function formatTime(timeStr: string | null) {
   return timeStr
 }
 
-const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string; border: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
+const statusConfig: Record<string, { label: string; dot: string; text: string }> = {
+  todo: { label: 'To Do', dot: 'bg-[#999999]', text: 'text-[#999999]' },
+  in_progress: { label: 'In Progress', dot: 'bg-[#D4A843]', text: 'text-[#D4A843]' },
+  done: { label: 'Done', dot: 'bg-[#4A9E5C]', text: 'text-[#4A9E5C]' },
 }
 
 function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
@@ -101,20 +101,20 @@ function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
         onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
         className={cn(
           'rounded-lg border-2 border-dashed transition cursor-pointer',
-          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
+          isDragging ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/20 hover:bg-surface-raised'
         )}
       >
         <div className="flex flex-col items-center gap-2 py-6">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised">
             {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
           </div>
           <div className="text-center">
             <p className="text-sm font-medium text-foreground">Upload design file</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+            <p className="mt-0.5 text-xs text-muted-foreground font-mono uppercase tracking-[0.06em]">Drag and drop or click to browse (max 10MB)</p>
           </div>
         </div>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-[#D71921]">{error}</p>}
     </div>
   )
 }
@@ -163,7 +163,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
     task.status !== 'done'
   )
   const s = isOverdue
-    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
+    ? { label: 'Overdue', dot: 'bg-[#D71921]', text: 'text-[#D71921]' }
     : (statusConfig[task.status] ?? statusConfig.todo)
   const caption = task.caption ?? ''
   const briefing = task.briefing ?? ''
@@ -180,42 +180,42 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold pr-8">{task.title}</DialogTitle>
+          <DialogTitle className="text-lg font-bold tracking-tight pr-8">{task.title}</DialogTitle>
           <DialogDescription className="sr-only">Task details for {task.title}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-2 space-y-6">
-          {/* ── Caption ── */}
+          {/* Caption */}
           {caption && (
             <section>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h3 className="text-sm font-semibold text-foreground">Caption</h3>
+                <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Caption</h3>
                 <button
                   type="button"
                   onClick={handleCopyCaption}
-                  className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:bg-surface-raised hover:text-foreground transition font-mono uppercase tracking-[0.06em]"
                 >
                   <Copy className="h-3 w-3" />
-                  {copyFeedback ? 'Copied!' : 'Copy'}
+                  {copyFeedback ? 'Copied' : 'Copy'}
                 </button>
               </div>
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+              <div className="rounded-lg border border-border bg-surface-raised px-4 py-3">
                 <p className="whitespace-pre-wrap break-words text-sm text-foreground leading-relaxed">{caption}</p>
               </div>
             </section>
           )}
 
-          {/* ── Briefing ── */}
+          {/* Briefing */}
           {briefing && (
             <section>
-              <h3 className="text-sm font-semibold text-foreground mb-2">Briefing</h3>
-              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">Briefing</h3>
+              <div className="rounded-lg border border-border bg-surface-raised px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: briefing }} />
             </section>
           )}
 
-          {/* ── Design File ── */}
+          {/* Design File */}
           <section>
-            <h3 className="text-sm font-semibold text-foreground mb-2">Design file</h3>
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">Design file</h3>
             {hasDesignFile ? (
               <div className="space-y-3">
                 {isDesignImage && previewLoading && !previewUrl && (
@@ -224,37 +224,42 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
                   </div>
                 )}
                 {isDesignImage && previewUrl && (
-                  <div className="overflow-hidden rounded-lg border border-border">
-                    <img src={previewUrl} alt="Design preview" className="h-auto w-full object-contain bg-muted/20" />
+                  <div className="group relative overflow-hidden rounded-lg border border-border">
+                    <img src={previewUrl} alt="Design preview" className="h-auto w-full object-contain bg-surface-raised" />
+                    <div className="absolute right-3 top-3">
+                      <DownloadButton filePath={currentDesignPath!} />
+                    </div>
                   </div>
                 )}
-                <DownloadButton fileName={fileName!} filePath={currentDesignPath!} />
+                {(!isDesignImage || !previewUrl) && (
+                  <DownloadButton filePath={currentDesignPath!} />
+                )}
               </div>
             ) : (
               <InlineDesignUploader taskId={task.id} projectId={projectId ?? ''} onUploadComplete={handleDesignUpload} />
             )}
           </section>
 
-          {/* ── Schedule ── */}
+          {/* Schedule */}
           {(task.posting_date || task.due_date || task.deadline) && (
             <section>
-              <h3 className="text-sm font-semibold text-foreground mb-2">Schedule</h3>
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground mb-2">Schedule</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {task.posting_date && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[11px] text-muted-foreground mb-0.5">Posting Date</p>
-                    <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground"> at {formatTime(task.posting_time)}</span>}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Posting Date</p>
+                    <p className="text-sm font-medium text-foreground">{formatDate(task.posting_date)}{task.posting_time && <span className="text-muted-foreground font-normal"> at {formatTime(task.posting_time)}</span>}</p>
                   </div>
                 )}
                 {task.due_date && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[11px] text-muted-foreground mb-0.5">Due Date</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Due Date</p>
                     <p className="text-sm font-medium text-foreground">{formatDate(task.due_date)}</p>
                   </div>
                 )}
                 {task.deadline && (
                   <div className="rounded-lg border border-border px-3 py-2.5">
-                    <p className="text-[11px] text-muted-foreground mb-0.5">Deadline</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Deadline</p>
                     <p className="text-sm font-medium text-foreground">{formatDate(task.deadline)}</p>
                   </div>
                 )}
@@ -262,16 +267,16 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
             </section>
           )}
 
-          {/* ── Footer ── */}
+          {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
-            <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', s.bg, s.text, s.border)}>
-              <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+            <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold', s.text)}>
+              <span className={cn('h-2 w-2 rounded-full', s.dot)} />
               {s.label}
             </span>
             {projectId && clientId && (
               <Link
                 href={`/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-medium text-foreground transition hover:bg-surface-raised font-mono uppercase tracking-[0.06em]"
               >
                 <Pencil className="h-3 w-3" />
                 Edit task
@@ -284,7 +289,7 @@ export function TaskDetailDialog({ open, onOpenChange, task, projectId, clientId
   )
 }
 
-function DownloadButton({ fileName, filePath }: { fileName: string; filePath: string }) {
+function DownloadButton({ filePath }: { filePath: string }) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -300,11 +305,10 @@ function DownloadButton({ fileName, filePath }: { fileName: string; filePath: st
 
   return (
     <div className="flex items-center gap-2">
-      <Button type="button" variant="outline" size="sm" onClick={download} disabled={isPending}>
+      <Button type="button" variant="outline" size="icon" className="h-8 w-8 bg-surface hover:bg-surface" onClick={download} disabled={isPending} title="Download">
         {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-        {fileName}
       </Button>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-[#D71921]">{error}</p>}
     </div>
   )
 }

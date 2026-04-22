@@ -49,13 +49,13 @@ function formatDate(date: string | null) {
 
 function statusBadge(status: string) {
   const config: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-    active: { label: 'In Progress', bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
-    paused: { label: 'Paused', bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-    done: { label: 'Completed', bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' },
+    active: { label: 'In Progress', bg: 'bg-[#4A9E5C]/10', text: 'text-[#4A9E5C]', dot: 'bg-[#4A9E5C]' },
+    paused: { label: 'Paused', bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]', dot: 'bg-[#D4A843]' },
+    done: { label: 'Completed', bg: 'bg-[#999999]/10', text: 'text-[#666666]', dot: 'bg-[#999999]' },
   }
   const c = config[status] ?? config.active
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${c.bg} ${c.text}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${c.bg} ${c.text}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
       {c.label}
     </span>
@@ -122,13 +122,13 @@ export default async function ProjectTasksPage({
       </nav>
 
       {/* Project Details Card */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-surface p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
             {/* Color bar */}
             <div
               className="h-10 w-1.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: project.clients?.color || '#b45309' }}
+              style={{ backgroundColor: project.clients?.color || '#1A1A1A' }}
             />
             <div className="space-y-2">
               <div className="flex items-center gap-3">
@@ -147,37 +147,37 @@ export default async function ProjectTasksPage({
         {/* Stats bar */}
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:divide-x sm:divide-border">
           <div className="text-center sm:pr-4">
-            <p className="text-2xl font-semibold text-foreground">{totalTasks}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="font-mono text-2xl font-bold tracking-tight text-foreground">{totalTasks}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Total</p>
           </div>
           <div className="text-center sm:px-4">
-            <p className="text-2xl font-semibold text-foreground">{todoTasks}</p>
-            <p className="text-xs text-muted-foreground">To Do</p>
+            <p className="font-mono text-2xl font-bold tracking-tight text-foreground">{todoTasks}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">To Do</p>
           </div>
           <div className="text-center sm:px-4">
-            <p className="text-2xl font-semibold text-foreground">{inProgressTasks}</p>
-            <p className="text-xs text-muted-foreground">In Progress</p>
+            <p className="font-mono text-2xl font-bold tracking-tight text-foreground">{inProgressTasks}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">In Progress</p>
           </div>
           <div className="text-center sm:pl-4">
-            <p className="text-2xl font-semibold text-foreground">{completedTasks}</p>
-            <p className="text-xs text-muted-foreground">Done</p>
+            <p className="font-mono text-2xl font-bold tracking-tight text-foreground">{completedTasks}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Done</p>
           </div>
         </div>
 
         {/* Meta info row */}
         <div className="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-border sm:grid-cols-3">
           <div>
-            <p className="text-xs text-muted-foreground">Client</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Client</p>
             <p className="mt-0.5 text-sm font-medium text-foreground">{project.clients?.name ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Period</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Period</p>
             <p className="mt-0.5 text-sm font-medium text-foreground">
               {project.month && project.year ? `${monthName(project.month)} ${project.year}` : '—'}
             </p>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <p className="text-xs text-muted-foreground">Created</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Created</p>
             <p className="mt-0.5 text-sm font-medium text-foreground">{formatDate(project.created_at)}</p>
           </div>
         </div>

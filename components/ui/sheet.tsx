@@ -18,7 +18,7 @@ const SheetOverlay = React.forwardRef<
   <SheetPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out",
       className
     )}
     {...props}
@@ -28,11 +28,11 @@ SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = {
   right:
-    "inset-y-0 right-0 h-full w-full max-w-xs border-l border-border bg-background data-[state=open]:animate-in data-[state=closed]:animate-out sm:max-w-sm",
+    "inset-y-0 right-0 h-full w-full max-w-xs border-l border-border bg-surface data-[state=open]:animate-in data-[state=closed]:animate-out sm:max-w-sm",
   left:
-    "inset-y-0 left-0 h-full w-full max-w-xs border-r border-border bg-background data-[state=open]:animate-in data-[state=closed]:animate-out sm:max-w-sm",
-  top: "inset-x-0 top-0 border-b border-border bg-background",
-  bottom: "inset-x-0 bottom-0 border-t border-border bg-background",
+    "inset-y-0 left-0 h-full w-full max-w-xs border-r border-border bg-surface data-[state=open]:animate-in data-[state=closed]:animate-out sm:max-w-sm",
+  top: "inset-x-0 top-0 border-b border-border bg-surface",
+  bottom: "inset-x-0 bottom-0 border-t border-border bg-surface",
 } as const
 
 const SheetContent = React.forwardRef<
@@ -46,15 +46,15 @@ const SheetContent = React.forwardRef<
     <SheetPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed z-50 flex flex-col gap-4 p-6 shadow-none outline-none",
+        "fixed z-50 flex flex-col gap-4 p-6 outline-none",
         sheetVariants[side],
         className
       )}
       {...props}
     >
       {children}
-      <SheetPrimitive.Close className="absolute top-4 right-4 rounded-md border border-border p-1 text-muted-foreground transition hover:text-foreground">
-        <X className="h-4 w-4" />
+      <SheetPrimitive.Close className="absolute top-4 right-4 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground transition hover:text-foreground">
+        [ X ]
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>

@@ -6,9 +6,9 @@ import type { PortalTask } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
 const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+  todo: { label: 'To Do', dot: 'bg-[#999999]', bg: 'bg-[#999999]/10', text: 'text-[#666666]' },
+  in_progress: { label: 'In Progress', dot: 'bg-[#D4A843]', bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]' },
+  done: { label: 'Done', dot: 'bg-[#4A9E5C]', bg: 'bg-[#4A9E5C]/10', text: 'text-[#4A9E5C]' },
 }
 
 type PortalTimelineViewProps = {
@@ -54,7 +54,7 @@ export function PortalTimelineView({ tasks, onTaskSelect }: PortalTimelineViewPr
 
         return (
           <article key={monthKey}>
-            <div className="mb-3 rounded-lg border border-border bg-background px-3 py-2 inline-block">
+            <div className="mb-3 rounded-lg border border-border bg-surface px-3 py-2 inline-block">
               <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{format(monthAnchor, 'MMMM yyyy')}</p>
               <p className="text-xs text-muted-foreground">{monthTasks.length} tasks</p>
             </div>
@@ -71,7 +71,7 @@ export function PortalTimelineView({ tasks, onTaskSelect }: PortalTimelineViewPr
                     key={task.id}
                     type="button"
                     onClick={() => onTaskSelect(task)}
-                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-white px-4 py-3 text-left transition hover:bg-muted/30 active:scale-[0.99]"
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-left transition hover:bg-surface-raised active:scale-[0.99]"
                   >
                     <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', s.bg, s.text)}>
                       <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />

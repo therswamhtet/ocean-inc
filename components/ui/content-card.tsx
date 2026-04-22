@@ -8,9 +8,9 @@ interface ContentCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function ContentCard({ className, variant = 'default', ...props }: ContentCardProps) {
   const base = 'rounded-lg border border-border transition'
   const variants = {
-    default: 'p-4 hover:bg-muted/30',
+    default: 'p-4 hover:bg-surface-raised',
     metric: 'p-5',
-    kanban: 'p-3 hover:bg-muted/30',
+    kanban: 'p-3 hover:bg-surface-raised',
     mobile: 'p-3',
   }
 

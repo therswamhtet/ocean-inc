@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 import { Settings as SettingsIcon, User, Mail, Lock } from 'lucide-react'
+import { animate } from 'animejs'
 
 import { updateProfile, type UpdateProfileResult } from './actions'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
@@ -21,11 +22,51 @@ const initialState: UpdateProfileResult = {}
 
 export function SettingsForm({ user }: Props) {
   const [state, formAction, isPending] = useActionState(updateProfile, initialState)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const successRef = useRef<HTMLDivElement>(null)
+  const errorRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const sections = containerRef.current.querySelectorAll('.settings-section')
+      if (sections.length > 0) {
+        animate(sections, {
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 500,
+          delay: (_el: unknown, i: number) => i * 100,
+          ease: "out(3)",
+        })
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (state?.success && successRef.current) {
+      animate(successRef.current, {
+        opacity: [0, 1],
+        translateY: [-10, 0],
+        duration: 400,
+        ease: "out(3)",
+      })
+    }
+  }, [state?.success])
+
+  useEffect(() => {
+    if (state?.error && errorRef.current) {
+      animate(errorRef.current, {
+        opacity: [0, 1],
+        translateX: [-15, 0],
+        duration: 400,
+        ease: "out(3)",
+      })
+    }
+  }, [state?.error])
 
   return (
-    <div className="max-w-xl space-y-6">
-      <section className="space-y-2 rounded-lg border border-border bg-white p-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Profile Settings</p>
+    <div ref={containerRef} className="max-w-xl space-y-6">
+      <section className="settings-section space-y-2 rounded-lg border border-border bg-surface p-5" style={{ opacity: 0 }}>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Profile Settings</p>
         <div className="flex items-center gap-2">
           <SettingsIcon className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-2xl font-semibold">Settings</h2>
@@ -36,19 +77,19 @@ export function SettingsForm({ user }: Props) {
       </section>
 
       {state?.success && !state.error && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        <div ref={successRef} className="rounded-lg border border-[#4A9E5C]/20 bg-[#4A9E5C]/10 px-4 py-3 text-sm text-[#4A9E5C]" style={{ opacity: 0 }}>
           {state.success}
         </div>
       )}
       {state?.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div ref={errorRef} className="rounded-lg border border-[#D71921]/20 bg-[#D71921]/10 px-4 py-3 text-sm text-[#D71921]" style={{ opacity: 0 }}>
           {state.error}
         </div>
       )}
 
       <form action={formAction} className="space-y-8">
         {/* Identity section */}
-        <section className="space-y-4 rounded-lg border border-border bg-white p-5">
+        <section className="settings-section space-y-4 rounded-lg border border-border bg-surface p-5" style={{ opacity: 0 }}>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-lg font-medium">Profile</h3>
@@ -91,7 +132,7 @@ export function SettingsForm({ user }: Props) {
         </section>
 
         {/* Password section */}
-        <section className="space-y-4 rounded-lg border border-border bg-white p-5">
+        <section className="settings-section space-y-4 rounded-lg border border-border bg-surface p-5" style={{ opacity: 0 }}>
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-lg font-medium">Change Password</h3>

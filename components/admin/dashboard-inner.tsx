@@ -1,24 +1,80 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar } from 'lucide-react'
 
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns'
 
 import { cn } from '@/lib/utils'
+import { animate } from 'animejs'
 
-const metricCardClassName = 'rounded-lg border border-border p-5 bg-gradient-to-br from-amber-50 to-orange-50'
+const metricCardClassName = 'flex flex-col justify-between rounded-lg border border-border p-5 bg-surface h-full'
 
-type Metric = { label: string; value: number; className?: string }
+type Metric = { label: string; value: number; accent?: string }
+
+function AnimatedMetric({ value, className }: { value: number; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const element = ref.current;
+    const duration = 1500;
+    const startTime = performance.now();
+
+    const animateCount = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const currentValue = Math.round(eased * value);
+      
+      element.textContent = String(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateCount);
+      }
+    };
+
+    requestAnimationFrame(animateCount);
+  }, [value]);
+
+  return <span ref={ref} className={className}>0</span>;
+}
 
 export function DashboardMetrics({ metrics }: { metrics: Metric[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const cards = containerRef.current.children;
+      if (cards.length > 0) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 600,
+          delay: (_el: unknown, i: number) => i * 100,
+          ease: "out(3)",
+        });
+      }
+    }
+  }, [metrics]);
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div ref={containerRef} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {metrics.map((metric) => (
-        <article key={metric.label} className={cn(metricCardClassName, metric.className)}>
-          <p className="text-sm text-muted-foreground">{metric.label}</p>
-          <p className="mt-1 text-3xl font-bold text-foreground">{metric.value}</p>
+        <article key={metric.label} className={metricCardClassName} style={{ opacity: 0 }}>
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground leading-relaxed min-h-[2.5rem]">
+            {metric.label}
+          </p>
+          <p className={cn(
+            'mt-3 font-mono text-4xl font-bold tracking-tight',
+            metric.accent || 'text-foreground'
+          )}>
+            <AnimatedMetric value={metric.value} />
+          </p>
         </article>
       ))}
     </div>
@@ -71,8 +127,8 @@ function adminCategoriseTask(task: TaskForCalendar): number {
 }
 
 const ADMIN_DOT_COLOURS = [
-  'bg-slate-400', 'bg-pink-400', 'bg-purple-400', 'bg-indigo-400', 'bg-blue-400',
-  'bg-violet-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400', 'bg-gray-400',
+  'bg-[#999999]', 'bg-pink-400', 'bg-purple-400', 'bg-indigo-400', 'bg-[#D4A843]',
+  'bg-violet-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400', 'bg-[#999999]',
 ]
 
 function AdminEventDot({ task }: { task: TaskForCalendar }) {
@@ -85,6 +141,19 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   const monthEnd = endOfMonth(currentMonth)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (sectionRef.current) {
+      animate(sectionRef.current, {
+        opacity: [0, 1],
+        translateY: [30, 0],
+        duration: 600,
+        delay: 300,
+        ease: "out(3)",
+      });
+    }
+  }, []);
 
   const tasksByDate = (tasks ?? []).reduce((acc, task) => {
     if (task.posting_date) {
@@ -104,20 +173,20 @@ export function DashboardCalendar({ tasks, currentMonth }: DashboardCalendarProp
   }
 
 return (
-    <section className="rounded-lg border border-border min-h-0">
+    <section ref={sectionRef} className="rounded-lg border border-border min-h-0" style={{ opacity: 0 }}>
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold">Calendar</h3>
-          <Calendar className="h-5 w-5 text-muted-foreground" />
+          <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Calendar</h3>
+          <Calendar className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
         </div>
-        <p className="text-sm text-muted-foreground">{format(currentMonth, 'MMMM yyyy')}</p>
+        <p className="mt-0.5 font-mono text-lg font-bold tracking-tight text-foreground">{format(currentMonth, 'MMMM yyyy')}</p>
       </div>
       <div className="p-4">
         {/* Desktop: full grid (hidden on mobile) */}
         <div className="hidden sm:block overflow-visible">
-          <div className="mb-2 grid grid-cols-7 gap-2 text-center text-xs font-medium text-muted-foreground">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-              <div key={d} className="py-1">{d}</div>
+          <div className="mb-2 grid grid-cols-7 gap-2 text-center">
+            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((d) => (
+              <div key={d} className="py-1 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{d}</div>
             ))}
           </div>
 
@@ -148,16 +217,16 @@ return (
                       className={cn(
                         'relative cursor-pointer rounded-lg border p-2 text-left transition',
                         isToday
-                          ? 'border-primary/30 bg-primary/[0.04]'
+                          ? 'border-foreground/20 bg-surface-raised'
                           : isCurrentMonth
-                            ? 'border-border bg-white hover:bg-muted/40'
-                            : 'border-border/50 bg-muted/20 hover:bg-muted/30'
+                            ? 'border-border bg-surface hover:bg-surface-raised'
+                            : 'border-border/50 bg-surface hover:bg-surface-raised/50'
                       )}
                       style={{ minHeight: '48px' }}
                     >
                       <div className="mb-1">
                         {isToday ? (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                             {format(day, 'd')}
                           </span>
                         ) : (
@@ -184,13 +253,13 @@ return (
                       )}
 
                       {isExpanded && dayTasks.length > 0 && (
-                        <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border bg-background p-2 shadow-lg">
+                        <div className="absolute z-20 left-0 right-0 top-full mt-1 rounded-md border border-border-visible bg-surface p-2">
                           {dayTasks.map((task, i) => {
                             const taskHref = `/admin/tasks/${task.id}`
 
                             return (
                               <div key={task.id} className={cn(
-                                'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                                'rounded-sm px-1.5 py-1 transition hover:bg-surface-raised',
                                 i > 0 && 'mt-1 border-t border-border pt-1'
                               )}>
                                 {taskHref ? (
@@ -244,22 +313,21 @@ return (
                   className={cn(
                     'rounded-xl border p-4 transition-colors',
                     isToday
-                      ? 'border-primary/25 bg-primary/[0.03] ring-1 ring-primary/10'
+                      ? 'border-foreground/20 bg-surface-raised'
                       : isCurrentMonth
-                        ? 'border-border bg-white'
-                        : 'border-border/40 bg-muted/[0.06]'
-                  )}
-                >
+                        ? 'border-border bg-surface'
+                        : 'border-border/40 bg-surface'
+                  )}>
                   <div className="flex items-center gap-3 mb-2">
                     <span className={cn(
                       'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold',
-                      isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                      isToday ? 'bg-foreground text-background' : 'text-foreground'
                     )}>
                       {format(day, 'd')}
                     </span>
                     <p className={cn(
                       'text-sm font-semibold',
-                      isToday ? 'text-primary' : 'text-foreground'
+                      isToday ? 'text-foreground' : 'text-foreground'
                     )}>
                       {format(day, 'EEE')}
                     </p>
@@ -278,7 +346,7 @@ return (
                           <Link
                             key={task.id}
                             href={taskHref}
-                            className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 transition hover:bg-muted/40 active:scale-[0.99]"
+                            className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 transition hover:bg-surface-raised active:scale-[0.99]"
                           >
                             <AdminEventDot task={task} />
                             <span className="truncate text-sm font-medium text-foreground">{task.title}</span>
@@ -291,12 +359,12 @@ return (
                   )}
 
                   {isExpanded && dayTasks.length > 0 && (
-                    <div className="mt-2 rounded-md border border-border bg-background p-2 shadow-lg">
+                    <div className="mt-2 rounded-md border border-border-visible bg-surface p-2">
                       {dayTasks.map((task, i) => {
                         const taskHref = `/admin/tasks/${task.id}`
                         return (
                           <div key={task.id} className={cn(
-                            'rounded-sm px-1.5 py-1 transition hover:bg-muted/30',
+                            'rounded-sm px-1.5 py-1 transition hover:bg-surface-raised',
                             i > 0 && 'mt-1 border-t border-border pt-1'
                           )}>
                             <Link href={taskHref} className="text-xs font-medium truncate block" onClick={(e) => e.stopPropagation()}>
@@ -335,13 +403,30 @@ type DashboardTaskSectionsProps = {
 }
 
 export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks }: DashboardTaskSectionsProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const sections = containerRef.current.querySelectorAll('section');
+      if (sections.length > 0) {
+        animate(sections, {
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 500,
+          delay: (_el: unknown, i: number) => 500 + i * 150,
+          ease: "out(3)",
+        });
+      }
+    }
+  }, [overdueTasks, todayTasks, upcomingTasks]);
+
   function getProjectInfo(projects: { name: string; client_id: string } | null | { name: string; client_id: string }[]) {
     if (!projects) return { projectName: undefined, clientId: undefined }
     const first = Array.isArray(projects) ? projects[0] : projects
     return { projectName: first?.name, clientId: first?.client_id }
   }
 
-  function renderTaskLink(task: TaskForSections) {
+  function renderTaskLink(task: TaskForSections, accentColor?: string) {
     const { projectName, clientId } = getProjectInfo(task.projects)
     const taskHref = task.project_id && clientId
       ? `/admin/clients/${clientId}/projects/${task.project_id}/tasks/${task.id}`
@@ -349,8 +434,8 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
 
     const content = (
       <>
-        <span className="font-medium">{task.title}</span>
-        {projectName && <span className="text-muted-foreground"> — { projectName}</span>}
+        <span className={cn('font-medium', accentColor)}>{task.title}</span>
+        {projectName && <span className="text-muted-foreground"> — {projectName}</span>}
       </>
     )
 
@@ -365,49 +450,55 @@ export function DashboardTaskSections({ overdueTasks, todayTasks, upcomingTasks 
   }
 
   return (
-    <div className="space-y-4">
+    <div ref={containerRef} className="space-y-6">
       {(overdueTasks ?? []).length > 0 && (
-        <section className="rounded-lg border border-l-4 border-l-red-500 border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-red-600">Overdue</h3>
-          <ul className="space-y-2">
-            {(overdueTasks ?? []).slice(0, 5).map((task) => {
-              return (
-                <li key={task.id} className="text-sm">
-                  {renderTaskLink(task)}
-                </li>
-              )
-            })}
-          </ul>
+        <section style={{ opacity: 0 }}>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#D71921]" />
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#D71921]">Overdue</h3>
+            <span className="font-mono text-[11px] text-muted-foreground">({overdueTasks.length})</span>
+          </div>
+          <div className="divide-y divide-border border-t border-border">
+            {(overdueTasks ?? []).slice(0, 5).map((task) => (
+              <div key={task.id} className="py-2.5 text-sm">
+                {renderTaskLink(task, 'text-[#D71921]')}
+              </div>
+            ))}
+          </div>
         </section>
       )}
-      
+
       {(todayTasks ?? []).length > 0 && (
-        <section className="rounded-lg border border-l-4 border-l-yellow-500 border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-yellow-600">Today</h3>
-          <ul className="space-y-2">
-            {(todayTasks ?? []).slice(0, 5).map((task) => {
-              return (
-                <li key={task.id} className="text-sm">
-                  {renderTaskLink(task)}
-                </li>
-              )
-            })}
-          </ul>
+        <section style={{ opacity: 0 }}>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#D4A843]" />
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#D4A843]">Today</h3>
+            <span className="font-mono text-[11px] text-muted-foreground">({todayTasks.length})</span>
+          </div>
+          <div className="divide-y divide-border border-t border-border">
+            {(todayTasks ?? []).slice(0, 5).map((task) => (
+              <div key={task.id} className="py-2.5 text-sm">
+                {renderTaskLink(task)}
+              </div>
+            ))}
+          </div>
         </section>
       )}
-      
+
       {upcomingTasks && upcomingTasks.length > 0 && (
-        <section className="rounded-lg border border-l-4 border-l-gray-300 border-border p-4">
-          <h3 className="mb-2 text-sm font-semibold text-gray-600">Upcoming</h3>
-          <ul className="space-y-2">
-            {upcomingTasks.slice(0, 5).map((task) => {
-              return (
-                <li key={task.id} className="text-sm">
-                  {renderTaskLink(task)}
-                </li>
-              )
-            })}
-          </ul>
+        <section style={{ opacity: 0 }}>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#999999]" />
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Upcoming</h3>
+            <span className="font-mono text-[11px] text-muted-foreground">({upcomingTasks.length})</span>
+          </div>
+          <div className="divide-y divide-border border-t border-border">
+            {upcomingTasks.slice(0, 5).map((task) => (
+              <div key={task.id} className="py-2.5 text-sm">
+                {renderTaskLink(task)}
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>

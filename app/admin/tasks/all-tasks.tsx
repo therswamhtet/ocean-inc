@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { format, isBefore, startOfDay, isToday, isTomorrow, differenceInDays } from 'date-fns'
 import { ArrowRight, Calendar, Clock } from 'lucide-react'
+import { animate } from 'animejs'
 
 import { cn } from '@/lib/utils'
 import { QuickTaskDialog } from '@/components/admin/quick-task-dialog'
@@ -49,9 +50,9 @@ function daysUntil(dateStr: string | null) {
 }
 
 const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
-  todo: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-600', dot: 'bg-slate-400' },
-  in_progress: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-400' },
-  done: { bg: 'bg-green-50 border-green-200', text: 'text-green-700', dot: 'bg-green-500' },
+  todo: { bg: 'bg-[#999999]/10 border-[#999999]/20', text: 'text-[#666666]', dot: 'bg-[#999999]' },
+  in_progress: { bg: 'bg-[#D4A843]/10 border-[#D4A843]/20', text: 'text-[#D4A843]', dot: 'bg-[#D4A843]' },
+  done: { bg: 'bg-[#4A9E5C]/10 border-[#4A9E5C]/20', text: 'text-[#4A9E5C]', dot: 'bg-[#4A9E5C]' },
 }
 
 function TaskRow({ task }: { task: TaskRecord }) {
@@ -62,14 +63,14 @@ function TaskRow({ task }: { task: TaskRecord }) {
   )
   const taskHref = `/admin/clients/${task.client_id}/projects/${task.project_id}/tasks/${task.id}`
   const style = isOverdue
-    ? { bg: 'bg-red-50 border-red-200', text: 'text-red-700', dot: 'bg-red-500' }
+    ? { bg: 'bg-[#D71921]/10 border-[#D71921]/20', text: 'text-[#D71921]', dot: 'bg-[#D71921]' }
     : (statusStyles[task.status] ?? statusStyles.todo)
   const dateLabel = formatDateLabel(task.posting_date)
 
   return (
     <Link
       href={taskHref}
-      className="group flex items-center gap-4 rounded-lg px-4 py-3 transition hover:bg-muted/50"
+      className="group flex items-center gap-4 rounded-lg px-4 py-3 transition hover:bg-surface-raised"
     >
       <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', style.dot)} />
 
@@ -80,7 +81,7 @@ function TaskRow({ task }: { task: TaskRecord }) {
         <span className="block mt-0.5 text-xs text-muted-foreground truncate">
           <span
             className="inline-block h-1.5 w-1.5 rounded-full mr-1 align-middle"
-            style={{ backgroundColor: task.client_color ?? '#b45309' }}
+            style={{ backgroundColor: task.client_color ?? '#1A1A1A' }}
           />
           {task.client_name}
           <span className="mx-1.5 text-muted-foreground/40">·</span>
@@ -91,7 +92,7 @@ function TaskRow({ task }: { task: TaskRecord }) {
       {dateLabel && (
         <span className={cn(
           'hidden sm:inline-flex items-center gap-1 shrink-0 text-xs',
-          isOverdue ? 'text-red-600 font-medium' : 'text-muted-foreground'
+          isOverdue ? 'text-[#D71921] font-medium' : 'text-muted-foreground'
         )}>
           <Calendar className="h-3 w-3" />
           {dateLabel}
@@ -112,12 +113,28 @@ function TaskRow({ task }: { task: TaskRecord }) {
 
 export default function AllTasks({ today, upcoming, overdue, clients, projectsByClient }: AllTasksProps) {
   const sections = [
-    { key: 'overdue', data: overdue, accent: 'bg-red-500', empty: 'No overdue tasks' },
-    { key: 'today', data: today, accent: 'bg-amber-400', empty: 'No tasks scheduled for today' },
-    { key: 'upcoming', data: upcoming, accent: 'bg-blue-400', empty: 'No upcoming tasks' },
+    { key: 'overdue', data: overdue, accent: 'bg-[#D71921]', empty: 'No overdue tasks' },
+    { key: 'today', data: today, accent: 'bg-[#D4A843]', empty: 'No tasks scheduled for today' },
+    { key: 'upcoming', data: upcoming, accent: 'bg-[#999999]', empty: 'No upcoming tasks' },
   ] as const
 
   const totalTasks = today.tasks.length + upcoming.tasks.length + overdue.tasks.length
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const sections = containerRef.current.querySelectorAll('.task-section');
+      if (sections.length > 0) {
+        animate(sections, {
+          opacity: [0, 1],
+          translateY: [25, 0],
+          duration: 500,
+          delay: (_el: unknown, i: number) => i * 150,
+          ease: "out(3)",
+        });
+      }
+    }
+  }, [today.tasks.length, upcoming.tasks.length, overdue.tasks.length]);
 
   return (
     <div className="space-y-6">
@@ -133,11 +150,11 @@ export default function AllTasks({ today, upcoming, overdue, clients, projectsBy
         <QuickTaskDialog clients={clients} projectsByClient={projectsByClient} />
       </div>
 
-      <div className="space-y-3">
+      <div ref={containerRef} className="space-y-3">
         {sections.map((section) => {
           if (section.data.tasks.length === 0) return null
           return (
-            <div key={section.key}>
+            <div key={section.key} className="task-section" style={{ opacity: 0 }}>
               <div className="mb-2 flex items-center gap-2">
                 <span className={cn('h-2 w-2 rounded-full', section.accent)} />
                 <h3 className="text-sm font-semibold text-foreground">
@@ -147,7 +164,7 @@ export default function AllTasks({ today, upcoming, overdue, clients, projectsBy
                   {section.data.tasks.length}
                 </span>
               </div>
-              <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
+              <div className="rounded-xl border border-border bg-surface overflow-hidden divide-y divide-border">
                 {section.data.tasks.map((task) => (
                   <TaskRow key={task.id} task={task} />
                 ))}

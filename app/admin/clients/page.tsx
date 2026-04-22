@@ -80,12 +80,12 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       </div>
 
       {params.created && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="rounded-lg border border-[#4A9E5C]/20 bg-[#4A9E5C]/10 px-4 py-3 text-sm text-[#4A9E5C]">
           Client created successfully.
         </div>
       )}
       {params.deleted && (
-        <div className="rounded-lg border border-border bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-border bg-surface-raised px-4 py-3 text-sm text-muted-foreground">
           Client deleted successfully.
         </div>
       )}

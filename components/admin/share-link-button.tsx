@@ -42,7 +42,7 @@ export function ShareLinkButton({ slug }: { slug: string }) {
   return (
     <button
       type="button"
-      className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+      className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-medium text-muted-foreground transition hover:text-foreground"
       onClick={handleCopy}
       title={url}
     >

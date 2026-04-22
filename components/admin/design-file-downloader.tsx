@@ -36,7 +36,7 @@ export default function DesignFileDownloader({ filePath, fileName }: DesignFileD
         type="button"
         onClick={download}
         disabled={isPending}
-        className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground transition hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0"
+        className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition hover:bg-surface-raised disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0"
         title={fileName}
       >
         {isPending ? (
@@ -46,7 +46,7 @@ export default function DesignFileDownloader({ filePath, fileName }: DesignFileD
         )}
         <span className="truncate min-w-0 text-left leading-tight">{fileName}</span>
       </button>
-      {error && <p className="text-sm text-destructive mt-2">{error}</p>}
+      {error && <p className="text-sm text-[#D71921] mt-2">{error}</p>}
     </div>
   )
 }

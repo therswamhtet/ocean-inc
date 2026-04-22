@@ -1,19 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ExternalLink, Trash2, MoreHorizontal, FolderKanban, Share2 } from 'lucide-react'
+import { ExternalLink, FolderKanban, Link2, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { toggleClientStatusAction, deleteClientAction } from './actions'
+import { deleteClientAction } from './actions'
 
 type ClientCardProps = {
   id: string
@@ -35,114 +27,95 @@ export function ClientCard({
   is_active,
 }: ClientCardProps) {
   const [, startTransition] = useTransition()
-  const [isActive, setIsActive] = useState(is_active)
-
-  function handleToggle() {
-    setIsActive(!isActive)
-    startTransition(async () => {
-      await toggleClientStatusAction(id)
-    })
-  }
+  const [isActive] = useState(is_active)
 
   function handleDelete() {
     void deleteClientAction(id)
   }
 
-  const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}/portal/${slug}` : ''
-
   function handleCopyLink() {
+    const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}/portal/${slug}` : ''
     navigator.clipboard.writeText(portalUrl)
   }
 
   return (
-    <div className={cn(
-      'group relative rounded-xl border border-border bg-card overflow-hidden transition',
-      !isActive && 'opacity-60',
-      'hover:shadow-md hover:border-primary/20'
-    )}>
+    <div
+      className={cn(
+        'group relative rounded-lg border border-border bg-surface overflow-hidden transition-colors hover:border-border-visible',
+        !isActive && 'opacity-50'
+      )}
+    >
       <div className="h-1" style={{ backgroundColor: color }} />
 
       <div className="p-5">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <Link href={`/admin/clients/${id}`} className="group/name">
-              <h3 className="text-base font-semibold text-foreground group-hover/name:underline truncate">
-                {name}
-              </h3>
-            </Link>
-            <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-              <span className={cn(
-                'inline-flex items-center gap-1',
-                isActive ? 'text-green-600' : 'text-muted-foreground'
-              )}>
-                <span className={cn('h-1.5 w-1.5 rounded-full', isActive ? 'bg-green-500' : 'bg-gray-400')} />
-                {isActive ? 'Active' : 'Inactive'}
-              </span>
-              <span className="text-muted-foreground/30">·</span>
-              <FolderKanban className="h-3 w-3" />
-              <span>{activeProjectsCount} project{activeProjectsCount !== 1 ? 's' : ''}</span>
-            </div>
-            {description && (
-              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{description}</p>
-            )}
-          </div>
+        {/* Name + status */}
+        <Link href={`/admin/clients/${id}`} className="block">
+          <h3 className="text-base font-semibold text-foreground group-hover:underline truncate">
+            {name}
+          </h3>
+        </Link>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 shrink-0 text-muted-foreground"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link href={`/admin/clients/${id}`} className="cursor-pointer">
-                  <FolderKanban className="mr-2 h-4 w-4" />
-                  View projects
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/portal/${slug}`} target="_blank" rel="noopener noreferrer" className="cursor-pointer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open portal
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
-                <Share2 className="mr-2 h-4 w-4" />
-                Copy portal link
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleToggle} className="cursor-pointer">
-                {isActive ? 'Deactivate' : 'Activate'}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/5">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="mt-1.5 flex items-center gap-2 text-xs">
+          <span className={cn(
+            'inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.08em]',
+            isActive ? 'text-[#4A9E5C]' : 'text-muted-foreground'
+          )}>
+            <span className={cn('h-1.5 w-1.5 rounded-full', isActive ? 'bg-[#4A9E5C]' : 'bg-[#999999]')} />
+            {isActive ? 'Active' : 'Inactive'}
+          </span>
+          <span className="text-muted-foreground/30">·</span>
+          <span className="text-muted-foreground font-mono text-[10px] uppercase tracking-[0.06em]">
+            {activeProjectsCount} project{activeProjectsCount !== 1 ? 's' : ''}
+          </span>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        {description && (
+          <p className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {description}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="mt-4 flex items-center gap-2">
           <Link
             href={`/admin/clients/${id}`}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted/50"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-medium text-foreground transition hover:bg-surface-raised font-mono uppercase tracking-[0.06em]"
           >
-            <FolderKanban className="h-3.5 w-3.5" />
+            <FolderKanban className="h-3 w-3" />
             Open
           </Link>
           <Link
             href={`/portal/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/50 hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:bg-surface-raised hover:text-foreground font-mono uppercase tracking-[0.06em]"
           >
-            <ExternalLink className="h-3.5 w-3.5" />
+            <ExternalLink className="h-3 w-3" />
             Portal
           </Link>
+
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-surface-raised hover:text-foreground"
+              title="Copy portal link"
+            >
+              <Link2 className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Delete ${name}? This cannot be undone.`)) {
+                  startTransition(() => handleDelete())
+                }
+              }}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-[#D71921]/5 hover:text-[#D71921] hover:border-[#D71921]/20"
+              title="Delete client"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

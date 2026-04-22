@@ -54,7 +54,7 @@ describe('Phase 05: ContentCard Component Consistency', () => {
     })
 
     it('default variant uses p-4 padding with hover', () => {
-      expect(content).toMatch(/default:\s*'p-4 hover:bg-muted\/30'/)
+      expect(content).toMatch(/default:\s*'p-4 hover:bg-surface-raised'/)
     })
   })
 
@@ -66,8 +66,8 @@ describe('Phase 05: ContentCard Component Consistency', () => {
 
     it('dashboard-inner.tsx metric cards match ContentCard metric variant tokens', () => {
       const content = readFileSync(join(process.cwd(), 'components', 'admin', 'dashboard-inner.tsx'), 'utf-8')
-      // Dashboard uses 'rounded-lg border border-border p-5' which matches ContentCard metric variant
-      expect(content).toContain("'rounded-lg border border-border p-5'")
+      // Dashboard uses metric variant classes (may be combined with additional layout classes)
+      expect(content).toContain('rounded-lg border border-border p-5')
     })
   })
 })
@@ -102,8 +102,8 @@ describe('Phase 05: Terminology — No "admin console" text', () => {
     }
   })
 
-  it('admin layout uses LABELS.common.adminPanel for terminology', () => {
+  it('admin layout uses Orca Digital branding', () => {
     const content = readFileSync(join(process.cwd(), 'app', 'admin', 'layout.tsx'), 'utf-8')
-    expect(content).toContain('LABELS.common.adminPanel')
+    expect(content).toContain('Orca Digital')
   })
 })

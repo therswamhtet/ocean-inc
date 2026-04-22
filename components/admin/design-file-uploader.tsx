@@ -119,7 +119,7 @@ export function DesignFileUploader({ projectId, onUploadComplete, taskId }: Desi
         }}
         className={cn(
           'rounded-lg border border-dashed border-border px-4 py-8 text-center transition',
-          isDragging && 'border-foreground bg-muted/40',
+          isDragging && 'border-foreground bg-surface-raised',
           uploading && 'pointer-events-none opacity-80'
         )}
       >
@@ -148,7 +148,7 @@ export function DesignFileUploader({ projectId, onUploadComplete, taskId }: Desi
             <span>{fileName || 'Uploading image'}</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
+          <div className="h-2 overflow-hidden rounded-full bg-surface-raised">
             <div className="h-full bg-foreground transition-all" style={{ width: `${progress}%` }} />
           </div>
         </div>
@@ -162,7 +162,7 @@ export function DesignFileUploader({ projectId, onUploadComplete, taskId }: Desi
         </div>
       ) : null}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-sm text-[#D71921]">{error}</p> : null}
     </div>
   )
 }

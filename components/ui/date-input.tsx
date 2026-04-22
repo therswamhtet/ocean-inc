@@ -48,6 +48,12 @@ const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
       }
     }
 
+    const openPicker = () => {
+      if (datePickerRef.current) {
+        datePickerRef.current.showPicker()
+      }
+    }
+
     return (
       <div className="relative">
         <input
@@ -91,17 +97,23 @@ const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
             }
           }}
         />
-        {/* Hidden date input positioned near the icon */}
+        <button
+          type="button"
+          onClick={openPicker}
+          className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center cursor-pointer z-10"
+          aria-label="Open date picker"
+        >
+          <Calendar
+            className="h-4 w-4 text-muted-foreground pointer-events-none"
+            strokeWidth={1.5}
+          />
+        </button>
         <input
           type="date"
           ref={datePickerRef}
-          className="absolute right-0 top-0 h-10 w-10 opacity-0 cursor-pointer"
+          className="sr-only"
           value={String(value ?? "")}
           onChange={handleDatePickerChange}
-        />
-        <Calendar
-          className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 hover:text-foreground transition-colors"
-          strokeWidth={1.5}
         />
       </div>
     )
@@ -160,6 +172,12 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
       }
     }
 
+    const openPicker = () => {
+      if (timePickerRef.current) {
+        timePickerRef.current.showPicker()
+      }
+    }
+
     return (
       <div className="relative">
         <input
@@ -192,17 +210,23 @@ const TimeInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input
             }
           }}
         />
-        {/* Hidden time input positioned near the icon */}
+        <button
+          type="button"
+          onClick={openPicker}
+          className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center cursor-pointer z-10"
+          aria-label="Open time picker"
+        >
+          <Clock
+            className="h-4 w-4 text-muted-foreground pointer-events-none"
+            strokeWidth={1.5}
+          />
+        </button>
         <input
           type="time"
           ref={timePickerRef}
-          className="absolute right-0 top-0 h-10 w-10 opacity-0 cursor-pointer"
+          className="sr-only"
           value={String(value ?? "")}
           onChange={handleTimePickerChange}
-        />
-        <Clock
-          className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10 hover:text-foreground transition-colors"
-          strokeWidth={1.5}
         />
       </div>
     )

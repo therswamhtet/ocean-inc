@@ -18,8 +18,8 @@ export default async function ClientPortalPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 bg-background">
-      <header className="flex items-center gap-3 space-y-2 rounded-lg border border-border p-5 bg-white">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8 bg-surface">
+      <header className="flex items-center gap-3 space-y-2 rounded-lg border border-border p-5 bg-surface">
         <div className="h-5 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: portalData.client.color }} />
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{portalData.client.name}</h1>
@@ -36,7 +36,7 @@ export default async function ClientPortalPage({
           )
           return (
             <div key={project.id} className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">{project.name}</h2>
+              <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{project.name}</h2>
               <PortalShell key={project.id} tasks={projectTasks} />
             </div>
           )
@@ -48,6 +48,23 @@ export default async function ClientPortalPage({
           </p>
         </section>
       )}
+
+      {/* Orca Digital Info Footer */}
+      <footer className="rounded-lg border border-border bg-surface-raised p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Orca Digital</p>
+            <p className="text-sm text-foreground leading-relaxed">
+              We are happy to help with your social media content. Reach out anytime for updates or questions.
+            </p>
+          </div>
+          <div className="shrink-0 sm:text-right">
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Office Hours</p>
+            <p className="mt-1 text-sm text-foreground">Tuesday — Saturday</p>
+            <p className="text-sm text-muted-foreground">Off days: Sunday &amp; Monday</p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

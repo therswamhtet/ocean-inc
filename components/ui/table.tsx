@@ -19,11 +19,11 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
 }
 
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
-  return <tfoot className={cn("border-t border-border bg-muted/30 font-medium", className)} {...props} />
+  return <tfoot className={cn("border-t border-border bg-surface-raised font-medium", className)} {...props} />
 }
 
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
-  return <tr className={cn("border-b border-border transition-colors hover:bg-muted/30", className)} {...props} />
+  return <tr className={cn("border-b border-border transition-colors hover:bg-surface-raised", className)} {...props} />
 }
 
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {

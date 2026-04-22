@@ -24,9 +24,9 @@ type TaskListProps = {
 }
 
 const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+  todo: { label: 'To Do', dot: 'bg-[#999999]', bg: 'bg-[#999999]/10', text: 'text-[#666666]' },
+  in_progress: { label: 'In Progress', dot: 'bg-[#D4A843]', bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]' },
+  done: { label: 'Done', dot: 'bg-[#4A9E5C]', bg: 'bg-[#4A9E5C]/10', text: 'text-[#4A9E5C]' },
 }
 
 export function TaskList({ tasks, projectId }: TaskListProps) {
@@ -44,7 +44,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="rounded-xl border border-border bg-surface overflow-hidden">
       <div className="divide-y divide-border">
         {tasks.map((task) => {
           const isOverdue = Boolean(
@@ -53,19 +53,19 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
             task.status !== 'done'
           )
           const s = isOverdue
-            ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+            ? { label: 'Overdue', dot: 'bg-[#D71921]', bg: 'bg-[#D71921]/10', text: 'text-[#D71921]' }
             : (statusPill[task.status] ?? statusPill.todo)
           const taskHref = `/admin/clients/${clientId}/projects/${projectId}/tasks/${task.id}`
           const date = task.due_date || task.posting_date
 
           return (
-            <div key={task.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-muted/40">
+            <div key={task.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-surface-raised">
               <Link href={taskHref} className="min-w-0 flex-1 group/link">
                 <p className="text-sm font-medium text-foreground truncate group-hover/link:underline">{task.title}</p>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                   {date && <span>{format(new Date(date), 'MMM d, yyyy')}</span>}
-                  {task.caption && <span className="rounded bg-blue-50 text-blue-600 px-1 py-0.5 text-[10px] font-medium">Caption</span>}
-                  {task.design_file_path && <span className="rounded bg-purple-50 text-purple-600 px-1 py-0.5 text-[10px] font-medium">Design</span>}
+                  {task.caption && <span className="rounded bg-[#D4A843]/10 text-[#D4A843] px-1 py-0.5 text-[10px] font-medium">Caption</span>}
+                  {task.design_file_path && <span className="rounded bg-surface-raised text-foreground px-1 py-0.5 text-[10px] font-medium">Design</span>}
                 </div>
               </Link>
 
@@ -86,7 +86,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={isPending}
-                    className="text-destructive focus:text-destructive"
+                    className="text-[#D71921] focus:text-[#D71921]"
                     onClick={(e) => {
                       e.preventDefault()
                       if (!window.confirm(`Delete "${task.title}"?`)) return

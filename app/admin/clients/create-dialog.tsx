@@ -116,7 +116,7 @@ export function CreateClientDialog({ errorMessage, open: controlledOpen, onOpenC
           </div>
 
           {errorMessage && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-lg border border-[#D71921]/20 bg-[#D71921]/5 px-4 py-3 text-sm text-[#D71921]">
               {errorMessage}
             </div>
           )}

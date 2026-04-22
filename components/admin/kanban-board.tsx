@@ -44,11 +44,11 @@ function KanbanColumn({
   const { setNodeRef, isOver } = useDroppable({ id: `column:${column.status}` })
 
   return (
-    <section className="flex flex-col rounded-lg border border-border bg-muted/20">
+    <section className="flex flex-col rounded-lg border border-border bg-surface-raised">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <span className={`h-2 w-2 rounded-full ${column.dotColor}`} />
-        <h3 className="text-sm font-semibold text-foreground">{column.label}</h3>
-        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{column.label}</h3>
+        <span className="ml-auto rounded-full bg-surface border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {tasks.length}
         </span>
       </div>
@@ -58,7 +58,7 @@ function KanbanColumn({
           ref={setNodeRef}
           className={cn(
             'flex min-h-40 flex-col gap-3 p-3 transition',
-            isOver && 'bg-accent'
+            isOver && 'bg-surface-raised'
           )}
         >
           {tasks.map((task) => (

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CreateClientDialog } from './create-dialog'
 import { ClientCard } from './client-card'
 import { Plus, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { animate } from 'animejs'
 
 export type ClientData = {
   id: string
@@ -23,9 +24,43 @@ export function ClientPageContent({
   clients: ClientData[]
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const activeRef = useRef<HTMLDivElement>(null)
+  const inactiveRef = useRef<HTMLDivElement>(null)
 
   const activeClients = clients.filter((c) => c.is_active)
   const inactiveClients = clients.filter((c) => !c.is_active)
+
+  useEffect(() => {
+    // Animate active client cards
+    if (activeRef.current) {
+      const cards = activeRef.current.children;
+      if (cards.length > 0) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 500,
+          delay: (_el: unknown, i: number) => i * 80,
+          ease: "out(3)",
+        });
+      }
+    }
+  }, [activeClients.length]);
+
+  useEffect(() => {
+    // Animate inactive client cards
+    if (inactiveRef.current) {
+      const cards = inactiveRef.current.children;
+      if (cards.length > 0) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [30, 0],
+          duration: 500,
+          delay: (_el: unknown, i: number) => 200 + i * 80,
+          ease: "out(3)",
+        });
+      }
+    }
+  }, [inactiveClients.length]);
 
   return (
     <>
@@ -54,18 +89,19 @@ export function ClientPageContent({
                   Active · {activeClients.length}
                 </h3>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div ref={activeRef} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {activeClients.map((client) => (
-                  <ClientCard
-                    key={client.id}
-                    id={client.id}
-                    name={client.name}
-                    slug={client.slug}
-                    activeProjectsCount={client.activeProjectsCount}
-                    color={client.color}
-                    description={client.description}
-                    is_active={client.is_active}
-                  />
+                  <div key={client.id} style={{ opacity: 0 }}>
+                    <ClientCard
+                      id={client.id}
+                      name={client.name}
+                      slug={client.slug}
+                      activeProjectsCount={client.activeProjectsCount}
+                      color={client.color}
+                      description={client.description}
+                      is_active={client.is_active}
+                    />
+                  </div>
                 ))}
               </div>
             </section>
@@ -76,18 +112,19 @@ export function ClientPageContent({
               <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                 Inactive · {inactiveClients.length}
               </h3>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div ref={inactiveRef} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {inactiveClients.map((client) => (
-                  <ClientCard
-                    key={client.id}
-                    id={client.id}
-                    name={client.name}
-                    slug={client.slug}
-                    activeProjectsCount={client.activeProjectsCount}
-                    color={client.color}
-                    description={client.description}
-                    is_active={client.is_active}
-                  />
+                  <div key={client.id} style={{ opacity: 0 }}>
+                    <ClientCard
+                      id={client.id}
+                      name={client.name}
+                      slug={client.slug}
+                      activeProjectsCount={client.activeProjectsCount}
+                      color={client.color}
+                      description={client.description}
+                      is_active={client.is_active}
+                    />
+                  </div>
                 ))}
               </div>
             </section>

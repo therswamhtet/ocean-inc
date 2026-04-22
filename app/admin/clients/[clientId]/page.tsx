@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { createProjectAction, deleteProjectAction, updateClientDescriptionAction } from './actions'
+import { createProjectAction, deleteProjectAction } from './actions'
 import { toggleClientStatusActionWrapper } from '../actions'
+import { EditClientDialog } from './edit-client-dialog'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { ArrowLeft, Briefcase, ExternalLink, Plus, Share2, Trash2 } from 'lucide-react'
+import { ArrowLeft, Briefcase, ExternalLink, Plus, Trash2 } from 'lucide-react'
 
 type ClientRecord = {
   id: string
@@ -54,54 +54,54 @@ function monthShort(month: number) {
 }
 
 const statusConfig: Record<string, { label: string; dot: string; bg: string }> = {
-  active: { label: 'Active', dot: 'bg-green-500', bg: 'bg-green-50 text-green-700 border-green-200' },
-  paused: { label: 'Paused', dot: 'bg-yellow-500', bg: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  done: { label: 'Done', dot: 'bg-gray-400', bg: 'bg-gray-50 text-gray-600 border-gray-200' },
+  active: { label: 'Active', dot: 'bg-[#4A9E5C]', bg: 'bg-[#4A9E5C]/10 text-[#4A9E5C] border-[#4A9E5C]/20' },
+  paused: { label: 'Paused', dot: 'bg-[#D4A843]', bg: 'bg-[#D4A843]/10 text-[#D4A843] border-[#D4A843]/20' },
+  done: { label: 'Done', dot: 'bg-[#999999]', bg: 'bg-[#999999]/10 text-[#666666] border-[#999999]/20' },
 }
 
 function ProjectFormDialog({ clientId, clientName }: { clientId: string; clientName: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="font-mono text-[11px] uppercase tracking-[0.06em]">
           <Plus className="h-3.5 w-3.5" />
           New Project
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create project</DialogTitle>
-          <DialogDescription>Add a new monthly project for {clientName}.</DialogDescription>
+          <DialogTitle className="text-lg font-bold tracking-tight">Create project</DialogTitle>
+          <DialogDescription className="sr-only">Add a new monthly project for {clientName}.</DialogDescription>
         </DialogHeader>
         <form action={createProjectAction.bind(null, clientId)} className="space-y-5 pt-2">
           <div className="space-y-2">
-            <label htmlFor="proj-name" className="text-sm font-medium text-foreground">{LABELS.common.name}</label>
+            <label htmlFor="proj-name" className="block font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{LABELS.common.name}</label>
             <Input id="proj-name" minLength={2} name="name" placeholder={LABELS.common.monthPlaceholder} required className="h-10" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="proj-month" className="text-sm font-medium text-foreground">{LABELS.common.month}</label>
-              <select className="w-full rounded-lg border border-input px-3 py-2 text-sm h-10" defaultValue={String(new Date().getMonth() + 1)} id="proj-month" name="month">
+              <label htmlFor="proj-month" className="block font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{LABELS.common.month}</label>
+              <select className="w-full rounded-lg border border-input px-3 py-2 text-sm h-10 bg-surface" defaultValue={String(new Date().getMonth() + 1)} id="proj-month" name="month">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>{monthName(m)}</option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
-              <label htmlFor="proj-year" className="text-sm font-medium text-foreground">{LABELS.common.year}</label>
+              <label htmlFor="proj-year" className="block font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{LABELS.common.year}</label>
               <Input defaultValue={new Date().getFullYear()} id="proj-year" name="year" required type="number" className="h-10" />
             </div>
           </div>
           <div className="space-y-2">
-            <label htmlFor="proj-status" className="text-sm font-medium text-foreground">Status</label>
-            <select className="w-full rounded-lg border border-input px-3 py-2 text-sm h-10" defaultValue="active" id="proj-status" name="status">
+            <label htmlFor="proj-status" className="block font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Status</label>
+            <select className="w-full rounded-lg border border-input px-3 py-2 text-sm h-10 bg-surface" defaultValue="active" id="proj-status" name="status">
               <option value="active">Active</option>
               <option value="paused">Paused</option>
               <option value="done">Done</option>
             </select>
           </div>
           <div className="flex justify-end pt-1">
-            <Button type="submit">Create Project</Button>
+            <Button type="submit" className="font-mono text-[11px] uppercase tracking-[0.06em]">Create Project</Button>
           </div>
         </form>
       </DialogContent>
@@ -166,8 +166,9 @@ export default async function ClientProjectsPage({
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm">
-        <Link href="/admin/clients" className="inline-flex items-center gap-1.5 text-muted-foreground transition hover:text-foreground">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-xs">
+        <Link href="/admin/clients" className="inline-flex items-center gap-1.5 text-muted-foreground transition hover:text-foreground font-mono uppercase tracking-[0.06em]">
           <ArrowLeft className="h-3.5 w-3.5" />
           Clients
         </Link>
@@ -175,15 +176,16 @@ export default async function ClientProjectsPage({
         <span className="font-medium text-foreground">{client.name}</span>
       </nav>
 
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="h-1.5" style={{ backgroundColor: displayColor }} />
-        <div className="p-6">
+      {/* Client Header Card */}
+      <div className="rounded-lg border border-border bg-surface overflow-hidden">
+        <div className="h-1" style={{ backgroundColor: displayColor }} />
+        <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{client.name}</h1>
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${client.is_active ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${client.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{client.name}</h1>
+                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${client.is_active ? 'border-[#4A9E5C]/20 bg-[#4A9E5C]/10 text-[#4A9E5C]' : 'border-[#999999]/20 bg-[#999999]/10 text-[#666666]'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${client.is_active ? 'bg-[#4A9E5C]' : 'bg-[#999999]'}`} />
                   {client.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
@@ -209,38 +211,23 @@ export default async function ClientProjectsPage({
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <EditClientDialog client={client} />
               <ProjectFormDialog clientId={clientId} clientName={client.name} />
             </div>
           </div>
-
-          <form action={updateClientDescriptionAction.bind(null, clientId)} className="mt-5 pt-5 border-t border-border">
-            <label className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">Description</label>
-            <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-start">
-              <Textarea
-                name="description"
-                defaultValue={client.description ?? ''}
-                placeholder="Add a client description..."
-                maxLength={200}
-                className="min-h-[40px] flex-1 resize-none text-sm"
-                rows={2}
-              />
-              <Button type="submit" variant="outline" size="sm" className="shrink-0">
-                Save
-              </Button>
-            </div>
-          </form>
         </div>
       </div>
 
       {pageError && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-lg border border-[#D71921]/20 bg-[#D71921]/5 px-4 py-3 text-sm text-[#D71921]">
           {pageError}
         </div>
       )}
 
+      {/* Active Projects */}
       {activeProjects.length > 0 && (
         <section>
-          <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+          <h3 className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
             Active Projects · {activeProjects.length}
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -253,12 +240,12 @@ export default async function ClientProjectsPage({
                 <Link
                   key={project.id}
                   href={`/admin/clients/${clientId}/projects/${project.id}`}
-                  className="group rounded-xl border border-border bg-card p-5 transition hover:border-primary/20 hover:shadow-sm"
+                  className="group rounded-lg border border-border bg-surface p-5 transition hover:border-border-visible"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-foreground truncate group-hover:underline">{project.name}</h4>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{monthShort(project.month)} {project.year}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground font-mono">{monthShort(project.month)} {project.year}</p>
                     </div>
                     <span className={`inline-flex items-center gap-1 shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium ${config.bg}`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
@@ -268,13 +255,13 @@ export default async function ClientProjectsPage({
 
                   {counts && (
                     <div className="mt-4">
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5 font-mono uppercase tracking-[0.06em]">
                         <span>{counts.done} of {counts.total} tasks done</span>
-                        <span className="font-medium">{Math.round(progress)}%</span>
+                        <span className="font-medium tabular-nums">{Math.round(progress)}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-border overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-green-500 transition-all"
+                          className="h-full rounded-full bg-foreground transition-all"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -287,19 +274,20 @@ export default async function ClientProjectsPage({
         </section>
       )}
 
+      {/* Other Projects */}
       {otherProjects.length > 0 && (
         <section>
-          <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+          <h3 className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
             Other · {otherProjects.length}
           </h3>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-lg border border-border bg-surface overflow-hidden">
             <div className="divide-y divide-border">
               {otherProjects.map((project) => {
                 const config = statusConfig[project.status] ?? statusConfig.active
                 const counts = taskCountMap[project.id]
 
                 return (
-                  <div key={project.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-muted/30">
+                  <div key={project.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-surface-raised">
                     <Link
                       href={`/admin/clients/${clientId}/projects/${project.id}`}
                       className="flex-1 min-w-0"
@@ -311,7 +299,7 @@ export default async function ClientProjectsPage({
                           {config.label}
                         </span>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
+                      <p className="mt-0.5 text-xs text-muted-foreground font-mono">
                         {monthShort(project.month)} {project.year}
                         {counts && ` · ${counts.done}/${counts.total} tasks`}
                       </p>
@@ -319,7 +307,7 @@ export default async function ClientProjectsPage({
                     <form action={deleteProjectAction.bind(null, project.id, clientId)}>
                       <button
                         type="submit"
-                        className="rounded-md p-1.5 text-muted-foreground/50 transition hover:text-destructive hover:bg-destructive/5"
+                        className="rounded-md p-1.5 text-muted-foreground/50 transition hover:text-[#D71921] hover:bg-[#D71921]/5"
                         aria-label={`Delete ${project.name}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -334,7 +322,7 @@ export default async function ClientProjectsPage({
       )}
 
       {projects && projects.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="rounded-lg border border-dashed border-border py-16 text-center">
           <Briefcase className="mx-auto h-8 w-8 text-muted-foreground/40" />
           <p className="mt-3 text-lg font-medium text-foreground">No projects yet</p>
           <p className="mt-1 text-sm text-muted-foreground">Create your first project for {client.name}.</p>

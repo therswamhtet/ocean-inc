@@ -15,9 +15,9 @@ type KanbanColumn = {
 }
 
 const columns: KanbanColumn[] = [
-  { status: 'todo', label: 'To Do', dotColor: 'bg-slate-400' },
-  { status: 'in_progress', label: 'In Progress', dotColor: 'bg-blue-400' },
-  { status: 'done', label: 'Done', dotColor: 'bg-green-500' },
+  { status: 'todo', label: 'To Do', dotColor: 'bg-[#999999]' },
+  { status: 'in_progress', label: 'In Progress', dotColor: 'bg-[#D4A843]' },
+  { status: 'done', label: 'Done', dotColor: 'bg-[#4A9E5C]' },
 ]
 
 function isTaskOverdue(task: PortalTask) {
@@ -37,12 +37,12 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
           <section
             key={column.status}
             aria-label={column.label}
-            className="flex flex-col rounded-lg border border-border bg-muted/20"
+            className="flex flex-col rounded-lg border border-border bg-surface-raised"
           >
             <div className="flex items-center gap-2 border-b border-border px-4 py-3">
               <span className={`h-2 w-2 rounded-full ${column.dotColor}`} />
-              <h3 className="text-sm font-semibold text-foreground">{column.label}</h3>
-              <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{column.label}</h3>
+              <span className="ml-auto rounded-full bg-surface border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground font-mono">
                 {tasksInColumn.length}
               </span>
             </div>
@@ -59,7 +59,7 @@ export function PortalKanbanView({ tasks, onTaskSelect }: PortalKanbanViewProps)
 
               {tasksInColumn.length === 0 && (
                 <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-border">
-                  <p className="text-sm text-muted-foreground">No tasks</p>
+                  <p className="text-sm text-muted-foreground font-mono uppercase tracking-[0.06em]">No tasks</p>
                 </div>
               )}
             </div>

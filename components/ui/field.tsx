@@ -15,7 +15,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
 }
 
 function FieldError({ className, ...props }: React.ComponentProps<"p">) {
-  return <p className={cn("text-sm text-destructive", className)} {...props} />
+  return <p className={cn("text-sm text-[#D71921]", className)} {...props} />
 }
 
 export { Field, FieldDescription, FieldError, FieldLabel }

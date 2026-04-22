@@ -26,7 +26,7 @@ const Toast = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Root
     ref={ref}
-    className={cn("relative rounded-lg border border-border bg-background p-4 text-sm", className)}
+    className={cn("relative rounded-lg border border-border bg-surface p-4 text-sm", className)}
     {...props}
   />
 ))

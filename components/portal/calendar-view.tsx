@@ -35,16 +35,16 @@ function categoriseTask(task: PortalTask): number {
 
 function getCategoryColour(category: number) {
   const colours = [
-    { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200/80' },
-    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80' },
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/80' },
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200/80' },
-    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200/80' },
-    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80' },
-    { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200/80' },
-    { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80' },
-    { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200/80' },
+    { bg: 'bg-[#999999]/10', text: 'text-[#666666]', border: 'border-[#999999]/20/80' },
+    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
+    { bg: 'bg-surface-raised', text: 'text-purple-700', border: 'border-border/80' },
+    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
+    { bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]', border: 'border-[#D4A843]/20/80' },
+    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
+    { bg: 'bg-[#4A9E5C]/10', text: 'text-emerald-700', border: 'border-[#4A9E5C]/20/80' },
+    { bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]', border: 'border-[#D4A843]/20/80' },
+    { bg: 'bg-[#D71921]/10', text: 'text-[#D71921]', border: 'border-[#D71921]/20/80' },
+    { bg: 'bg-surface-raised', text: 'text-[#666666]', border: 'border-border/80' },
   ]
   return colours[category % colours.length]
 }
@@ -113,9 +113,9 @@ function MobileDayCard({
       className={cn(
         'rounded-xl border p-4 transition-colors',
         isToday
-          ? 'border-primary/25 bg-primary/[0.03] ring-1 ring-primary/10'
+          ? 'border-foreground/25 bg-foreground/[0.03]'
           : isCurrentMonth
-            ? 'border-border bg-white'
+            ? 'border-border bg-surface'
             : 'border-border/40 bg-muted/[0.06]'
       )}
     >
@@ -123,7 +123,7 @@ function MobileDayCard({
         <span className={cn(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold',
           isToday
-            ? 'bg-primary text-primary-foreground'
+            ? 'bg-foreground text-background'
             : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
         )}>
           {format(day, 'd')}
@@ -131,7 +131,7 @@ function MobileDayCard({
         <div className="min-w-0">
           <p className={cn(
             'text-sm font-semibold',
-            isToday ? 'text-primary' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
+            isToday ? 'text-foreground' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
           )}>
             {DAY_SHORT[day.getDay()]}
           </p>
@@ -154,7 +154,7 @@ function MobileDayCard({
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onTaskSelect(task) }}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-lg border bg-white px-3 py-2.5 text-left transition active:scale-[0.99]',
+                  'flex w-full items-center gap-2 rounded-lg border bg-surface px-3 py-2.5 text-left transition active:scale-[0.99]',
                   style.bg, style.border, style.text
                 )}
               >
@@ -219,10 +219,10 @@ function MonthDayCell({
       className={cn(
         'relative cursor-pointer border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         isToday
-          ? 'border-primary/30 bg-primary/[0.04]'
+          ? 'border-foreground/20 bg-foreground/[0.04]'
           : isCurrentMonth
-            ? 'border-border bg-white hover:bg-muted/40'
-            : 'border-border/50 bg-muted/20 hover:bg-muted/30'
+            ? 'border-border bg-surface hover:bg-surface-raised'
+            : 'border-border/50 bg-surface-raised hover:bg-surface-raised'
       )}
     >
       {/* Day number */}
@@ -230,7 +230,7 @@ function MonthDayCell({
         className={cn(
           'mb-1.5 text-xs font-semibold',
           isToday
-            ? 'flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground'
+            ? 'flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background'
             : isCurrentMonth
               ? 'text-foreground'
               : 'text-muted-foreground'
@@ -293,7 +293,7 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
   }
 
   return (
-    <section className="space-y-4 bg-background p-4 rounded-lg">
+    <section className="space-y-4 bg-surface p-4 rounded-lg">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-foreground">{format(anchorDate, 'MMMM yyyy')}</p>
@@ -310,8 +310,8 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
               className={cn(
                 'flex-1 min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition sm:flex-none',
                 mode === nextMode
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
               )}
             >
               {nextMode === 'month' ? 'Month' : 'Week'}
@@ -455,14 +455,14 @@ export function PortalCalendarView({ tasks, onTaskSelect }: PortalCalendarViewPr
         <button
           type="button"
           onClick={goToPrevious}
-          className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted/30"
+          className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-raised"
         >
           Previous
         </button>
         <button
           type="button"
           onClick={goToNext}
-          className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted/30"
+          className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-raised"
         >
           Next
         </button>

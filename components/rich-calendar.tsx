@@ -50,18 +50,18 @@ export type RichCalendarProps = {
   expandedDays?: Set<string>
 }
 
-// ── Colours (amber-brand palette) ──────────────────────────────
+// ── Nothing-style monochrome event colours ─────────────────────
 const EVENT_COLOURS = [
-  { bar: 'bg-primary',           pill: 'bg-primary/[0.08] border-primary/20',    text: 'text-primary' },
-  { bar: 'bg-rose-500',          pill: 'bg-rose-50 border-rose-200/80',          text: 'text-rose-700' },
-  { bar: 'bg-violet-500',        pill: 'bg-violet-50 border-violet-200/80',      text: 'text-violet-700' },
-  { bar: 'bg-indigo-500',        pill: 'bg-indigo-50 border-indigo-200/80',      text: 'text-indigo-700' },
-  { bar: 'bg-sky-500',           pill: 'bg-sky-50 border-sky-200/80',            text: 'text-sky-700' },
-  { bar: 'bg-emerald-500',       pill: 'bg-emerald-50 border-emerald-200/80',    text: 'text-emerald-700' },
-  { bar: 'bg-amber-500',         pill: 'bg-amber-50 border-amber-200/80',        text: 'text-amber-700' },
-  { bar: 'bg-gray-500',          pill: 'bg-gray-50 border-gray-200/80',          text: 'text-gray-700' },
-  { bar: 'bg-pink-500',          pill: 'bg-pink-50 border-pink-200/80',          text: 'text-pink-700' },
-  { bar: 'bg-orange-500',        pill: 'bg-orange-50 border-orange-200/80',      text: 'text-orange-700' },
+  { bar: 'bg-[#1A1A1A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#4A4A4A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#6B6B6B]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#8C8C8C]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#3D3D3D]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#525252]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#757575]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#999999]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#2A2A2A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
+  { bar: 'bg-[#5A5A5A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
 ]
 
 // ── Desktop grid cell ──────────────────────────────────────────
@@ -80,10 +80,10 @@ function DeskCell({
   return (
     <div
       className={cn(
-        'group relative flex min-h-[140px] flex-col rounded-lg border border-border/60 bg-white p-3 transition-colors',
-        day.isToday && 'border-primary/30 bg-primary/[0.03]',
-        day.isToday && !day.isCurrentMonth && 'bg-primary/[0.02]',
-        day.isCurrentMonth === false && 'bg-muted/[0.04]',
+        'group relative flex min-h-[140px] flex-col rounded-lg border border-border/60 bg-surface p-3 transition-colors',
+        day.isToday && 'border-foreground/20 bg-surface-raised',
+        day.isToday && !day.isCurrentMonth && 'bg-surface-raised/50',
+        day.isCurrentMonth === false && 'bg-surface',
         expandable && events.length > 0 && 'cursor-pointer'
       )}
       onClick={() => { if (expandable && events.length > 0) onExpand?.(key, !expanded) }}
@@ -101,7 +101,7 @@ function DeskCell({
         <span className={cn(
           'text-sm font-semibold',
           day.isToday
-            ? 'flex h-7 w-7 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground'
+            ? 'flex h-7 w-7 items-center justify-center rounded-full bg-foreground font-bold text-background'
             : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/35'
         )}>
           {format(day.date, 'd')}
@@ -120,7 +120,7 @@ function DeskCell({
               key={ev.id}
               onClick={(e) => { e.stopPropagation(); onClickEvent?.(ev) }}
               className={cn(
-                'relative overflow-hidden rounded-md border bg-white transition cursor-pointer',
+                'relative overflow-hidden rounded-md border bg-surface transition cursor-pointer hover:bg-surface-raised',
                 c.pill
               )}
             >
@@ -139,7 +139,7 @@ function DeskCell({
               e.stopPropagation()
               if (expandable) onExpand?.(key, !expanded)
             }}
-            className="mt-0.5 w-full text-left text-[10px] font-medium text-muted-foreground px-2.5 py-1.5 rounded-md hover:bg-muted/40 transition"
+            className="mt-0.5 w-full text-left text-[10px] font-medium text-muted-foreground px-2.5 py-1.5 rounded-md hover:bg-surface-raised transition"
           >
             +{overflow} more…
           </button>
@@ -169,11 +169,11 @@ function MobileDayCard({
       className={cn(
         'rounded-xl border p-4 transition-colors',
         day.isToday
-          ? 'border-primary/25 bg-primary/[0.03] ring-1 ring-primary/10'
+          ? 'border-foreground/20 bg-surface-raised'
           : day.isCurrentMonth
-            ? 'border-border bg-white'
-            : 'border-border/40 bg-muted/[0.06]',
-        expandable && events.length > 0 && 'cursor-pointer active:bg-muted/[0.08]'
+            ? 'border-border bg-surface'
+            : 'border-border/40 bg-surface',
+        expandable && events.length > 0 && 'cursor-pointer active:bg-surface-raised/50'
       )}
       onClick={() => { if (expandable && events.length > 0) onExpand?.(key, !expanded) }}
       onKeyDown={(e) => {
@@ -188,9 +188,9 @@ function MobileDayCard({
       {/* Day header */}
       <div className="flex items-center gap-3 mb-2">
         <span className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base font-bold',
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold',
           day.isToday
-            ? 'bg-primary text-primary-foreground rounded-full'
+            ? 'bg-foreground text-background'
             : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
         )}>
           {format(day.date, 'd')}
@@ -198,7 +198,7 @@ function MobileDayCard({
         <div className="min-w-0">
           <p className={cn(
             'text-sm font-semibold',
-            day.isToday ? 'text-primary' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
+            day.isToday ? 'text-foreground' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/40'
           )}>
             {DAY_SHORT[day.date.getDay()]}
           </p>
@@ -221,7 +221,7 @@ function MobileDayCard({
                 key={ev.id}
                 onClick={(e) => { e.stopPropagation(); onClickEvent?.(ev) }}
                 className={cn(
-                  'relative overflow-hidden rounded-lg border bg-white cursor-pointer transition active:scale-[0.99]',
+                  'relative overflow-hidden rounded-lg border bg-surface cursor-pointer transition hover:bg-surface-raised active:scale-[0.99]',
                   c.pill
                 )}
               >
@@ -241,7 +241,7 @@ function MobileDayCard({
                 e.stopPropagation()
                 if (expandable) onExpand?.(key, !expanded)
               }}
-              className="w-full text-center text-sm font-medium text-muted-foreground py-2 rounded-lg border border-dashed border-border hover:bg-muted/[0.08] transition"
+              className="w-full text-center font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground py-2 rounded-lg border border-border hover:bg-surface-raised transition"
             >
               Show {overflow} more task{overflow > 1 ? 's' : ''}
             </button>
@@ -264,13 +264,14 @@ export function RichCalendar({
   onExpandDay, expandedDays = new Set(),
 }: RichCalendarProps) {
   return (
-    <section className={cn('flex flex-col rounded-xl border border-border bg-background', className)}>
+    <section className={cn('flex flex-col rounded-xl border border-border bg-surface', className)}>
       {/* ── Header  */}
       {showHeader && (
         <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
           <div className="flex items-center gap-3">
-            <CalendarIcon className="h-5 w-5 shrink-0 text-primary" />
-            <h3 className="text-lg font-semibold">{heading}</h3>
+            <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+            <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Calendar</h3>
+            <span className="text-lg font-semibold tracking-tight text-foreground">{heading}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -284,7 +285,7 @@ export function RichCalendar({
                     className={cn(
                       'rounded-md px-3 py-1.5 text-sm font-medium transition',
                       viewMode === m
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-foreground text-background'
                         : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
@@ -298,18 +299,18 @@ export function RichCalendar({
                 <button
                   type="button"
                   onClick={onNavigatePrev}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-surface-raised hover:text-foreground"
                   aria-label="Previous"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
                 </button>
                 <button
                   type="button"
                   onClick={onNavigateNext}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted/40 hover:text-foreground"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-surface-raised hover:text-foreground"
                   aria-label="Next"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
                 </button>
               </>
             )}
@@ -323,7 +324,7 @@ export function RichCalendar({
       <div className="hidden sm:block">
         <div className="grid grid-cols-7 border-b border-border">
           {WEEK_DAYS.map((d) => (
-            <div key={d} className="py-3 text-center text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            <div key={d} className="py-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
               {d}
             </div>
           ))}

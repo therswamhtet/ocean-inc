@@ -18,9 +18,9 @@ type KanbanCardProps = {
 }
 
 const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+  todo: { label: 'To Do', dot: 'bg-[#999999]', bg: 'bg-[#999999]/10', text: 'text-[#666666]' },
+  in_progress: { label: 'In Progress', dot: 'bg-[#D4A843]', bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]' },
+  done: { label: 'Done', dot: 'bg-[#4A9E5C]', bg: 'bg-[#4A9E5C]/10', text: 'text-[#4A9E5C]' },
 }
 
 function getTaskTags(task: TaskRow): string[] {
@@ -81,12 +81,12 @@ function DesignUploadButton({ taskId, projectId, onUploadComplete }: {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
-        className="inline-flex items-center gap-1 rounded-md border border-dashed border-purple-200 bg-purple-50/50 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 hover:bg-purple-100 hover:border-purple-300 transition"
+        className="inline-flex items-center gap-1 rounded-md border border-dashed border-border bg-surface-raised/50 px-1.5 py-0.5 text-[10px] font-medium text-foreground hover:bg-surface-raised hover:border-border-visible transition"
       >
         {uploading ? <LoaderCircle className="h-3 w-3 animate-spin" /> : <Upload className="h-2.5 w-2.5" />}
         Upload
       </button>
-      {error && <span className="text-[10px] text-destructive">{error}</span>}
+      {error && <span className="text-[10px] text-[#D71921]">{error}</span>}
     </>
   )
 }
@@ -103,7 +103,7 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
   const overdue = isTaskOverdue(task)
   const cardDate = formatCardDate(task)
   const s = overdue
-    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+    ? { label: 'Overdue', dot: 'bg-[#D71921]', bg: 'bg-[#D71921]/10', text: 'text-[#D71921]' }
     : (statusPill[task.status] ?? statusPill.todo)
   const tags = getTaskTags({ ...task, design_file_path: currentDesignPath })
   const displayTask = { ...task, design_file_path: currentDesignPath }
@@ -121,9 +121,9 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
         data-dragging={isDragging ? 'true' : 'false'}
         onClick={handleClick}
         className={cn(
-          'group relative rounded-lg border bg-card p-3 cursor-pointer transition-all',
-          'hover:shadow-md hover:border-primary/20',
-          overdue ? 'border-red-200 bg-red-50/30' : 'border-border'
+          'group relative rounded-lg border bg-surface p-3 cursor-pointer transition-all',
+          'hover:border-foreground/20',
+          overdue ? 'border-[#D71921]/20' : 'border-border'
         )}
       >
         {isMounted && (
@@ -146,9 +146,9 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
                 key={tag}
                 className={cn(
                   'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
-                  tag === 'Content' ? 'bg-blue-50 text-blue-600' :
-                  tag === 'Design' ? 'bg-purple-50 text-purple-600' :
-                  'bg-emerald-50 text-emerald-600'
+                  tag === 'Content' ? 'bg-[#D4A843]/10 text-[#D4A843]' :
+                  tag === 'Design' ? 'bg-surface-raised text-foreground' :
+                  'bg-[#4A9E5C]/10 text-[#4A9E5C]'
                 )}
               >
                 {tag}
@@ -178,7 +178,7 @@ export function KanbanCard({ task, projectId, clientId }: KanbanCardProps) {
             {s.label}
           </span>
           {cardDate && (
-            <span className={cn('text-[11px] tabular-nums', overdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
+            <span className={cn('text-[11px] tabular-nums', overdue ? 'font-semibold text-[#D71921]' : 'text-muted-foreground')}>
               {cardDate}
             </span>
           )}

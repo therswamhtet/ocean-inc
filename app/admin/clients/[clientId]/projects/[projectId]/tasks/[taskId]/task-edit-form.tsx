@@ -86,10 +86,30 @@ type TaskEditFormProps = {
 }
 
 const statusOptions: { value: 'todo' | 'in_progress' | 'done'; label: string; dot: string }[] = [
-  { value: 'todo', label: 'To Do', dot: 'bg-slate-400' },
-  { value: 'in_progress', label: 'In Progress', dot: 'bg-blue-400' },
-  { value: 'done', label: 'Done', dot: 'bg-green-500' },
+  { value: 'todo', label: 'To Do', dot: 'bg-[#999999]' },
+  { value: 'in_progress', label: 'In Progress', dot: 'bg-[#D4A843]' },
+  { value: 'done', label: 'Done', dot: 'bg-[#4A9E5C]' },
 ]
+
+function Section({ title, icon: Icon, children }: { title: string; icon?: React.ElementType; children: React.ReactNode }) {
+  return (
+    <section className="rounded-lg border border-border bg-surface">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />}
+        <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</h2>
+      </div>
+      <div className="p-5 space-y-5">{children}</div>
+    </section>
+  )
+}
+
+function FieldLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
+  return (
+    <label htmlFor={htmlFor} className="mb-2 block font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+      {children}
+    </label>
+  )
+}
 
 export function TaskEditForm({
   clientId,
@@ -173,145 +193,127 @@ export function TaskEditForm({
   }
 
   return (
-    <div className="space-y-4">
-      {/* ── Content Section ── */}
-      <section className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Content</h2>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Content */}
+      <Section title="Content">
+        <div>
+          <FieldLabel htmlFor="title">Title</FieldLabel>
+          <Input id="title" placeholder="Instagram carousel" {...register('title')} />
+          {errors.title && <p className="mt-2 text-sm text-[#D71921]">{errors.title.message}</p>}
         </div>
-        <div className="space-y-4 p-5">
+
+        <div>
+          <FieldLabel htmlFor="briefing">Briefing</FieldLabel>
+          <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" rows={4} {...register('briefing')} />
+          <p className="mt-2 text-[11px] text-muted-foreground font-mono uppercase tracking-[0.06em]">URLs will render as clickable links</p>
+          {errors.briefing && <p className="mt-2 text-sm text-[#D71921]">{errors.briefing.message}</p>}
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <FieldLabel htmlFor="caption">Caption</FieldLabel>
+            <button
+              type="button"
+              onClick={handleCopyCaption}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-surface-raised hover:text-foreground transition font-mono uppercase tracking-[0.06em]"
+            >
+              <ClipboardCopy className="h-3 w-3" />
+              {copiedCaption ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <Textarea id="caption" placeholder="Write the post caption here" rows={4} {...register('caption')} />
+          {errors.caption && <p className="mt-2 text-sm text-[#D71921]">{errors.caption.message}</p>}
+        </div>
+      </Section>
+
+      {/* Schedule */}
+      <Section title="Schedule" icon={Calendar}>
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="title" className="mb-1.5 block text-sm font-medium text-foreground">Title</label>
-            <Input id="title" placeholder="Instagram carousel" {...register('title')} />
-            {errors.title && <p className="mt-1 text-sm text-destructive">{errors.title.message}</p>}
+            <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
+            <Input id="postingDate" type="date" {...register('postingDate')} />
+            {errors.postingDate && <p className="mt-2 text-sm text-[#D71921]">{errors.postingDate.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="briefing" className="mb-1.5 block text-sm font-medium text-foreground">Briefing</label>
-            <Textarea id="briefing" placeholder="Key notes, references, or campaign direction" rows={4} {...register('briefing')} />
-            <p className="mt-1 text-xs text-muted-foreground">URLs will render as clickable links.</p>
-            {errors.briefing && <p className="mt-1 text-sm text-destructive">{errors.briefing.message}</p>}
+            <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
+            <Input id="postingTime" type="time" {...register('postingTime')} />
+            {errors.postingTime && <p className="mt-2 text-sm text-[#D71921]">{errors.postingTime.message}</p>}
           </div>
 
           <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="caption" className="text-sm font-medium text-foreground">Caption</label>
-              <button
-                type="button"
-                onClick={handleCopyCaption}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
-              >
-                <ClipboardCopy className="h-3 w-3" />
-                {copiedCaption ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-            <Textarea id="caption" placeholder="Write the post caption here" rows={4} {...register('caption')} />
-            {errors.caption && <p className="mt-1 text-sm text-destructive">{errors.caption.message}</p>}
+            <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
+            <Input id="deadline" type="date" {...register('deadline')} />
+            {errors.deadline && <p className="mt-2 text-sm text-[#D71921]">{errors.deadline.message}</p>}
+          </div>
+
+          <div>
+            <FieldLabel>Status</FieldLabel>
+            <Select
+              value={watch('status')}
+              onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
+                setValue('status', value, { shouldDirty: true, shouldValidate: true })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    <span className="inline-flex items-center gap-2">
+                      <span className={cn('h-2 w-2 rounded-full', opt.dot)} />
+                      {opt.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.status && <p className="mt-2 text-sm text-[#D71921]">{errors.status.message}</p>}
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* ── Schedule Section ── */}
-      <section className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Schedule</h2>
-        </div>
-        <div className="p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="postingDate" className="mb-1.5 block text-sm font-medium text-foreground">{LABELS.task.postingDate}</label>
-              <Input id="postingDate" type="date" {...register('postingDate')} />
-              {errors.postingDate && <p className="mt-1 text-sm text-destructive">{errors.postingDate.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="postingTime" className="mb-1.5 block text-sm font-medium text-foreground">Posting Time</label>
-              <Input id="postingTime" type="time" {...register('postingTime')} />
-              {errors.postingTime && <p className="mt-1 text-sm text-destructive">{errors.postingTime.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="deadline" className="mb-1.5 block text-sm font-medium text-foreground">{LABELS.task.deadline}</label>
-              <Input id="deadline" type="date" {...register('deadline')} />
-              {errors.deadline && <p className="mt-1 text-sm text-destructive">{errors.deadline.message}</p>}
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Status</label>
-              <Select
-                value={watch('status')}
-                onValueChange={(value: 'todo' | 'in_progress' | 'done') =>
-                  setValue('status', value, { shouldDirty: true, shouldValidate: true })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <span className="inline-flex items-center gap-2">
-                        <span className={cn('h-2 w-2 rounded-full', opt.dot)} />
-                        {opt.label}
-                      </span>
-                    </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {errors.status && <p className="mt-1 text-sm text-destructive">{errors.status.message}</p>}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Design File Section ── */}
-      <section className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-3">
-          <div className="flex items-center gap-2">
-            <FileImage className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold text-foreground">Design file</h2>
-          </div>
-        </div>
-        <div className="p-5">
-          {designFilePath && currentFileName ? (
-            <div className="space-y-4">
-              {showDesignImage && previewUrl && (
-                <div className="overflow-hidden rounded-lg border border-border">
-                  <img src={previewUrl} alt={currentFileName} className="h-auto w-full max-h-80 object-contain bg-muted/20" />
-                </div>
-              )}
-              {showDesignImage && !previewUrl && (
-                <div className="flex items-center justify-center rounded-lg border border-border py-10">
-                  <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex items-center gap-3">
-                <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
-                <span className="text-xs text-muted-foreground truncate">{currentFileName}</span>
+      {/* Design File */}
+      <Section title="Design File" icon={FileImage}>
+        {designFilePath && currentFileName ? (
+          <div className="space-y-5">
+            {showDesignImage && previewUrl && (
+              <div className="overflow-hidden rounded-lg border border-border bg-surface-raised">
+                <img src={previewUrl} alt={currentFileName} className="h-auto w-full max-h-80 object-contain" />
               </div>
-              <div className="rounded-lg border border-dashed border-border p-4">
-                <p className="mb-3 text-sm font-medium text-foreground">Replace file</p>
-                <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
+            )}
+            {showDesignImage && !previewUrl && (
+              <div className="flex items-center justify-center rounded-lg border border-border py-10">
+                <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
+            )}
+            <div className="flex items-center gap-3">
+              <DesignFileDownloader fileName={currentFileName} filePath={designFilePath} />
+              <span className="text-xs text-muted-foreground truncate font-mono">{currentFileName}</span>
             </div>
-          ) : (
-            <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
-          )}
-        </div>
-      </section>
+            <div className="rounded-lg border border-dashed border-border p-5">
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Replace file</p>
+              <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
+            </div>
+          </div>
+        ) : (
+          <InlineUploader projectId={projectId} taskId={task.id} onUpload={handleDesignUpload} />
+        )}
+      </Section>
 
-      {/* ── Actions ── */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Actions */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
         <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="font-mono text-[11px] uppercase tracking-[0.06em]">
             <Link href={projectPath}>
               <ArrowLeft className="h-4 w-4" />
               Back to project
             </Link>
           </Button>
-          <Button disabled={isSaving || isReplacing} type="button" onClick={onSubmit}>
+          <Button disabled={isSaving || isReplacing} type="button" onClick={onSubmit} className="font-mono text-[11px] uppercase tracking-[0.06em]">
             {isSaving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {isSaving ? 'Saving...' : LABELS.common.save}
+            {isSaving ? 'Saving…' : LABELS.common.save}
           </Button>
         </div>
 
@@ -332,6 +334,7 @@ export function TaskEditForm({
               }
             })
           }}
+          className="font-mono text-[11px] uppercase tracking-[0.06em]"
         >
           {isDeleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           Delete task
@@ -339,7 +342,7 @@ export function TaskEditForm({
       </div>
 
       {feedback && (
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">{feedback}</div>
+        <div className="rounded-lg border border-border bg-surface-raised px-5 py-3 text-sm text-foreground font-mono">{feedback}</div>
       )}
     </div>
   )
@@ -390,18 +393,18 @@ function InlineUploader({ projectId, taskId, onUpload }: {
         onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f) }}
         className={cn(
           'rounded-lg border-2 border-dashed px-6 py-8 text-center transition cursor-pointer',
-          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/30'
+          isDragging ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/20 hover:bg-surface-raised'
         )}
       >
         <div className="mx-auto flex flex-col items-center gap-2">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/50">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised">
             {uploading ? <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" /> : <ImageUp className="h-5 w-5 text-muted-foreground" />}
           </div>
           <p className="text-sm font-medium text-foreground">Upload design file</p>
-          <p className="text-xs text-muted-foreground">Drag and drop or click to browse (max 10MB)</p>
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-[0.06em]">Drag and drop or click to browse (max 10MB)</p>
         </div>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-[#D71921]">{error}</p>}
     </div>
   )
 }

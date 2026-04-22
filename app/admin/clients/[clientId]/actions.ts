@@ -92,3 +92,44 @@ export async function updateClientDescriptionAction(clientId: string, formData: 
   revalidatePath(`/admin/clients/${clientId}`)
   redirect(`/admin/clients/${clientId}`)
 }
+
+const updateClientSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex code'),
+  description: z.string().trim().max(500, 'Description must be 500 characters or less').optional(),
+  isActive: z.enum(['true', 'false']),
+})
+
+export async function updateClientAction(clientId: string, formData: FormData) {
+  const serviceRoleClient = await requireAdmin()
+
+  const parsed = updateClientSchema.safeParse({
+    name: formData.get('name'),
+    color: formData.get('color'),
+    description: formData.get('description'),
+    isActive: formData.get('isActive'),
+  })
+
+  if (!parsed.success) {
+    redirect(`/admin/clients/${clientId}?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? 'Invalid client data')}`)
+  }
+
+  const { error } = await serviceRoleClient
+    .from('clients')
+    .update({
+      name: parsed.data.name,
+      color: parsed.data.color,
+      description: parsed.data.description || null,
+      is_active: parsed.data.isActive === 'true',
+    })
+    .eq('id', clientId)
+
+  if (error) {
+    redirect(`/admin/clients/${clientId}?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath(`/admin/clients/${clientId}`)
+  revalidatePath('/admin/clients')
+  revalidatePath('/admin')
+  redirect(`/admin/clients/${clientId}`)
+}

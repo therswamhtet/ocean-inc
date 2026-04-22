@@ -1,7 +1,5 @@
 import { format } from 'date-fns'
 
-import { LABELS } from '@/lib/labels'
-import { ContentCard } from '@/components/ui/content-card'
 import type { PortalTask } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
@@ -12,9 +10,9 @@ type PortalKanbanTaskCardProps = {
 }
 
 const statusPill: Record<string, { label: string; dot: string; bg: string; text: string }> = {
-  todo: { label: 'To Do', dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
-  in_progress: { label: 'In Progress', dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
-  done: { label: 'Done', dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-600' },
+  todo: { label: 'To Do', dot: 'bg-[#999999]', bg: 'bg-[#999999]/10', text: 'text-[#666666]' },
+  in_progress: { label: 'In Progress', dot: 'bg-[#D4A843]', bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]' },
+  done: { label: 'Done', dot: 'bg-[#4A9E5C]', bg: 'bg-[#4A9E5C]/10', text: 'text-[#4A9E5C]' },
 }
 
 function formatPostingDate(postingDate: string | null) {
@@ -35,7 +33,7 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
   const cardDate = formatPostingDate(task.postingDate)
   const tags = getTaskTags(task)
   const s = isOverdue
-    ? { label: 'Overdue', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-600' }
+    ? { label: 'Overdue', dot: 'bg-[#D71921]', bg: 'bg-[#D71921]/10', text: 'text-[#D71921]' }
     : (statusPill[task.status] ?? statusPill.todo)
 
   return (
@@ -44,7 +42,13 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
       onClick={() => onSelect(task)}
       className="w-full text-left"
     >
-      <ContentCard variant="kanban" className="cursor-pointer hover:shadow-sm transition-all hover:border-primary/20">
+      <article
+        className={cn(
+          'group relative rounded-lg border bg-surface p-3 cursor-pointer transition-all',
+          'hover:border-foreground/20',
+          isOverdue ? 'border-[#D71921]/20' : 'border-border'
+        )}
+      >
         {tags.length > 0 && (
           <div className="mb-1.5 flex flex-wrap items-center gap-1">
             {tags.map((tag) => (
@@ -52,9 +56,9 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
                 key={tag}
                 className={cn(
                   'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
-                  tag === 'Content' ? 'bg-blue-50 text-blue-600' :
-                  tag === 'Design' ? 'bg-purple-50 text-purple-600' :
-                  'bg-emerald-50 text-emerald-600'
+                  tag === 'Content' ? 'bg-[#D4A843]/10 text-[#D4A843]' :
+                  tag === 'Design' ? 'bg-surface-raised text-foreground' :
+                  'bg-[#4A9E5C]/10 text-[#4A9E5C]'
                 )}
               >
                 {tag}
@@ -73,12 +77,12 @@ export function PortalKanbanTaskCard({ task, isOverdue, onSelect }: PortalKanban
             {s.label}
           </span>
           {cardDate && (
-            <span className={cn('text-[11px] tabular-nums', isOverdue ? 'font-semibold text-red-600' : 'text-muted-foreground')}>
+            <span className={cn('text-[11px] tabular-nums font-mono', isOverdue ? 'font-semibold text-[#D71921]' : 'text-muted-foreground')}>
               {cardDate}
             </span>
           )}
         </div>
-      </ContentCard>
+      </article>
     </button>
   )
 }

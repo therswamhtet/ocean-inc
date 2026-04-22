@@ -1,6 +1,7 @@
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'
 
 import { DashboardMetrics, DashboardTaskSections } from '@/components/admin/dashboard-inner'
+import { AnimatedProjectsGrid } from '@/components/admin/animated-projects-grid'
 import { AdminCalendar } from '@/app/admin/calendar-wrapper'
 import { LABELS } from '@/lib/labels'
 import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
@@ -24,7 +25,7 @@ type ProjectForDashboard = {
   clients: { id: string; name: string; color: string | null } | null
 }
 
-const CLIENT_PALETTE = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+const CLIENT_PALETTE = ['#1A1A1A', '#4A4A4A', '#6B6B6B', '#8C8C8C', '#3D3D3D', '#525252', '#757575', '#999999']
 
 function getColorForName(name: string): string {
   let hash = 0
@@ -104,7 +105,7 @@ export default async function AdminDashboard() {
     {
       label: LABELS.dashboard.overdueTasks,
       value: overdue ?? 0,
-      className: 'border-l-4 border-l-red-500',
+      accent: 'text-[#D71921]',
     },
     { label: LABELS.dashboard.completedThisMonth, value: completedThisMonth ?? 0 },
   ]
@@ -114,54 +115,16 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       <section>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold">Dashboard</h2>
-          <p className="text-sm text-muted-foreground">Track current project volume and task progress.</p>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold tracking-tight">Dashboard</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Track current project volume and task progress.</p>
         </div>
 
         <DashboardMetrics metrics={metrics} />
       </section>
 
       {typedRecentProjects.length > 0 && (
-        <section>
-          <div className="mb-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-              Active Projects
-            </h3>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {typedRecentProjects.map((project) => {
-              const client = project.clients
-              const color = client?.color || (client?.name ? getColorForName(client.name) : '#b45309')
-
-              return (
-                <a
-                  key={project.id}
-                  href={`/admin/clients/${project.client_id}/projects/${project.id}`}
-                  className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/30 hover:shadow-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-0.5 h-8 w-1 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground truncate group-hover:underline">
-                        {project.name}
-                      </p>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{monthName(project.month)} {project.year}</span>
-                      </div>
-                      {client && (
-                        <p className="mt-1 text-xs text-muted-foreground truncate">{client.name}</p>
-                      )}
-                    </div>
-                  </div>
-                </a>
-              )
-            })}
-          </div>
-        </section>
+        <AnimatedProjectsGrid projects={typedRecentProjects} />
       )}
 
       <AdminCalendar

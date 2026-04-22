@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { format, startOfMonth, endOfMonth, isSameDay, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth } from 'date-fns'
 
 import { RichCalendar, type RichCalendarDayInfo, type RichCalendarDayEvent } from '@/components/rich-calendar'
@@ -45,6 +46,7 @@ type AdminCalendarProps = {
 }
 
 export function AdminCalendar({ tasks, currentMonth }: AdminCalendarProps) {
+  const router = useRouter()
   const [anchorDate, setAnchorDate] = React.useState(currentMonth)
   const [expandedDays, setExpandedDays] = React.useState<Set<string>>(new Set())
 
@@ -65,6 +67,15 @@ export function AdminCalendar({ tasks, currentMonth }: AdminCalendarProps) {
       acc[t.posting_date].push(t)
     }
     return acc
+  }, [tasks])
+
+  // Keep a map from event id -> task for navigation
+  const taskById = React.useMemo(() => {
+    const map: Record<string, TaskForCalendar> = {}
+    for (const t of tasks ?? []) {
+      map[t.id] = t
+    }
+    return map
   }, [tasks])
 
   const daysGrid = allDays.reduce<RichCalendarDayInfo[][]>((weeks, day, i) => {
@@ -111,12 +122,19 @@ export function AdminCalendar({ tasks, currentMonth }: AdminCalendarProps) {
     })
   }
 
+  function handleEventClick(ev: RichCalendarDayEvent) {
+    const task = taskById[ev.id]
+    if (!task) return
+    router.push(`/admin/tasks/${task.id}`)
+  }
+
   return (
     <RichCalendar
       days={daysGrid}
       heading={format(anchorDate, 'MMMM yyyy')}
       onNavigatePrev={goToPrev}
       onNavigateNext={goToNext}
+      onEventClick={handleEventClick}
       expandable
       onExpandDay={handleExpand}
       expandedDays={expandedDays}

@@ -218,7 +218,7 @@ export function QuickTaskDialog({ clients, projectsByClient, onSuccess }: QuickT
                     className="h-10"
                     {...register('title')}
                   />
-                  {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+                  {errors.title && <p className="text-xs text-[#D71921]">{errors.title.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -291,7 +291,7 @@ export function QuickTaskDialog({ clients, projectsByClient, onSuccess }: QuickT
                 <div className={cn(
                   'rounded-lg border px-4 py-2.5 text-sm',
                   message.includes('success') || message.includes('uploaded')
-                    ? 'border-green-200 bg-green-50 text-green-700'
+                    ? 'border-[#4A9E5C]/20 bg-[#4A9E5C]/10 text-[#4A9E5C]'
                     : 'border-border text-foreground'
                 )}>
                   {message}

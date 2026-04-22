@@ -66,7 +66,7 @@ export function TaskViewToggle({ initialTasks, projectId, clientId }: TaskViewTo
                 className={cn(
                   'flex items-center gap-1.5 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium transition-colors',
                   activeTab === tab.id
-                    ? 'border-primary text-primary'
+                    ? 'border-foreground text-foreground'
                     : 'text-muted-foreground border-transparent hover:text-foreground hover:border-muted-foreground/50'
                 )}
               >

@@ -30,9 +30,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased dark`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const stored = localStorage.getItem('orca-theme')
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+                if (stored === 'dark' || (!stored && systemDark)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              })()
+            `,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         {children}

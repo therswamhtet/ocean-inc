@@ -2,6 +2,7 @@ import { login } from './actions'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { LoginAnimations } from './login-animations'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function LoginPage({
   searchParams,
@@ -18,7 +19,10 @@ export default async function LoginPage({
   const params = await searchParams
 
   return (
-    <div className="flex min-h-screen items-center justify-center dot-grid-subtle">
+    <div className="relative flex min-h-screen items-center justify-center dot-grid-subtle">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle size="sm" />
+      </div>
       <LoginAnimations error={params.error} />
     </div>
   )

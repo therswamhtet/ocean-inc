@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 
 import { PortalShell } from '@/components/portal/portal-shell'
+import { TaskStatusSummary } from '@/components/portal/task-status-summary'
 import { getPortalDataBySlug } from '@/lib/portal/queries'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,18 +20,20 @@ export default async function ClientPortalPage({
   }
 
   return (
-    <div className="dot-grid min-h-screen bg-background">
+    <div className="dot-grid-subtle min-h-screen bg-background">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         {/* Top accent bar */}
         <div className="h-0.5 w-full" style={{ backgroundColor: portalData.client.color }} />
 
-        <header className="flex items-center gap-3 space-y-2 rounded-lg border border-border bg-surface p-5">
-          <div className="h-8 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: portalData.client.color }} />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{portalData.client.name}</h1>
-            {portalData.client.description && (
-              <p className="text-sm text-muted-foreground">{portalData.client.description}</p>
-            )}
+        <header className="rounded-lg border border-border bg-surface p-5">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-1 flex-shrink-0 rounded-sm" style={{ backgroundColor: portalData.client.color }} />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{portalData.client.name}</h1>
+              {portalData.client.description && (
+                <p className="text-sm text-muted-foreground">{portalData.client.description}</p>
+              )}
+            </div>
           </div>
         </header>
 
@@ -40,7 +44,11 @@ export default async function ClientPortalPage({
             )
             return (
               <div key={project.id} className="space-y-4">
-                <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{project.name}</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{project.name}</h2>
+                  <ThemeToggle size="sm" />
+                </div>
+                <TaskStatusSummary tasks={projectTasks} />
                 <PortalShell key={project.id} tasks={projectTasks} />
               </div>
             )

@@ -19,6 +19,9 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "Orca Digital",
   description: "Project management & client portal for Orca Digital",
+  icons: {
+    icon: "/icon.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased dark`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>

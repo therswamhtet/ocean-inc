@@ -1,36 +1,36 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Nothing-inspired light mode — technical manual aesthetic */
-  --color-background: #F5F5F5;
-  --color-foreground: #1A1A1A;
-  --color-primary: #1A1A1A;
-  --color-primary-foreground: #F5F5F5;
-  --color-secondary: #F0F0F0;
-  --color-secondary-foreground: #1A1A1A;
-  --color-muted: #F0F0F0;
-  --color-muted-foreground: #666666;
-  --color-accent: #1A1A1A;
-  --color-accent-foreground: #F5F5F5;
+  /* Nothing Design System — Dark Mode (OLED black) */
+  --color-background: #000000;
+  --color-foreground: #E8E8E8;
+  --color-primary: #FFFFFF;
+  --color-primary-foreground: #000000;
+  --color-secondary: #1A1A1A;
+  --color-secondary-foreground: #E8E8E8;
+  --color-muted: #1A1A1A;
+  --color-muted-foreground: #999999;
+  --color-accent: #D71921;
+  --color-accent-foreground: #FFFFFF;
   --color-destructive: #D71921;
   --color-destructive-foreground: #FFFFFF;
-  --color-border: #E8E8E8;
-  --color-input: #E8E8E8;
-  --color-ring: #1A1A1A;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #1A1A1A;
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #1A1A1A;
+  --color-border: #222222;
+  --color-input: #222222;
+  --color-ring: #FFFFFF;
+  --color-card: #111111;
+  --color-card-foreground: #E8E8E8;
+  --color-popover: #111111;
+  --color-popover-foreground: #E8E8E8;
 
   /* Surface / elevation */
-  --color-surface: #FFFFFF;
-  --color-surface-raised: #F0F0F0;
+  --color-surface: #111111;
+  --color-surface-raised: #1A1A1A;
 
   /* Status colors */
   --color-status-done: #4A9E5C;
   --color-status-in-progress: #D4A843;
   --color-status-overdue: #D71921;
-  --color-status-todo: #CCCCCC;
+  --color-status-todo: #666666;
 
   /* Fonts */
   --font-sans: var(--font-space-grotesk), "DM Sans", system-ui, sans-serif;
@@ -43,19 +43,20 @@
 }
 
 :root {
-  --background: #F5F5F5;
-  --foreground: #1A1A1A;
-  --surface: #FFFFFF;
-  --surface-raised: #F0F0F0;
-  --border-subtle: #E8E8E8;
-  --border-visible: #CCCCCC;
-  --text-disabled: #999999;
-  --text-secondary: #666666;
-  --text-primary: #1A1A1A;
-  --text-display: #000000;
+  --background: #000000;
+  --foreground: #E8E8E8;
+  --surface: #111111;
+  --surface-raised: #1A1A1A;
+  --border-subtle: #222222;
+  --border-visible: #333333;
+  --text-disabled: #666666;
+  --text-secondary: #999999;
+  --text-primary: #E8E8E8;
+  --text-display: #FFFFFF;
   --accent-red: #D71921;
   --accent-success: #4A9E5C;
   --accent-warning: #D4A843;
+  --interactive: #5B9BF6;
 }
 
 * {
@@ -88,12 +89,77 @@ body {
 
 /* Nothing dot-grid motif */
 .dot-grid {
-  background-image: radial-gradient(circle, var(--border-visible) 1px, transparent 1px);
-  background-size: 16px 16px;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 0.5px, transparent 0.5px);
+  background-size: 20px 20px;
 }
 .dot-grid-subtle {
-  background-image: radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
-  background-size: 12px 12px;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 0.5px, transparent 0.5px);
+  background-size: 16px 16px;
+}
+.dot-grid-strong {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Technical grid lines — like blueprint / instrument panel */
+.grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.grid-lines-dense {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Horizontal scanline / technical stripe pattern */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,0.02) 3px,
+    rgba(255,255,255,0.02) 4px
+  );
+}
+
+/* Diagonal hatch — for empty states / placeholders */
+.hatch-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,255,255,0.03) 10px,
+    rgba(255,255,255,0.03) 11px
+  );
+}
+
+/* Corner brackets — technical frame decoration */
+.corner-brackets {
+  position: relative;
+}
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: rgba(255,255,255,0.12);
+}
+.corner-brackets::before {
+  top: 12px;
+  left: 12px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+.corner-brackets::after {
+  bottom: 12px;
+  right: 12px;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
 }
 
 /* Nothing-style technical button base */
@@ -103,6 +169,19 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   min-height: 44px;
+}
+
+/* Hide native date/time picker icons — replaced with custom Lucide icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="date"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-inner-spin-button {
+  display: none;
+  -webkit-appearance: none;
 }
 
 /* Font utilities */

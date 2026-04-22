@@ -219,7 +219,7 @@ export default async function ClientProjectsPage({
       </div>
 
       {pageError && (
-        <div className="rounded-lg border border-[#D71921]/20 bg-[#D71921]/5 px-4 py-3 text-sm text-[#D71921]">
+        <div className="rounded-lg border border-[#D71921]/20 bg-[#D71921]/10 px-4 py-3 text-sm text-[#D71921]">
           {pageError}
         </div>
       )}
@@ -307,7 +307,7 @@ export default async function ClientProjectsPage({
                     <form action={deleteProjectAction.bind(null, project.id, clientId)}>
                       <button
                         type="submit"
-                        className="rounded-md p-1.5 text-muted-foreground/50 transition hover:text-[#D71921] hover:bg-[#D71921]/5"
+                        className="rounded-md p-1.5 text-muted-foreground/50 transition hover:text-[#D71921] hover:bg-[#D71921]/10"
                         aria-label={`Delete ${project.name}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -322,7 +322,7 @@ export default async function ClientProjectsPage({
       )}
 
       {projects && projects.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
+        <div className="hatch-pattern rounded-lg border border-dashed border-border py-16 text-center">
           <Briefcase className="mx-auto h-8 w-8 text-muted-foreground/40" />
           <p className="mt-3 text-lg font-medium text-foreground">No projects yet</p>
           <p className="mt-1 text-sm text-muted-foreground">Create your first project for {client.name}.</p>

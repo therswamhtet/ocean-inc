@@ -128,7 +128,7 @@ export default async function ProjectTasksPage({
             {/* Color bar */}
             <div
               className="h-10 w-1.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: project.clients?.color || '#1A1A1A' }}
+              style={{ backgroundColor: project.clients?.color || '#D71921' }}
             />
             <div className="space-y-2">
               <div className="flex items-center gap-3">

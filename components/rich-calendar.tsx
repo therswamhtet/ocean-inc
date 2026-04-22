@@ -22,7 +22,7 @@ import {
 export type RichCalendarDayEvent = {
   id: string
   title: string
-  color: number
+  color: string
   subtitle?: string
 }
 
@@ -50,19 +50,16 @@ export type RichCalendarProps = {
   expandedDays?: Set<string>
 }
 
-// ── Nothing-style monochrome event colours ─────────────────────
-const EVENT_COLOURS = [
-  { bar: 'bg-[#1A1A1A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#4A4A4A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#6B6B6B]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#8C8C8C]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#3D3D3D]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#525252]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#757575]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#999999]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#2A2A2A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-  { bar: 'bg-[#5A5A5A]',       pill: 'bg-surface border-border',              text: 'text-foreground' },
-]
+// ── Status-based event colours ────────────────────────────────
+const STATUS_COLOURS: Record<string, { bar: string; pill: string }> = {
+  todo:        { bar: 'bg-[#6B7280]', pill: 'bg-[#6B7280]/10 border-[#6B7280]/20' },
+  in_progress: { bar: 'bg-[#3B82F6]', pill: 'bg-[#3B82F6]/10 border-[#3B82F6]/20' },
+  done:        { bar: 'bg-[#10B981]', pill: 'bg-[#10B981]/10 border-[#10B981]/20' },
+}
+
+function getStatusColour(status: string) {
+  return STATUS_COLOURS[status] ?? { bar: 'bg-[#6B7280]', pill: 'bg-[#6B7280]/10 border-[#6B7280]/20' }
+}
 
 // ── Desktop grid cell ──────────────────────────────────────────
 function DeskCell({
@@ -114,7 +111,7 @@ function DeskCell({
       {/* Event cards — Trello-style with accent bar */}
       <div className="flex flex-col gap-1.5 flex-1 overflow-hidden">
         {visible.map((ev) => {
-          const c = EVENT_COLOURS[ev.color % EVENT_COLOURS.length]
+          const c = getStatusColour(ev.color)
           return (
             <div
               key={ev.id}
@@ -215,7 +212,7 @@ function MobileDayCard({
       {events.length > 0 ? (
         <div className="space-y-2">
           {visible.map((ev) => {
-            const c = EVENT_COLOURS[ev.color % EVENT_COLOURS.length]
+            const c = getStatusColour(ev.color)
             return (
               <div
                 key={ev.id}

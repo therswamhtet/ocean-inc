@@ -127,8 +127,8 @@ function adminCategoriseTask(task: TaskForCalendar): number {
 }
 
 const ADMIN_DOT_COLOURS = [
-  'bg-[#999999]', 'bg-pink-400', 'bg-purple-400', 'bg-indigo-400', 'bg-[#D4A843]',
-  'bg-violet-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400', 'bg-[#999999]',
+  'bg-[#999999]', 'bg-[#EC4899]', 'bg-[#8B5CF6]', 'bg-[#5B9BF6]', 'bg-[#D4A843]',
+  'bg-[#06B6D4]', 'bg-[#4A9E5C]', 'bg-[#F97316]', 'bg-[#D71921]', 'bg-[#999999]',
 ]
 
 function AdminEventDot({ task }: { task: TaskForCalendar }) {

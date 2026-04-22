@@ -110,7 +110,7 @@ export function ClientCard({
                   startTransition(() => handleDelete())
                 }
               }}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-[#D71921]/5 hover:text-[#D71921] hover:border-[#D71921]/20"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-[#D71921]/10 hover:text-[#D71921] hover:border-[#D71921]/20"
               title="Delete client"
             >
               <Trash2 className="h-3 w-3" />

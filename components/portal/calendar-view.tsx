@@ -16,37 +16,17 @@ type PortalCalendarViewProps = {
 
 const weekDayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-// ── Categorise tasks and assign colours (matches the reference design) ──
-function categoriseTask(task: PortalTask): number {
-  const title = task.title.toLowerCase()
-  if (/standup|stand-up|stand ?up|sync /.test(title)) return 0
-  if (/lunch|dinner|coffee|break|half marath/.test(title)) return 1
-  if (/one.?on.?one|1on1|1:1/.test(title)) return 2
-  if (/all.?hands|demo|meeting|catch ?up/.test(title)) return 3
-  if (/plann|strateg|roadmap/.test(title)) return 4
-  if (/design|content |creative/.test(title)) return 5
-  if (/deep work|writing|coding/.test(title)) return 6
-  if (/inspection|engagment|client/.test(title)) return 7
-  if (/review|audit|quarterly/.test(title)) return 8
-  let hash = 0
-  for (let i = 0; i < task.title.length; i++) hash = (hash + task.title.charCodeAt(i) * 31) % 10
-  return hash
-}
-
-function getCategoryColour(category: number) {
-  const colours = [
-    { bg: 'bg-[#999999]/10', text: 'text-[#666666]', border: 'border-[#999999]/20/80' },
-    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
-    { bg: 'bg-surface-raised', text: 'text-purple-700', border: 'border-border/80' },
-    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
-    { bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]', border: 'border-[#D4A843]/20/80' },
-    { bg: 'bg-surface-raised', text: 'text-foreground', border: 'border-border/80' },
-    { bg: 'bg-[#4A9E5C]/10', text: 'text-emerald-700', border: 'border-[#4A9E5C]/20/80' },
-    { bg: 'bg-[#D4A843]/10', text: 'text-[#D4A843]', border: 'border-[#D4A843]/20/80' },
-    { bg: 'bg-[#D71921]/10', text: 'text-[#D71921]', border: 'border-[#D71921]/20/80' },
-    { bg: 'bg-surface-raised', text: 'text-[#666666]', border: 'border-border/80' },
-  ]
-  return colours[category % colours.length]
+// ── Status-based colours ────────────────────────────────────────
+function getStatusColour(status: PortalTask['status']) {
+  switch (status) {
+    case 'in_progress':
+      return { bg: 'bg-[#3B82F6]/10', text: 'text-[#3B82F6]', border: 'border-[#3B82F6]/20' }
+    case 'done':
+      return { bg: 'bg-[#10B981]/10', text: 'text-[#10B981]', border: 'border-[#10B981]/20' }
+    case 'todo':
+    default:
+      return { bg: 'bg-[#6B7280]/10', text: 'text-[#6B7280]', border: 'border-[#6B7280]/20' }
+  }
 }
 
 // ── Pill shown on day cell ──
@@ -57,8 +37,7 @@ function TaskPill({
   task: PortalTask
   onClick: () => void
 }) {
-  const cat = categoriseTask(task)
-  const style = getCategoryColour(cat)
+  const style = getStatusColour(task.status)
 
   return (
     <button
@@ -146,8 +125,7 @@ function MobileDayCard({
       {tasks.length > 0 ? (
         <div className="space-y-2">
           {visible.map((task) => {
-            const cat = categoriseTask(task)
-            const style = getCategoryColour(cat)
+            const style = getStatusColour(task.status)
             return (
               <button
                 key={task.id}

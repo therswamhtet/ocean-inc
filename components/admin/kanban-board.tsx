@@ -66,8 +66,8 @@ function KanbanColumn({
           ))}
 
           {tasks.length === 0 ? (
-            <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-border">
-              <p className="text-sm text-muted-foreground">No tasks</p>
+            <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-border hatch-pattern">
+              <p className="text-sm text-muted-foreground font-mono uppercase tracking-[0.06em]">No tasks</p>
             </div>
           ) : null}
         </div>

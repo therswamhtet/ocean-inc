@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
 import {
   Select,
   SelectContent,
@@ -249,11 +250,11 @@ export function QuickTaskDialog({ clients, projectsByClient, onSuccess }: QuickT
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">{LABELS.task.postingDate}</label>
-                  <Input type="date" className="h-10" {...register('postingDate')} />
+                  <DateInput className="h-10" {...register('postingDate')} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">{LABELS.task.deadline}</label>
-                  <Input type="date" className="h-10" {...register('deadline')} />
+                  <DateInput className="h-10" {...register('deadline')} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">{LABELS.task.status}</label>

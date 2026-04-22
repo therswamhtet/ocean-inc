@@ -6,28 +6,11 @@ import { format, startOfMonth, endOfMonth, isSameDay, startOfWeek, endOfWeek, ea
 import { RichCalendar, type RichCalendarDayInfo, type RichCalendarDayEvent } from '@/components/rich-calendar'
 import type { PortalTask } from '@/lib/portal/types'
 
-// ── Categorise tasks for colour assignment ─────────────────────
-function categoriseTask(task: PortalTask): number {
-  const title = task.title.toLowerCase()
-  if (/standup|stand-up|stand ?up|sync /.test(title)) return 0
-  if (/lunch|dinner|coffee|break|half marath/.test(title)) return 1
-  if (/one.?on.?one|1on1|1:1/.test(title)) return 2
-  if (/all.?hands|demo|meeting|catch ?up/.test(title)) return 3
-  if (/plann|strateg|roadmap/.test(title)) return 4
-  if (/design|content |creative/.test(title)) return 5
-  if (/deep work|writing|coding/.test(title)) return 6
-  if (/inspection|engagment|client/.test(title)) return 7
-  if (/review|audit|quarterly/.test(title)) return 8
-  let hash = 0
-  for (let i = 0; i < task.title.length; i++) hash = (hash + task.title.charCodeAt(i) * 31) % 10
-  return hash
-}
-
 function mapTaskToEvent(task: PortalTask): RichCalendarDayEvent {
   return {
     id: task.id,
     title: task.title,
-    color: categoriseTask(task),
+    color: task.status,
   }
 }
 

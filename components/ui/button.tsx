@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default: "rounded-full border-foreground bg-foreground px-6 py-2.5 text-background hover:bg-foreground/90",
         outline: "rounded-full border-border-visible bg-transparent px-6 py-2.5 text-foreground hover:bg-surface-raised",
         ghost: "rounded-md border-transparent px-3 py-2 text-muted-foreground hover:bg-surface-raised hover:text-foreground",
-        destructive: "rounded-full border-[#D71921] bg-transparent px-6 py-2.5 text-[#D71921] hover:bg-[#D71921]/5",
+        destructive: "rounded-full border-[#D71921] bg-transparent px-6 py-2.5 text-[#D71921] hover:bg-[#D71921]/10",
       },
       size: {
         default: "min-h-[44px]",

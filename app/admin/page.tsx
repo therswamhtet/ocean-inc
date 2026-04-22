@@ -25,7 +25,7 @@ type ProjectForDashboard = {
   clients: { id: string; name: string; color: string | null } | null
 }
 
-const CLIENT_PALETTE = ['#1A1A1A', '#4A4A4A', '#6B6B6B', '#8C8C8C', '#3D3D3D', '#525252', '#757575', '#999999']
+const CLIENT_PALETTE = ['#D71921', '#4A9E5C', '#D4A843', '#5B9BF6', '#EC4899', '#06B6D4', '#F97316', '#8B5CF6']
 
 function getColorForName(name: string): string {
   let hash = 0
@@ -116,7 +116,7 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       <section>
         <div className="mb-6">
-          <h2 className="text-xl font-semibold tracking-tight">Dashboard</h2>
+          <h2 className="text-xl font-bold tracking-tight">Dashboard</h2>
           <p className="mt-1 text-sm text-muted-foreground">Track current project volume and task progress.</p>
         </div>
 

@@ -17,6 +17,7 @@ import DesignFileDownloader from '@/components/admin/design-file-downloader'
 import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput, TimeInput } from '@/components/ui/date-input'
 import {
   Select,
   SelectContent,
@@ -231,19 +232,19 @@ export function TaskEditForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
-            <Input id="postingDate" type="date" {...register('postingDate')} />
+            <DateInput id="postingDate" {...register('postingDate')} />
             {errors.postingDate && <p className="mt-2 text-sm text-[#D71921]">{errors.postingDate.message}</p>}
           </div>
 
           <div>
             <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
-            <Input id="postingTime" type="time" {...register('postingTime')} />
+            <TimeInput id="postingTime" {...register('postingTime')} />
             {errors.postingTime && <p className="mt-2 text-sm text-[#D71921]">{errors.postingTime.message}</p>}
           </div>
 
           <div>
             <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
-            <Input id="deadline" type="date" {...register('deadline')} />
+            <DateInput id="deadline" {...register('deadline')} />
             {errors.deadline && <p className="mt-2 text-sm text-[#D71921]">{errors.deadline.message}</p>}
           </div>
 

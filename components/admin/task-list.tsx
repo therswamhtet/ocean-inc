@@ -36,7 +36,7 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border py-12 text-center">
+      <div className="hatch-pattern rounded-xl border border-dashed border-border py-12 text-center">
         <p className="text-base font-medium text-foreground">No tasks yet</p>
         <p className="mt-1 text-sm text-muted-foreground">Create your first task to get started.</p>
       </div>

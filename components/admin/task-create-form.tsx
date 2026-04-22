@@ -12,6 +12,7 @@ import { LABELS } from '@/lib/labels'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { DateInput, TimeInput } from '@/components/ui/date-input'
 import {
   Select,
   SelectContent,
@@ -119,19 +120,19 @@ export function TaskCreateForm({ projectId, onSuccess }: TaskCreateFormProps) {
 
         <Field>
           <FieldLabel htmlFor="postingDate">{LABELS.task.postingDate}</FieldLabel>
-          <Input id="postingDate" type="date" {...register('postingDate')} />
+          <DateInput id="postingDate" {...register('postingDate')} />
           {errors.postingDate ? <FieldError>{errors.postingDate.message}</FieldError> : null}
         </Field>
 
         <Field>
           <FieldLabel htmlFor="postingTime">Posting Time</FieldLabel>
-          <Input id="postingTime" type="time" {...register('postingTime')} />
+          <TimeInput id="postingTime" {...register('postingTime')} />
           {errors.postingTime ? <FieldError>{errors.postingTime.message}</FieldError> : null}
         </Field>
 
         <Field>
           <FieldLabel htmlFor="deadline">{LABELS.task.deadline}</FieldLabel>
-          <Input id="deadline" type="date" {...register('deadline')} />
+          <DateInput id="deadline" {...register('deadline')} />
           {errors.deadline ? <FieldError>{errors.deadline.message}</FieldError> : null}
         </Field>
 

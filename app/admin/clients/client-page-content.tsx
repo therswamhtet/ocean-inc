@@ -69,7 +69,7 @@ export function ClientPageContent({
       </div>
 
       {clients.length === 0 ? (
-        <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-dashed border-border py-16">
+        <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 hatch-pattern">
           <Users className="h-8 w-8 text-muted-foreground/40" />
           <p className="mt-3 text-lg font-medium text-foreground">No clients yet</p>
           <p className="mt-1 text-sm text-muted-foreground">

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { animate } from 'animejs'
 
 function getColorForName(name: string): string {
-  const CLIENT_PALETTE = ['#1A1A1A', '#4A4A4A', '#6B6B6B', '#8C8C8C', '#3D3D3D', '#525252', '#757575', '#999999']
+  const CLIENT_PALETTE = ['#D71921', '#4A9E5C', '#D4A843', '#5B9BF6', '#EC4899', '#06B6D4', '#F97316', '#8B5CF6']
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
@@ -69,7 +69,7 @@ export function AnimatedProjectsGrid({ projects }: { projects: ProjectForDashboa
       <div ref={gridRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => {
           const client = project.clients
-          const color = client?.color || (client?.name ? getColorForName(client.name) : '#1A1A1A')
+          const color = client?.color || (client?.name ? getColorForName(client.name) : '#D71921')
 
           return (
             <a

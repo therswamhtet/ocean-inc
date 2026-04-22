@@ -15,28 +15,12 @@ type TaskForCalendar = {
   projects: { id: string; name: string; client_id: string } | null
 }
 
-// ── Categorise tasks for colour assignment ─────────────────────
-function adminCategoriseTask(task: TaskForCalendar): number {
-  const title = task.title.toLowerCase()
-  if (/standup|stand-up|sync /.test(title)) return 0
-  if (/lunch|dinner|coffee|break/.test(title)) return 1
-  if (/one.?on.?one|1on1|1:1/.test(title)) return 2
-  if (/all.?hands|demo|meeting|catch ?up/.test(title)) return 3
-  if (/plann|strateg|roadmap/.test(title)) return 4
-  if (/design|content |creative/.test(title)) return 5
-  if (/deep work|writing|coding/.test(title)) return 6
-  if (/inspection|engagment|client/.test(title)) return 7
-  if (/review|audit|quarterly/.test(title)) return 8
-  const hash = task.title.split('').reduce((h, c) => (h + c.charCodeAt(0) * 31) % 10, 0)
-  return hash
-}
-
 function mapTaskToEvent(task: TaskForCalendar): RichCalendarDayEvent {
   return {
     id: task.id,
     title: task.title,
     subtitle: task.projects?.name ?? '',
-    color: adminCategoriseTask(task),
+    color: task.status,
   }
 }
 

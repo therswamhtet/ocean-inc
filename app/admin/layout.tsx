@@ -19,7 +19,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-surface text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-border bg-surface lg:flex lg:flex-col">
         <div className="flex items-center justify-between border-b border-border px-6 py-5">

@@ -8,7 +8,7 @@ Orca Digital is an internal project management tool for a digital marketing agen
 
 **v1.2 Collaboration & Workflow** (v1.2.0)
 Status: Complete
-Phases: 15 of 15 complete
+Phases: 16 of 16 complete
 
 ## Phases
 
@@ -17,6 +17,7 @@ Phases: 15 of 15 complete
 | 13 | Collaboration & Comments | 1/1 | Done | 2026-04-07 |
 | 14 | Full Comment Management | 1/1 | Done | 2026-04-07 |
 | 15 | UI/UX Overhaul & Simplification | 4/4 | Done | 2026-04-20 |
+| 16 | Upload Bug Fix | 1/1 | Done | 2026-04-28 |
 
 ## Completed Roadmap History
 
@@ -51,6 +52,13 @@ Focus: Complete UI/UX overhaul — removed notifications and comments, disabled 
 Plans: 4/4 (15-01 through 15-04)
 Status: Complete (2026-04-20)
 
+### Phase 16: Upload Bug Fix
+
+Focus: Fix photo/design file upload failures by adding auth guard to upload API route, improving error handling across all client upload components, and ensuring consistent validation.
+
+Plans: 1/1 (16-01)
+Status: Complete (2026-04-28)
+
 ## Phase Details
 
 Phases will be defined during `/paul:plan`.
@@ -58,4 +66,4 @@ Phases will be defined during `/paul:plan`.
 ---
 
 *Roadmap created: 2026-04-07*
-*Last updated: 2026-04-20*
+*Last updated: 2026-04-28*

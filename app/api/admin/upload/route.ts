@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const path = formData.get('path') as string
@@ -19,13 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Files must be 10MB or smaller' }, { status: 400 })
     }
 
+    console.log('[upload] Uploading file:', { path, type: file.type, size: file.size })
+
     const supabase = createServiceRoleClient()
     const { error } = await supabase.storage.from('design-files').upload(path, file, {
       upsert: true,
     })
 
     if (error) {
-      console.error('[upload] Storage error:', error)
+      console.error('[upload] Storage error:', { message: error.message, path, type: file.type, size: file.size })
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 

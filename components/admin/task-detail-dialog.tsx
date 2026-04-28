@@ -83,8 +83,11 @@ function InlineDesignUploader({ taskId, projectId, onUploadComplete }: {
         const result = await updateTaskFilePathAction(taskId, data.path)
         if (result.success) onUploadComplete(data.path)
         else setError(result.error ?? 'Failed to save.')
-      } else { setError('Upload failed.') }
-    } catch { setError('Upload failed.') }
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setError(body.error ?? 'Upload failed.')
+      }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Upload failed.') }
     finally { setUploading(false) }
   }
 

@@ -5,40 +5,40 @@
 See: .paul/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Admins can create/manage social media content tasks and give clients a clean read-only portal — all in one place.
-**Current focus:** v1.2 UI/UX Overhaul & Simplification — Phase 15 COMPLETE
+**Current focus:** v1.2 complete — Phase 16 done
 
 ## Current Position
 
 Milestone: v1.2 Collaboration & Workflow (v1.2.0)
-Phase: 15 of 15 — UI/UX Overhaul & Simplification (COMPLETE)
-Plan: 15-04 complete
-Status: Phase 15 complete — all 4 plans done
-Last activity: 2026-04-20 — Plan 15-04 complete (calendar/mobile/dialog polish)
+Phase: 16 of 16 — Upload Bug Fix (COMPLETE)
+Plan: 16-01 complete
+Status: Phase 16 complete — all plans done
+Last activity: 2026-04-28 — Plan 16-01 complete (upload auth + error handling)
 
 Progress:
 - Milestone: [██████████] 100%
-- Phase 15: [██████████] 100%
+- Phase 16: [██████████] 100%
 
 ## Loop Position
 
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Loop complete - Phase 15 done]
+  ✓        ✓        ✓     [Loop complete - Phase 16 done]
 ```
 
 ## Session Continuity
 
-Last session: 2026-04-20
-Stopped at: Phase 15 complete — all UI/UX overhaul plans shipped
-Next action: Transition phase 15 as complete, archive milestone
-Resume file: .paul/phases/15-ui-ux-overhaul/15-04-SUMMARY.md
+Last session: 2026-04-28
+Stopped at: Phase 16 complete — upload fix shipped
+Next action: Transition phase 16 as complete, archive milestone or start v1.3
+Resume file: .paul/phases/16-upload-fix/16-01-SUMMARY.md
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Phase 15: 4 plans total (15-01, 15-02, 15-03, 15-04)
+- Total plans completed: 1
+- Phase 16: 1 plan total (16-01)
 
 ## Accumulated Context
 
@@ -63,12 +63,13 @@ Resume file: .paul/phases/15-ui-ux-overhaul/15-04-SUMMARY.md
 - Replaced StatusDot component with status pill badges across all views
 - Task edit form: section cards (Content/Schedule/Design File), removed team member assignment
 - Kanban detail dialogs: h3 section titles, breathing room, copy button as bordered element, status in footer
+- Upload API route now requires admin auth (createClient().auth.getUser()) — returns 401 for unauthenticated requests
+- All client upload components now parse and display server error messages instead of generic "Upload failed"
 
 ### Deferred Issues
-From codebase mapping:
-- Security: no auth guard on upload API route
 - Security: `dangerouslySetInnerHTML` without sanitizing on task briefing
 - Race condition in invite registration flow
+- Pre-existing test failures: portal-queries mock setup, portal-kanban aria-label drift (Phase 15 redesign), portal-task-dialog missing test env vars
 
 ### Blockers/Concerns
 None.

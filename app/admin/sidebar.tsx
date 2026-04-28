@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useRef } from "react"
-import { Briefcase, FolderKanban, LayoutDashboard, ListTodo, Settings } from "lucide-react"
+import { Briefcase, FolderKanban, Key, LayoutDashboard, ListTodo, Settings, BookOpen } from "lucide-react"
 import { animate } from "animejs"
 
 import { cn } from "@/lib/utils"
@@ -13,7 +13,12 @@ const navItems = [
   { href: "/admin/projects", label: "Projects", icon: Briefcase },
   { href: "/admin/tasks", label: "Tasks", icon: ListTodo },
   { href: "/admin/clients", label: "Clients", icon: FolderKanban },
+  { href: "/admin/api-keys", label: "API Keys", icon: Key },
   { href: "/admin/settings", label: "Settings", icon: Settings },
+]
+
+const externalItems = [
+  { href: "/api-docs", label: "API Docs", icon: BookOpen },
 ]
 
 function isActive(pathname: string, href: string) {
@@ -101,6 +106,20 @@ export function AdminSidebar({ mobile = false }: { mobile?: boolean }) {
   return (
     <nav ref={navRef} aria-label="Admin navigation" className={cn("flex flex-col gap-0.5", mobile && "pt-4")}>
       {navItems.map(({ href, label, icon: Icon }) => {
+        const active = isActive(pathname, href)
+
+        return (
+          <NavItem
+            key={href}
+            href={href}
+            label={label}
+            icon={Icon}
+            active={active}
+          />
+        )
+      })}
+      <div className="my-2 border-t border-border" />
+      {externalItems.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href)
 
         return (
